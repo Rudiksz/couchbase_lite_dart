@@ -7,7 +7,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:couchbase_lite_c/couchbase_lite_c.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 const testDB = 'plugintest';
 const testDir = 'D:\\tmp\\';

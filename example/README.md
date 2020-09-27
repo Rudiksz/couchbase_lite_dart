@@ -1,6 +1,6 @@
-# couchbase_lite_c_example
+# couchbase_lite_dart_example
 
-Demonstrates how to use the couchbase_lite_c plugin.
+Demonstrates how to use the couchbase_lite_dart plugin.
 
 ## Getting Started
 

@@ -4,7 +4,7 @@
 import 'dart:math';
 
 import 'package:cblc_flutter/fleece.dart';
-import 'package:couchbase_lite_c/couchbase_lite_c.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:flutter/material.dart';
 
 void main() async {

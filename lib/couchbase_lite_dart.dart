@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-library couchbase_lite_c;
+library couchbase_lite_dart;
 
 import 'dart:async';
 import 'dart:collection';
@@ -81,7 +81,7 @@ String findPackagePath(String currentPath, {bool windows}) {
     for (var line in lines) {
       var parts = line.split(':');
       if (parts.length > 1) {
-        if (parts[0] == 'couchbase_lite_c') {
+        if (parts[0] == 'couchbase_lite_dart') {
           var location = parts.sublist(1).join(':');
           return absolute(normalize(
               toFilePath(dirname(file.path), location, windows: windows)));

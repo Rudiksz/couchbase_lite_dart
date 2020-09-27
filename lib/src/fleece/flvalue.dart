@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-part of couchbase_lite_c;
+part of couchbase_lite_dart;
 
 /// The core Fleece data type is FLValue: a reference to a value in Fleece-encoded data.
 /// An FLValue can represent any JSON type (plus binary data).

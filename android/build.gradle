@@ -1,4 +1,4 @@
-group 'com.example.couchbase_lite_c'
+group 'com.example.couchbase_lite_dart'
 version '1.0-SNAPSHOT'
 
 buildscript {

@@ -1,4 +1,4 @@
-package com.example.couchbase_lite_c
+package com.example.couchbase_lite_dart
 
 import androidx.annotation.NonNull
 
@@ -18,7 +18,7 @@ class CouchbaseLite_cPlugin: FlutterPlugin, MethodCallHandler {
   private lateinit var channel : MethodChannel
 
   override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "couchbase_lite_c")
+    channel = MethodChannel(flutterPluginBinding.binaryMessenger, "couchbase_lite_dart")
     channel.setMethodCallHandler(this)
   }
 

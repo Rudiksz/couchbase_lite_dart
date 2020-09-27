@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:couchbase_lite_c/couchbase_lite_c.dart';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:test/test.dart';
 
 import '_test_utils.dart';

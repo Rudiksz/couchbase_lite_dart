@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-part of couchbase_lite_c;
+part of couchbase_lite_dart;
 
 ffi.Pointer<ffi.Int8> strToUtf8(String str) =>
     pffi.Utf8.toUtf8(str).cast<ffi.Int8>();

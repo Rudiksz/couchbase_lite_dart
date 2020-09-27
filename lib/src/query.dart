@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-part of couchbase_lite_c;
+part of couchbase_lite_dart;
 
 /// A Query represents a compiled database query. The query language is a large subset of
 /// the [N1QL](https://www.couchbase.com/products/n1ql) language from Couchbase Server, which
