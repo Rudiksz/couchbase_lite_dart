@@ -1,14 +1,16 @@
 name: couchbase_lite_dart
 version: 0.1.0
 description: Dart implementation of Couchbase Lite is an embedded, NoSQL JSON Document Style database.
-author: Rudolf Martincsek <rudolf.martincsek@gmail.com>
 homepage: https://github.com/Rudiksz/couchbase_lite_dart
 repository: https://github.com/Rudiksz/couchbase_lite_dart
 environment:
   sdk: '>=2.9.3 <3.0.0'
+  flutter: ^1.12.0
 dependencies:
   ffi: ^0.1.3
-  uuid:
+  uuid: ^2.2.2
+  meta: ^1.2.3
+  path: ^1.7.0
 
 dev_dependencies:
   test: ^1.5.3
