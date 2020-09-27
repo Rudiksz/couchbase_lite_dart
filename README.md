@@ -1,6 +1,3 @@
-
-[![pub package](https://img.shields.io/pub/v/mobx.svg?label=mobx&color=blue)](https://pub.dartlang.org/packages/)
-
 - **[Introduction](#introduction)**
 - **[Feature checklist](#feature-checklist)**
 - **[Examples](#examples)**
@@ -126,10 +123,9 @@ There are couple of ways in which you can contribute:
 
 * Couchbase Lite mobile [CBL]
 * Couchbase Lite C [CBL_C]
-* N1QL [N!QL]
+* N1QL [N1QL]
 
 [CBL]: https://www.couchbase.com/nosql-databases/couchbase-mobile
 [CBL_C]: https://github.com/couchbaselabs/couchbase-lite-C
 [N1QL]: https://www.couchbase.com/n1ql
 [FLEECE]: https://github.com/couchbaselabs/fleece
-[BLIP]: https://github.com/couchbaselabs/BLIP-Cpp/blob/master/docs/BLIP%20Protocol.md
