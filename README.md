@@ -47,7 +47,13 @@ Help with testing, documentation and development is welcome. Here's how you can 
 * **Blobs**
     * [ ] TODO
 
-# Examples
+# Examples and how to use
+Important in your main.dart call to initialize Windows specific bindings.
+```
+Cbl.init();
+```
+
+then
 
 ```dart
 /// Create/open a databse
