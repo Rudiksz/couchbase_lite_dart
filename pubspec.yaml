@@ -1,7 +1,7 @@
 name: couchbase_lite_c
-version: 0.0.1
-description: 'Couchbase Lite is an embedded, NoSQL JSON Document Style database for your apps.
-  Designed to work with data stored locally and synchronize data with Sync Gateway to a remote server.'
+version: 0.1.0
+description: Couchbase Lite is an embedded, NoSQL JSON Document Style database for your apps.
+  Designed to work with data stored locally and synchronize data with Sync Gateway to a remote server.
 author: Rudolf Martincsek <rudolf.martincsek@gmail.com>
 homepage: https://github.com/Rudiksz/couchbase_lite_c
 repository: https://github.com/Rudiksz/couchbase_lite_c
