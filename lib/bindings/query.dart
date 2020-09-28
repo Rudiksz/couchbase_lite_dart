@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 // coverage:ignore-file
-part of couchbase_lite_dart;
+part of couchbase_lite_c_bindings;
 
 // -- Data types
 
@@ -148,11 +148,11 @@ typedef _dart_CBLResultSet_Next = int Function(
   ffi.Pointer<CBLResultSet> resultSet,
 );
 
-typedef _c_CBLResultSet_RowDict = ffi.Pointer<_FLDict> Function(
+typedef _c_CBLResultSet_RowDict = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLResultSet> resultSet,
 );
 
-typedef _dart_CBLResultSet_RowDict = ffi.Pointer<_FLDict> Function(
+typedef _dart_CBLResultSet_RowDict = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLResultSet> resultSet,
 );
 

@@ -21,19 +21,19 @@ class Document {
   int sequence;
 
   /// Internal pointer to the C object
-  ffi.Pointer<CBLDocument> _doc;
-  ffi.Pointer<CBLDocument> get doc => _doc;
+  ffi.Pointer<cbl.CBLDocument> _doc;
+  ffi.Pointer<cbl.CBLDocument> get doc => _doc;
 
   /// Creates a document from a C pointer
   Document._internal(this._doc) {
     if (_doc != ffi.nullptr) {
-      final id = CBLDocument_ID(_doc);
+      final id = cbl.CBLDocument_ID(_doc);
       ID = pffi.Utf8.fromUtf8(id.cast());
 
-      final rev = CBLDocument_RevisionID(_doc);
+      final rev = cbl.CBLDocument_RevisionID(_doc);
       revisionID = pffi.Utf8.fromUtf8(rev.cast());
 
-      sequence = CBLDocument_Sequence(_doc);
+      sequence = cbl.CBLDocument_Sequence(_doc);
     }
   }
 
@@ -43,7 +43,7 @@ class Document {
   /// [Data] can be any JSON encodable object
   Document(this.ID, {dynamic data}) {
     assert(ID?.isNotEmpty ?? true, 'Document ID cannot be empty.');
-    _doc = CBLDocument_New(pffi.Utf8.toUtf8(ID).cast());
+    _doc = cbl.CBLDocument_New(pffi.Utf8.toUtf8(ID).cast());
     if (data != null) {
       properties = data;
     }
@@ -57,7 +57,7 @@ class Document {
   FLDict get properties {
     if (_doc == ffi.nullptr) return null;
 
-    return FLDict.fromPointer(CBLDocument_Properties(_doc));
+    return FLDict.fromPointer(cbl.CBLDocument_Properties(_doc));
   }
 
   /// Sets properties by encoding [data] using [jsonEncode]
@@ -67,7 +67,7 @@ class Document {
   String get jsonProperties {
     if (_doc == ffi.nullptr) return '';
 
-    final result = CBLDocument_PropertiesAsJSON(_doc);
+    final result = cbl.CBLDocument_PropertiesAsJSON(_doc);
     return pffi.Utf8.fromUtf8(result.cast());
   }
 
@@ -75,8 +75,8 @@ class Document {
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
   set jsonProperties(String data) {
-    final error = pffi.allocate<CBLError>();
-    CBLDocument_SetPropertiesAsJSON(
+    final error = pffi.allocate<cbl.CBLError>();
+    cbl.CBLDocument_SetPropertiesAsJSON(
       _doc,
       pffi.Utf8.toUtf8(data).cast(),
       error,
@@ -91,8 +91,8 @@ class Document {
   bool delete(
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
     if (_doc.address == ffi.nullptr.address) return false;
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDocument_Delete(_doc, concurrency.index, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDocument_Delete(_doc, concurrency.index, error);
 
     databaseError(error);
     return result != 0;
@@ -107,19 +107,19 @@ class Document {
   ///  Returns true if the document was purged, false if it doesn't exists and throws [DatabaseException] if the purge failed.
   bool purge() {
     if (_doc.address == ffi.nullptr.address) return false;
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDocument_Purge(_doc, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDocument_Purge(_doc, error);
 
     databaseError(error);
     return result != 0;
   }
 
-  /// Creates a new mutable CBLDocument instance that refers to the same document as the original.
+  /// Creates a new mutable cbl.CBLDocument instance that refers to the same document as the original.
   ///
   /// If the original document has unsaved changes, the new one will also start out with the same
   /// changes; but mutating one document thereafter will not affect the other.
   Document get mutableCopy {
-    final result = CBLDocument_MutableCopy(_doc);
+    final result = cbl.CBLDocument_MutableCopy(_doc);
 
     return result != ffi.nullptr ? Document._internal(result) : null;
   }

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 // coverage:ignore-file
-part of couchbase_lite_dart;
+part of couchbase_lite_c_bindings;
 
 // --- Data types
 
@@ -469,24 +469,6 @@ typedef _dart_CBLDatabase_SetDocumentExpiration = int Function(
   ffi.Pointer<CBLError> error,
 );
 
-typedef _dart_NotificationsReadyCallback = ffi.Void Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Pointer<CBLDatabase>,
-);
-
-typedef _dart_DatabaseChangeListener = ffi.Void Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Pointer<CBLDatabase>,
-  ffi.Uint32,
-  ffi.Pointer<ffi.Pointer<ffi.Int8>>,
-);
-
-typedef _dart_DocumentChangeListener = ffi.Void Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Pointer<CBLDatabase>,
-  ffi.Pointer<ffi.Int8>,
-);
-
 typedef CBLDatabaseChangeListener = ffi.Void Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLDatabase>,
@@ -583,10 +565,10 @@ typedef _dart_CBLDatabase_DeleteIndex = int Function(
   ffi.Pointer<CBLError> error,
 );
 
-typedef _c_CBLDatabase_IndexNames = ffi.Pointer<_FLMutableArray> Function(
+typedef _c_CBLDatabase_IndexNames = ffi.Pointer<FLMutableArray> Function(
   ffi.Pointer<CBLDatabase> db,
 );
 
-typedef _dart_CBLDatabase_IndexNames = ffi.Pointer<_FLMutableArray> Function(
+typedef _dart_CBLDatabase_IndexNames = ffi.Pointer<FLMutableArray> Function(
   ffi.Pointer<CBLDatabase> db,
 );

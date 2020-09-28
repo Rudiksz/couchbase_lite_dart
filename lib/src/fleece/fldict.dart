@@ -6,11 +6,11 @@ part of couchbase_lite_dart;
 
 /// FLDict is a "subclass" of FLValue, representing values that are dictionaries.
 class FLDict extends IterableBase<FLValue> {
-  ffi.Pointer<_FLDict> _value;
-  ffi.Pointer<_FLMutableDict> _mutable;
+  ffi.Pointer<cbl.FLDict> _value;
+  ffi.Pointer<cbl.FLMutableDict> _mutable;
 
   final error = pffi.allocate<ffi.Uint8>();
-  ffi.Pointer<_FLDictIterator> _c_iter = ffi.nullptr;
+  ffi.Pointer<cbl.FLDictIterator> _c_iter = ffi.nullptr;
   Iterator<FLValue> _iter;
   FLDictValues _values;
   FLDictKeys _keys;
@@ -19,55 +19,57 @@ class FLDict extends IterableBase<FLValue> {
   FLDict.fromPointer(this._value);
 
   FLDict() {
-    _value = FLMutableDict_New().cast<_FLDict>();
+    _value = cbl.FLMutableDict_New().cast<cbl.FLDict>();
   }
-  ffi.Pointer<_FLDict> get addressOf => _value;
+  ffi.Pointer<cbl.FLDict> get addressOf => _value;
   FLValue get value => FLValue.fromPointer(_value.cast());
 
-  bool get isMutable => (_mutable ??= FLDict_AsMutable(_value)) != ffi.nullptr;
+  bool get isMutable =>
+      (_mutable ??= cbl.FLDict_AsMutable(_value)) != ffi.nullptr;
 
   /// Create a shallow mutable copy of this value
-  FLDict get mutable => FLDict.fromPointer(FLDict_MutableCopy(
+  FLDict get mutable => FLDict.fromPointer(cbl.FLDict_MutableCopy(
         _value,
-        FLCopyFlags.defaultCopy.index,
-      ).cast<_FLDict>());
+        cbl.FLCopyFlags.defaultCopy.index,
+      ).cast<cbl.FLDict>());
 
   /// Creates a deep (recursive) mutable copy of this value
-  FLDict get mutableCopy => FLDict.fromPointer(FLDict_MutableCopy(
+  FLDict get mutableCopy => FLDict.fromPointer(cbl.FLDict_MutableCopy(
         _value,
-        FLCopyFlags.deepCopy.index | FLCopyFlags.copyImmutables.index,
-      ).cast<_FLDict>());
+        cbl.FLCopyFlags.deepCopy.index | cbl.FLCopyFlags.copyImmutables.index,
+      ).cast<cbl.FLDict>());
 
-  bool get changed => isMutable && FLMutableDict_IsChanged(_value.cast()) != 0;
+  bool get changed =>
+      isMutable && cbl.FLMutableDict_IsChanged(_value.cast()) != 0;
 
   /// Encodes a Fleece value as JSON (or a JSON fragment.)
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
-    final cstr = FLDump(_value.cast<_FLValue>());
-    final str = utf8ToStr(cstr);
+    final cstr = cbl.FLDump(_value.cast<cbl.FLValue>());
+    final str = cbl.utf8ToStr(cstr);
     // Dart_Free(cstr);
     return str;
   }
 
   @override
   String toString() {
-    final cstr = FLValue_ToString(_value.cast<_FLValue>());
-    final result = utf8ToStr(cstr);
+    final cstr = cbl.FLValue_ToString(_value.cast<cbl.FLValue>());
+    final result = cbl.utf8ToStr(cstr);
     // Dart_Free(cstr);
     return result;
   }
 
   @override
-  int get length => FLDict_Count(_value);
+  int get length => cbl.FLDict_Count(_value);
 
   @override
-  bool get isEmpty => FLDict_IsEmpty(_value) != 0;
+  bool get isEmpty => cbl.FLDict_IsEmpty(_value) != 0;
 
   @override
   bool get isNotEmpty => !isEmpty;
 
   FLValue operator [](String index) => FLValue.fromPointer(
-        FLDict_Get(_value.cast(), FLSlice.allocate(index).addressOf),
+        cbl.FLDict_Get(_value.cast(), cbl.FLSlice.allocate(index).addressOf),
       );
 
   /// Set the value of a key
@@ -75,39 +77,40 @@ class FLDict extends IterableBase<FLValue> {
   /// You can set scalar values (int, bool double, String), FLValue, FLDict, FLArray.
   /// Any other object will be JSON encoded if possible.
   void operator []=(String index, dynamic value) {
-    _mutable ??= FLDict_AsMutable(_value);
+    _mutable ??= cbl.FLDict_AsMutable(_value);
 
     if (_mutable == ffi.nullptr) {
       return print('dictionary is not mutable');
     }
-    final slot = FLMutableDict_Set(_mutable, FLSlice.allocate(index).addressOf);
+    final slot =
+        cbl.FLMutableDict_Set(_mutable, cbl.FLSlice.allocate(index).addressOf);
 
-    if (value == null) return FLSlot_SetNull(slot);
+    if (value == null) return cbl.FLSlot_SetNull(slot);
 
     switch (value.runtimeType) {
       case FLValue:
       case FLDict:
       case FLArray:
         // case FLMutableArray:
-        FLSlot_SetValue(slot, value.addressOf.cast<_FLValue>());
+        cbl.FLSlot_SetValue(slot, value.addressOf.cast<cbl.FLValue>());
         break;
       case bool:
-        FLSlot_SetBool(slot, (value as bool) ? 1 : 0);
+        cbl.FLSlot_SetBool(slot, (value as bool) ? 1 : 0);
         break;
       case int:
-        FLSlot_SetInt(slot, value as int);
+        cbl.FLSlot_SetInt(slot, value as int);
         break;
       case double:
-        FLSlot_SetDouble(slot, value as double);
+        cbl.FLSlot_SetDouble(slot, value as double);
         break;
       case String:
-        FLSlot_SetString(slot, FLSlice.allocate(value).addressOf);
+        cbl.FLSlot_SetString(slot, cbl.FLSlice.allocate(value).addressOf);
         break;
       default:
         // Create a value from the input
         final valueDoc = FLDoc.fromJson(jsonEncode(value));
-        if (valueDoc.error != FLError.noError) return;
-        FLSlot_SetValue(slot, valueDoc.root.addressOf);
+        if (valueDoc.error != cbl.FLError.noError) return;
+        cbl.FLSlot_SetValue(slot, valueDoc.root.addressOf);
     }
   }
 
@@ -158,7 +161,7 @@ class FLDictValueIterator implements Iterator<FLValue> {
 
   FLDictValueIterator(this._dict) {
     if (_dict._c_iter == ffi.nullptr) {
-      _dict._c_iter = FLDictIterator_New(_dict._value);
+      _dict._c_iter = cbl.FLDictIterator_New(_dict._value);
     }
   }
 
@@ -168,7 +171,7 @@ class FLDictValueIterator implements Iterator<FLValue> {
   // FLArrayIterator
   @override
   FLValue get current {
-    return FLValue.fromPointer(FLDictIterator_GetValue(_dict._c_iter));
+    return FLValue.fromPointer(cbl.FLDictIterator_GetValue(_dict._c_iter));
   }
 
   @override
@@ -179,14 +182,14 @@ class FLDictValueIterator implements Iterator<FLValue> {
       return true;
     }
 
-    final next = FLDictIterator_Next(_dict._c_iter) != 0;
+    final next = cbl.FLDictIterator_Next(_dict._c_iter) != 0;
     if (!next) end();
     return next;
   }
 
   /// Releases the C iterator
   void end() {
-    Dart_Free(_dict._c_iter);
+    cbl.Dart_Free(_dict._c_iter);
     _dict._c_iter = ffi.nullptr;
   }
 }
@@ -197,7 +200,7 @@ class FLDictKeyIterator implements Iterator<String> {
 
   FLDictKeyIterator(this._dict) {
     if (_dict._c_iter == ffi.nullptr) {
-      _dict._c_iter = FLDictIterator_New(_dict._value);
+      _dict._c_iter = cbl.FLDictIterator_New(_dict._value);
     }
   }
 
@@ -207,7 +210,8 @@ class FLDictKeyIterator implements Iterator<String> {
   // FLArrayIterator
   @override
   String get current {
-    return FLValue.fromPointer(FLDictIterator_GetKey(_dict._c_iter)).asString;
+    return FLValue.fromPointer(cbl.FLDictIterator_GetKey(_dict._c_iter))
+        .asString;
   }
 
   @override
@@ -218,14 +222,14 @@ class FLDictKeyIterator implements Iterator<String> {
       return true;
     }
 
-    final next = FLDictIterator_Next(_dict._c_iter) != 0;
+    final next = cbl.FLDictIterator_Next(_dict._c_iter) != 0;
     if (!next) end();
     return next;
   }
 
   /// Releases the C iterator
   void end() {
-    Dart_Free(_dict._c_iter);
+    cbl.Dart_Free(_dict._c_iter);
     _dict._c_iter = ffi.nullptr;
   }
 }
@@ -236,7 +240,7 @@ class FLDictEntryIterator implements Iterator<MapEntry<String, FLValue>> {
 
   FLDictEntryIterator(this._dict) {
     if (_dict._c_iter == ffi.nullptr) {
-      _dict._c_iter = FLDictIterator_New(_dict._value);
+      _dict._c_iter = cbl.FLDictIterator_New(_dict._value);
     }
   }
 
@@ -247,8 +251,8 @@ class FLDictEntryIterator implements Iterator<MapEntry<String, FLValue>> {
   @override
   MapEntry<String, FLValue> get current {
     return MapEntry<String, FLValue>(
-      FLValue.fromPointer(FLDictIterator_GetKey(_dict._c_iter)).asString,
-      FLValue.fromPointer(FLDictIterator_GetValue(_dict._c_iter)),
+      FLValue.fromPointer(cbl.FLDictIterator_GetKey(_dict._c_iter)).asString,
+      FLValue.fromPointer(cbl.FLDictIterator_GetValue(_dict._c_iter)),
     );
   }
 
@@ -260,14 +264,14 @@ class FLDictEntryIterator implements Iterator<MapEntry<String, FLValue>> {
       return true;
     }
 
-    final next = FLDictIterator_Next(_dict._c_iter) != 0;
+    final next = cbl.FLDictIterator_Next(_dict._c_iter) != 0;
     if (!next) end();
     return next;
   }
 
   /// Releases the C iterator
   void end() {
-    Dart_Free(_dict._c_iter);
+    cbl.Dart_Free(_dict._c_iter);
     _dict._c_iter = ffi.nullptr;
   }
 }

@@ -4,8 +4,6 @@
 
 part of couchbase_lite_dart;
 
-class Work extends ffi.Struct {}
-
 /// A callback that can decide whether a particular [document] should be pushed or pulled.
 ///
 /// It should not take a long time to return, or it will slow down the replicator.
@@ -15,7 +13,7 @@ typedef ReplicatorFilter = bool Function(Document document, bool isDeleted);
 
 class Replicator {
   /// Pointer to the C replicator object
-  ffi.Pointer<CBLReplicator> repl;
+  ffi.Pointer<cbl.CBLReplicator> repl;
 
   final String _id = Uuid().v1();
 
@@ -81,7 +79,7 @@ class Replicator {
   static int _nativePort;
 
   /// Replicators that have active listeners.
-  static final Map<String, ffi.Pointer<CBLReplicator>> _replicators = {};
+  static final Map<String, ffi.Pointer<cbl.CBLReplicator>> _replicators = {};
 
   /// Stream where status change events will be posted for the Dart listeners to consume.
   static final _statusStream = StreamController<ReplicatorStatus>.broadcast();
@@ -89,9 +87,9 @@ class Replicator {
   /// Listeners listening to the Dart stream
   static final Map<String, StreamSubscription> _statusListeners = {};
 
-  /// Listener tokens used by CBL (in C)
-  static final Map<String, ffi.Pointer<CBLListenerToken>> _cblListenerTokens =
-      {};
+  /// Listener tokens used by cbl.CBL (in C)
+  static final Map<String, ffi.Pointer<cbl.CBLListenerToken>>
+      _cblListenerTokens = {};
 
   /// A replicator is a background task that synchronizes changes between a local database and
   /// another database on a remote server (or on a peer device, or even another local database.)
@@ -119,27 +117,29 @@ class Replicator {
         ..listen(_cblReplicatorFilterListener);
       _filterNativePort ??= _cblFilterListener.sendPort.nativePort;
 
-      _cblFilterCallback = ffi.Pointer.fromFunction<FilterCallback>(
+      _cblFilterCallback = ffi.Pointer.fromFunction<cbl.FilterCallback>(
           _cblReplicatorFilterCallback, 1);
 
       _pushReplicatorFilters[_id] = pushFilter;
       _pullReplicatorFilters[_id] = pullFilter;
     }
 
-    final error = pffi.allocate<CBLError>();
-    repl = CBLReplicator_New_d(
-      strToUtf8(_id),
+    final error = pffi.allocate<cbl.CBLError>();
+    repl = cbl.CBLReplicator_New_d(
+      cbl.strToUtf8(_id),
       db._db,
       pffi.Utf8.toUtf8(endpointUrl).cast<ffi.Int8>(),
       authenticator?.auth ?? ffi.nullptr,
       replicatorType.index,
       continuous ? 1 : 0,
-      channels.isNotEmpty ? strToUtf8(jsonEncode(channels)) : ffi.nullptr,
-      documentIDs.isNotEmpty ? strToUtf8(jsonEncode(documentIDs)) : ffi.nullptr,
-      headers.isNotEmpty ? strToUtf8(jsonEncode(headers)) : ffi.nullptr,
+      channels.isNotEmpty ? cbl.strToUtf8(jsonEncode(channels)) : ffi.nullptr,
+      documentIDs.isNotEmpty
+          ? cbl.strToUtf8(jsonEncode(documentIDs))
+          : ffi.nullptr,
+      headers.isNotEmpty ? cbl.strToUtf8(jsonEncode(headers)) : ffi.nullptr,
       proxy?.pointer ?? ffi.nullptr,
-      FLSlice.allocate(pinnedServerCertificate ?? '').addressOf,
-      FLSlice.allocate(trustedRootCertificates ?? '').addressOf,
+      cbl.FLSlice.allocate(pinnedServerCertificate ?? '').addressOf,
+      cbl.FLSlice.allocate(trustedRootCertificates ?? '').addressOf,
       pushFilter != null ? 1 : 0,
       pullFilter != null ? 1 : 0,
       _cblFilterCallback ?? ffi.nullptr,
@@ -151,21 +151,21 @@ class Replicator {
   }
 
   /// Starts a replicator, asynchronously. Does nothing if it's already started.
-  void start() => CBLReplicator_Start(repl);
+  void start() => cbl.CBLReplicator_Start(repl);
 
   /// Stops a running replicator, asynchronously. Does nothing if it's not already stopped.
   ///
   /// The replicator will call your [ReplicatorChangeListener] with an activity level of
   ///  [ReplicatorStopped] after it stops. Until then, consider it still active.
-  void stop() => CBLReplicator_Stop(repl);
+  void stop() => cbl.CBLReplicator_Stop(repl);
 
   /// Puts the replicator in "suspended" state. Causes the replicator to disconnect
   /// and enter Offline state; it will not attempt to reconnect while it's suspended
-  void suspend() => CBLReplicator_SetSuspended(repl, 1);
+  void suspend() => cbl.CBLReplicator_SetSuspended(repl, 1);
 
   /// Puts the replicator out of "suspended" state. Causes the replicator to attempt
   /// to reconnect, _if_ it was   connected when suspended, and is still in Offline state
-  void resume() => CBLReplicator_SetSuspended(repl, 0);
+  void resume() => cbl.CBLReplicator_SetSuspended(repl, 0);
 
   /// Informs the replicator whether it's considered possible to reach the remote host with
   /// the current network configuration. The default value is true. This only affects the
@@ -173,14 +173,14 @@ class Replicator {
   ///    * Setting it to false will cancel any pending retry and prevent future automatic retries.
   ///    * Setting it back to true will initiate an immediate retry.*/
   void setHostReachable(bool reachable) =>
-      CBLReplicator_SetHostReachable(repl, reachable ? 1 : 0);
+      cbl.CBLReplicator_SetHostReachable(repl, reachable ? 1 : 0);
 
   /// Instructs the replicator to ignore existing checkpoints the next time it runs.
   ///
   /// This will cause it to scan through all the documents on the remote database, which takes
   /// a lot longer, but it can resolve problems with missing documents if the client and
   /// server have gotten out of sync somehow.
-  void resetCheckpoint() => CBLReplicator_ResetCheckpoint(repl);
+  void resetCheckpoint() => cbl.CBLReplicator_ResetCheckpoint(repl);
 
   // -- Status and progress
 
@@ -191,8 +191,8 @@ class Replicator {
     final ids = [];
 
     // ! Hangs up on the C side
-    // final error = pffi.allocate<CBLError>();
-    // final response = CBLReplicator_PendingDocumentIDs(repl, error);
+    // final error = pffi.allocate<cbl.CBLError>();
+    // final response = cbl.CBLReplicator_PendingDocumentIDs(repl, error);
 
     return ids;
   }
@@ -201,9 +201,9 @@ class Replicator {
   // TODO(rudoka): Investigate flaky behaviour on C side. Sometimes it just hangs...
   // ignore: unused_element
   bool _isDocumentPending(String id) {
-    final error = pffi.allocate<CBLError>();
-    final result = CBLReplicator_IsDocumentPending(
-        repl, FLString.allocate(id).addressOf, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLReplicator_IsDocumentPending(
+        repl, cbl.FLString.allocate(id).addressOf, error);
 
     databaseError(error);
 
@@ -220,9 +220,9 @@ class Replicator {
     _nativePort ??= _cblListener.sendPort.nativePort;
 
     final token = Uuid().v1();
-    final cblToken = CBLReplicator_AddChangeListener_d(
+    final cblToken = cbl.CBLReplicator_AddChangeListener_d(
       repl,
-      strToUtf8(token),
+      cbl.strToUtf8(token),
       _nativePort,
     );
 
@@ -247,7 +247,7 @@ class Replicator {
 
     if (_cblListenerTokens[token] != null &&
         _cblListenerTokens[token] != ffi.nullptr) {
-      CBLListener_Remove(_cblListenerTokens[token]);
+      cbl.CBLListener_Remove(_cblListenerTokens[token]);
       _cblListenerTokens.remove(token);
     }
   }
@@ -262,9 +262,9 @@ class Replicator {
 
   /// Returns the replicator's current status.
   ReplicatorStatus status() {
-    final result = CBLReplicator_Status(repl);
-    final json = utf8ToStr(result);
-    Dart_Free(result);
+    final result = cbl.CBLReplicator_Status(repl);
+    final json = cbl.utf8ToStr(result);
+    cbl.Dart_Free(result);
 
     return ReplicatorStatus.fromJson(json);
   }
@@ -276,8 +276,8 @@ class Replicator {
   /// execute the [_cblReplicatorFilterCallback] inside the closure. Done this way
   /// to make sure the callback is executed on the same isolate.
   void _cblReplicatorFilterListener(dynamic message) async {
-    final work = ffi.Pointer<Work>.fromAddress(message as int);
-    CBLReplicator_ExecuteCallback(work);
+    final work = ffi.Pointer<cbl.Work>.fromAddress(message as int);
+    cbl.CBLReplicator_ExecuteCallback(work);
   }
 
   /// The actual pull and push filter handler. Calls the registered Dart listeners
@@ -285,13 +285,13 @@ class Replicator {
   static int _cblReplicatorFilterCallback(
     int type,
     ffi.Pointer<ffi.Int8> replicatorId,
-    ffi.Pointer<CBLDocument> document,
+    ffi.Pointer<cbl.CBLDocument> document,
     int isDeleted,
   ) {
     final callback =
         (ReplicatorFilterType.values[type] == ReplicatorFilterType.push)
-            ? _pushReplicatorFilters[utf8ToStr(replicatorId)]
-            : _pullReplicatorFilters[utf8ToStr(replicatorId)];
+            ? _pushReplicatorFilters[cbl.utf8ToStr(replicatorId)]
+            : _pullReplicatorFilters[cbl.utf8ToStr(replicatorId)];
 
     final result = callback(Document._internal(document), isDeleted != 0);
 
@@ -301,7 +301,7 @@ class Replicator {
 
 /// Authentication credentials for the [Replicator]
 class Authenticator {
-  ffi.Pointer<CBLAuthenticator> auth;
+  ffi.Pointer<cbl.CBLAuthenticator> auth;
 
   /// Creates an authenticator for HTTP Basic (username/password) auth.
   Authenticator.basic(String username, String password) {
@@ -314,7 +314,7 @@ class Authenticator {
       'Authenticator: password cannot be empty',
     );
 
-    auth = CBLAuth_NewBasic(
+    auth = cbl.CBLAuth_NewBasic(
       pffi.Utf8.toUtf8(username).cast<ffi.Int8>(),
       pffi.Utf8.toUtf8(password).cast<ffi.Int8>(),
     );
@@ -328,7 +328,7 @@ class Authenticator {
       'Authenticator: sessionId cannot be empty',
     );
 
-    auth = CBLAuth_NewSession(
+    auth = cbl.CBLAuth_NewSession(
       pffi.Utf8.toUtf8(sessionId).cast<ffi.Int8>(),
       (cookieName?.isNotEmpty ?? false)
           ? pffi.Utf8.toUtf8(cookieName).cast<ffi.Int8>()
@@ -341,7 +341,7 @@ enum ReplicatorFilterType { push, pull }
 
 /// Authentication credentials for the [Replicator]
 class ReplicatorProxySettings {
-  ffi.Pointer<CBLProxySettings> pointer;
+  ffi.Pointer<cbl.CBLProxySettings> pointer;
 
   /// Creates an authenticator for HTTP Basic (username/password) auth.
   ReplicatorProxySettings({
@@ -351,13 +351,13 @@ class ReplicatorProxySettings {
     String password = '',
     ReplicatorProxyType type = ReplicatorProxyType.http,
   }) {
-    pointer = pffi.allocate<CBLProxySettings>();
+    pointer = pffi.allocate<cbl.CBLProxySettings>();
     pointer.ref
       ..type = type.index
-      ..hostname = strToUtf8(hostname)
+      ..hostname = cbl.strToUtf8(hostname)
       ..port = port
-      ..username = strToUtf8(username)
-      ..password = strToUtf8(password);
+      ..username = cbl.strToUtf8(username)
+      ..password = cbl.strToUtf8(password);
   }
 }
 

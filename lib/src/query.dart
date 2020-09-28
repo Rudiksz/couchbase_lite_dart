@@ -9,7 +9,7 @@ part of couchbase_lite_dart;
 /// you can think of as "SQL for JSON" or "SQL++".
 class Query {
   /// Internal pointer to the C object
-  ffi.Pointer<CBLQuery> _q;
+  ffi.Pointer<cbl.CBLQuery> _q;
 
   Database db;
 
@@ -18,7 +18,7 @@ class Query {
   String queryString;
 
   ffi.Pointer<ffi.Int32> outErrorPos = pffi.allocate();
-  ffi.Pointer<CBLError> error = pffi.allocate();
+  ffi.Pointer<cbl.CBLError> error = pffi.allocate();
 
   // ??? Query change listeners
 
@@ -26,16 +26,16 @@ class Query {
   static ReceivePort _cblListener;
   static int _nativePort;
 
-  /// Listeners tokens used by CBL in C
-  static final Map<String, ffi.Pointer<CBLListenerToken>> _cblListenerTokens =
-      {};
+  /// Listeners tokens used by cbl.CBL in C
+  static final Map<String, ffi.Pointer<cbl.CBLListenerToken>>
+      _cblListenerTokens = {};
 
   /// Listeners listening to the Dart stream
   static final Map<String, StreamSubscription> _queryChangeListeners = {};
 
   /// Queries that are being listened to. Used to retrieve new results
   /// when a query change event comes in the stream
-  static final Map<String, ffi.Pointer<CBLQuery>> _liveQueries = {};
+  static final Map<String, ffi.Pointer<cbl.CBLQuery>> _liveQueries = {};
 
   /// Stream where query change events will be posted
   static final _queryChangeStream = StreamController<QueryChange>.broadcast();
@@ -56,7 +56,7 @@ class Query {
       ..domain = 0
       ..code = 0;
 
-    _q = CBLQuery_New(
+    _q = cbl.CBLQuery_New(
       db._db,
       language.index,
       pffi.Utf8.toUtf8(queryString).cast<ffi.Int8>(),
@@ -73,17 +73,17 @@ class Query {
   List execute() {
     assert(_q != ffi.nullptr,
         'The query was either not compiled yet or was already disposed.');
-    final result = CBLQuery_Execute(_q, error);
+    final result = cbl.CBLQuery_Execute(_q, error);
 
     databaseError(error);
 
     final rows = [];
-    while (CBLResultSet_Next(result) != 0) {
-      final row = CBLResultSet_RowJSON(result);
+    while (cbl.CBLResultSet_Next(result) != 0) {
+      final row = cbl.CBLResultSet_RowJSON(result);
       rows.add(jsonDecode(pffi.Utf8.fromUtf8(row.cast())));
     }
 
-    Dart_Free(result);
+    cbl.Dart_Free(result);
 
     return rows;
   }
@@ -93,16 +93,16 @@ class Query {
   ///  indicates a linear scan of the entire database, which should be avoided by adding an index.
   ///  The strategy will also show which index(es), if any, are used.
   String explain() {
-    final result = CBLQuery_Explain_c(_q);
+    final result = cbl.CBLQuery_Explain_c(_q);
     return pffi.Utf8.fromUtf8(result.cast());
   }
 
   /// Returns the query's current parameter bindings, if any.
   Map get parameters {
-    final result = CBLQuery_ParametersAsJSON(_q);
+    final result = cbl.CBLQuery_ParametersAsJSON(_q);
     if (result == ffi.nullptr) return {};
 
-    return jsonDecode(utf8ToStr(result));
+    return jsonDecode(cbl.utf8ToStr(result));
   }
 
   /// Assigns values to the query's parameters.
@@ -115,7 +115,7 @@ class Query {
   /// the value of the parameter.
   set setParameters(Map parameters) {
     final json = jsonEncode(parameters);
-    CBLQuery_SetParametersAsJSON(_q, strToUtf8(json)) != 0;
+    cbl.CBLQuery_SetParametersAsJSON(_q, cbl.strToUtf8(json)) != 0;
   }
 
   // ? Query change listener
@@ -134,9 +134,9 @@ class Query {
     _nativePort ??= _cblListener.sendPort.nativePort;
 
     final token = Uuid().v1();
-    final cblToken = CBLQuery_AddChangeListener_d(
+    final cblToken = cbl.CBLQuery_AddChangeListener_d(
       _q,
-      strToUtf8(token),
+      cbl.strToUtf8(token),
       _nativePort,
     );
 
@@ -162,7 +162,7 @@ class Query {
 
     if (_cblListenerTokens[token] != null &&
         _cblListenerTokens[token] != ffi.nullptr) {
-      CBLListener_Remove(_cblListenerTokens[token]);
+      cbl.CBLListener_Remove(_cblListenerTokens[token]);
       _cblListenerTokens.remove(token);
       _liveQueries.remove(token);
       _listenerTokens.remove(token);
@@ -180,15 +180,15 @@ class Query {
     // assert(query != null && listener != null);
     if (query == null && listener == null) return;
 
-    final error = pffi.allocate<CBLError>();
+    final error = pffi.allocate<cbl.CBLError>();
 
-    final results = CBLQuery_CopyCurrentResults(query, listener, error);
+    final results = cbl.CBLQuery_CopyCurrentResults(query, listener, error);
 
     databaseError(error);
 
     final rows = [];
-    while (CBLResultSet_Next(results) != 0) {
-      final row = CBLResultSet_RowDict(results);
+    while (cbl.CBLResultSet_Next(results) != 0) {
+      final row = cbl.CBLResultSet_RowDict(results);
       final json = FLDict.fromPointer(row).json;
       rows.add(jsonDecode(json));
     }
@@ -203,7 +203,7 @@ class Query {
   ///  query once it's disposed.
   void dispose() {
     _listenerTokens.toList().forEach(removeChangeListener);
-    Dart_Free(_q);
+    cbl.Dart_Free(_q);
     _q = ffi.nullptr;
   }
 }

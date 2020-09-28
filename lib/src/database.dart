@@ -25,15 +25,16 @@ class DatabaseConfiguration {
   // Options for opening the database
   int flags;
 
-  CBLDatabaseConfiguration _cbl_config;
-  CBLDatabaseConfiguration get ref => _cbl_config;
-  ffi.Pointer<CBLDatabaseConfiguration> get addressOf => _cbl_config.addressOf;
+  cbl.CBLDatabaseConfiguration _cbl_config;
+  cbl.CBLDatabaseConfiguration get ref => _cbl_config;
+  ffi.Pointer<cbl.CBLDatabaseConfiguration> get addressOf =>
+      _cbl_config.addressOf;
 
   DatabaseConfiguration(this.directory, this.flags) {
-    _cbl_config = pffi.allocate<CBLDatabaseConfiguration>().ref
+    _cbl_config = pffi.allocate<cbl.CBLDatabaseConfiguration>().ref
       ..directory = pffi.Utf8.toUtf8(directory ?? '').cast<ffi.Int8>()
       ..flags = flags
-      ..encryptionKey = CBLEncryptionKey().addressOf;
+      ..encryptionKey = cbl.CBLEncryptionKey().addressOf;
   }
 }
 
@@ -51,13 +52,13 @@ class Database {
   final String _name;
   String get name => _name;
 
-  ffi.Pointer<CBLDatabase> _db;
+  ffi.Pointer<cbl.CBLDatabase> _db;
   DatabaseConfiguration _config;
 
   static final Map<String, SaveConflictHandler> _saveConflictHandlers = {};
 
-  final Map<String, ffi.Pointer<CBLListenerToken>> _docListeners = {};
-  final Map<String, ffi.Pointer<CBLListenerToken>> _dbListeners = {};
+  final Map<String, ffi.Pointer<cbl.CBLListenerToken>> _docListeners = {};
+  final Map<String, ffi.Pointer<cbl.CBLListenerToken>> _dbListeners = {};
 
   final Map<String, StreamSubscription> _docListenerTokens = {};
   final Map<String, StreamSubscription> _dbListenerTokens = {};
@@ -66,7 +67,7 @@ class Database {
   static final _dbStream = StreamController<List<String>>.broadcast();
 
   void Function() onNotificationsReady;
-  static final Map<ffi.Pointer<CBLDatabase>, void Function()>
+  static final Map<ffi.Pointer<cbl.CBLDatabase>, void Function()>
       _notificationsReadyCallbacks = {};
 
   // ignore: unused_field
@@ -96,7 +97,7 @@ class Database {
   ///
   /// If [directory] is `null`, [name] must be an absolute or relative path to the database.
   static bool exists(String name, {String directory}) {
-    return CBL_DatabaseExists(pffi.Utf8.toUtf8(name).cast(),
+    return cbl.CBL_DatabaseExists(pffi.Utf8.toUtf8(name).cast(),
             pffi.Utf8.toUtf8(directory ?? '').cast()) !=
         0;
   }
@@ -107,12 +108,12 @@ class Database {
   /// * [toName]  The new database name (without the ".cblite2" extension.)
   /// * [directory]  The destination directory
   static bool Copy(String path, String toName, {String directory}) {
-    final error = pffi.allocate<CBLError>();
-    final config = pffi.allocate<CBLDatabaseConfiguration>().ref
+    final error = pffi.allocate<cbl.CBLError>();
+    final config = pffi.allocate<cbl.CBLDatabaseConfiguration>().ref
       ..directory = pffi.Utf8.toUtf8(directory ?? '').cast<ffi.Int8>()
-      ..encryptionKey = CBLEncryptionKey().addressOf;
+      ..encryptionKey = cbl.CBLEncryptionKey().addressOf;
 
-    final result = CBL_CopyDatabase(
+    final result = cbl.CBL_CopyDatabase(
       pffi.Utf8.toUtf8(path ?? '').cast(),
       pffi.Utf8.toUtf8(toName).cast(),
       config.addressOf,
@@ -142,9 +143,9 @@ class Database {
   static bool Delete(String name, {String directory}) {
     // assert(name?.isNotEmpty ?? true, "Name cannot be empty");
 
-    final error = pffi.allocate<CBLError>();
+    final error = pffi.allocate<cbl.CBLError>();
 
-    final result = CBL_DeleteDatabase(
+    final result = cbl.CBL_DeleteDatabase(
       pffi.Utf8.toUtf8(name ?? '').cast(),
       pffi.Utf8.toUtf8(directory ?? '').cast(),
       error,
@@ -165,9 +166,9 @@ class Database {
   /// Throws `DatabaseException` on failure.
   bool open() {
     if (isOpen) return true;
-    final error = pffi.allocate<CBLError>();
+    final error = pffi.allocate<cbl.CBLError>();
 
-    _db = CBLDatabase_Open(
+    _db = cbl.CBLDatabase_Open(
       pffi.Utf8.toUtf8(_name).cast(),
       _config.addressOf,
       error,
@@ -176,7 +177,7 @@ class Database {
     databaseError(error);
 
     if (isOpen) {
-      final res = CBLDatabase_Path(_db);
+      final res = cbl.CBLDatabase_Path(_db);
       _path = pffi.Utf8.fromUtf8(res.cast());
     }
 
@@ -187,8 +188,8 @@ class Database {
   bool close() {
     if (!isOpen) return true;
 
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_Close(_db, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_Close(_db, error);
 
     databaseError(error);
 
@@ -201,8 +202,8 @@ class Database {
   bool compact() {
     if (_db == null) return true;
 
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_Compact(_db, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_Compact(_db, error);
 
     databaseError(error);
 
@@ -215,8 +216,8 @@ class Database {
   bool delete() {
     if (_db == null) return true;
 
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_Delete(_db, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_Delete(_db, error);
 
     databaseError(error);
     _db = null;
@@ -232,8 +233,8 @@ class Database {
   bool beginBatch() {
     if (_db == null) return true;
 
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_BeginBatch(_db, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_BeginBatch(_db, error);
 
     databaseError(error);
 
@@ -244,8 +245,8 @@ class Database {
   bool endBatch() {
     if (_db == null) return true;
 
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_EndBatch(_db, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_EndBatch(_db, error);
 
     databaseError(error);
 
@@ -255,7 +256,7 @@ class Database {
   //? ACCESSORS
 
   /// Returns the number of documents in the database.
-  int get count => _db != null ? CBLDatabase_Count(_db) : 0;
+  int get count => _db != null ? cbl.CBLDatabase_Count(_db) : 0;
 
   //? Document lifecycle
 
@@ -263,7 +264,8 @@ class Database {
   Document getDocument(String id) {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
-    final result = CBLDatabase_GetDocument(_db, pffi.Utf8.toUtf8(id).cast());
+    final result =
+        cbl.CBLDatabase_GetDocument(_db, pffi.Utf8.toUtf8(id).cast());
 
     return result.address != ffi.nullptr.address
         ? Document._internal(result)
@@ -275,7 +277,7 @@ class Database {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
     final result =
-        CBLDatabase_GetMutableDocument(_db, pffi.Utf8.toUtf8(id).cast());
+        cbl.CBLDatabase_GetMutableDocument(_db, pffi.Utf8.toUtf8(id).cast());
 
     return result.address != ffi.nullptr.address
         ? Document._internal(result)
@@ -292,9 +294,9 @@ class Database {
   /// Returns an updated Document reflecting the saved changes, or null on failure.
   Document saveDocument(Document document,
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
-    final error = pffi.allocate<CBLError>();
-    final result =
-        CBLDatabase_SaveDocument(_db, document.doc, concurrency.index, error);
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_SaveDocument(
+        _db, document.doc, concurrency.index, error);
 
     databaseError(error);
     return result.address != ffi.nullptr.address
@@ -313,15 +315,16 @@ class Database {
     final token = Uuid().v1() + Uuid().v1();
     _saveConflictHandlers[token] = conflictHandler;
 
-    final conflictHandler_ = ffi.Pointer.fromFunction<CBLSaveConflictHandler>(
-        _saveConflictCallback, 1);
+    final conflictHandler_ =
+        ffi.Pointer.fromFunction<cbl.CBLSaveConflictHandler>(
+            _saveConflictCallback, 1);
 
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_SaveDocumentResolving(
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_SaveDocumentResolving(
       _db,
       document.doc,
       conflictHandler_,
-      strToUtf8(token).cast(),
+      cbl.strToUtf8(token).cast(),
       error,
     );
 
@@ -334,10 +337,10 @@ class Database {
   /// and returns the value they produce.
   static int _saveConflictCallback(
     ffi.Pointer<ffi.Void> saveId,
-    ffi.Pointer<CBLDocument> documentBeingSaved,
-    ffi.Pointer<CBLDocument> conflictingDocument,
+    ffi.Pointer<cbl.CBLDocument> documentBeingSaved,
+    ffi.Pointer<cbl.CBLDocument> conflictingDocument,
   ) {
-    final callback = _saveConflictHandlers[utf8ToStr(saveId.cast())];
+    final callback = _saveConflictHandlers[cbl.utf8ToStr(saveId.cast())];
 
     final result = callback(
       Document._internal(documentBeingSaved),
@@ -355,8 +358,8 @@ class Database {
   bool purgeDocument(String id) {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_PurgeDocumentByID(
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_PurgeDocumentByID(
       _db,
       pffi.Utf8.toUtf8(id).cast(),
       error,
@@ -373,8 +376,8 @@ class Database {
   ///
   /// Throws [DatabaseException] if the call failed.
   DateTime documentExpiration(String id) {
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_GetDocumentExpiration(
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_GetDocumentExpiration(
       _db,
       pffi.Utf8.toUtf8(id).cast(),
       error,
@@ -390,8 +393,8 @@ class Database {
   ///
   /// Throws [DatabaseException] if the call failed.
   bool setDocumentExpiration(String id, DateTime expiration) {
-    final error = pffi.allocate<CBLError>();
-    final result = CBLDatabase_SetDocumentExpiration(
+    final error = pffi.allocate<cbl.CBLError>();
+    final result = cbl.CBLDatabase_SetDocumentExpiration(
       _db,
       pffi.Utf8.toUtf8(id).cast(),
       expiration?.millisecondsSinceEpoch ?? 0,
@@ -413,7 +416,7 @@ class Database {
     final listener =
         ffi.Pointer.fromFunction<_dart_DatabaseChangeListener>(_changeListener);
 
-    _dbListeners[token] ??= CBLDatabase_AddChangeListener(
+    _dbListeners[token] ??= cbl.CBLDatabase_AddChangeListener(
       _db,
       listener,
       ffi.nullptr,
@@ -435,7 +438,7 @@ class Database {
 
     if (_dbListeners[token] != null &&
         _dbListeners[token].address != ffi.nullptr.address) {
-      CBLListener_Remove(_dbListeners[token]);
+      cbl.CBLListener_Remove(_dbListeners[token]);
       _dbListeners.remove(token);
     }
   }
@@ -443,7 +446,7 @@ class Database {
   /// Internal listener to handle events from C
   static void _changeListener(
     ffi.Pointer<ffi.Void> context,
-    ffi.Pointer<CBLDatabase> db,
+    ffi.Pointer<cbl.CBLDatabase> db,
     int count,
     ffi.Pointer<ffi.Pointer<ffi.Int8>> docIds,
   ) {
@@ -468,7 +471,7 @@ class Database {
     final listener = ffi.Pointer.fromFunction<_dart_DocumentChangeListener>(
         _documentChangeListener);
 
-    _docListeners[token] ??= CBLDatabase_AddDocumentChangeListener(
+    _docListeners[token] ??= cbl.CBLDatabase_AddDocumentChangeListener(
       _db,
       pffi.Utf8.toUtf8(id).cast(),
       listener,
@@ -491,7 +494,7 @@ class Database {
 
     if (_docListeners[token] != null &&
         _docListeners[token].address != ffi.nullptr.address) {
-      CBLListener_Remove(_docListeners[token]);
+      cbl.CBLListener_Remove(_docListeners[token]);
       _docListeners.remove(token);
     }
   }
@@ -499,7 +502,7 @@ class Database {
   /// Internal listener to handle events from C
   static void _documentChangeListener(
     ffi.Pointer<ffi.Void> context,
-    ffi.Pointer<CBLDatabase> db,
+    ffi.Pointer<cbl.CBLDatabase> db,
     ffi.Pointer<ffi.Int8> s,
   ) {
     _docStream.sink.add(pffi.Utf8.fromUtf8(s.cast()));
@@ -509,7 +512,7 @@ class Database {
 
   /// Switches the database to buffered-notification mode. Notifications for objects belonging
   /// to this database (documents, queries, replicators, and of course the database) will not be
-  /// called immediately; your [CBLNotificationsReadyCallback] will be called instead.
+  /// called immediately; your [cbl.CBLNotificationsReadyCallback] will be called instead.
   ///
   /// Applications may want control over when Couchbase Lite notifications (listener callbacks)
   /// happen. They may want them called on a specific thread, or at certain times during an event
@@ -526,20 +529,20 @@ class Database {
     final listener = ffi.Pointer.fromFunction<_dart_NotificationsReadyCallback>(
         notificationsReadyCallback);
 
-    CBLDatabase_BufferNotifications(_db, listener, ffi.nullptr);
+    cbl.CBLDatabase_BufferNotifications(_db, listener, ffi.nullptr);
   }
 
   /// Callback indicating that the database (or an object belonging to it) is ready to call one
-  /// or more listeners. You should call [CBLDatabase_SendNotifications] at your earliest
+  /// or more listeners. You should call [cbl.CBLDatabase_SendNotifications] at your earliest
   /// convenience, in the context (thread, dispatch queue, etc.) you want them to run.
   ///
-  /// This callback is called _only once_ until the next time [CBLDatabase_SendNotifications]
+  /// This callback is called _only once_ until the next time [cbl.CBLDatabase_SendNotifications]
   /// is called. If you don't respond by (sooner or later) calling that function,
   /// you will not be informed that any listeners are ready.
-  /// This should do as little work as possible, just scheduling a future call to [CBLDatabase_SendNotifications].
+  /// This should do as little work as possible, just scheduling a future call to [cbl.CBLDatabase_SendNotifications].
   static void notificationsReadyCallback(
     ffi.Pointer<ffi.Void> context,
-    ffi.Pointer<CBLDatabase> db,
+    ffi.Pointer<cbl.CBLDatabase> db,
   ) {
     if (_notificationsReadyCallbacks[db] != null) {
       _notificationsReadyCallbacks[db]();
@@ -547,7 +550,7 @@ class Database {
   }
 
   /// Immediately issues all pending notifications for this database, by calling their listener callbacks.
-  void sendNotifications() => CBLDatabase_SendNotifications(_db);
+  void sendNotifications() => cbl.CBLDatabase_SendNotifications(_db);
 
   // -- INDEXES
   /// Creates a database index.
@@ -558,7 +561,7 @@ class Database {
   bool createIndex(
     String name,
     List<String> keyExpressions, {
-    CBLIndexType type = CBLIndexType.valueIndex,
+    cbl.CBLIndexType type = cbl.CBLIndexType.valueIndex,
     String language = '',
     bool ignoreAccents = false,
   }) {
@@ -568,17 +571,17 @@ class Database {
     print(name);
     print(jsonEncode(keyExpressions));
 
-    final indexSpec = pffi.allocate<CBLIndexSpec>().ref
+    final indexSpec = pffi.allocate<cbl.CBLIndexSpec>().ref
       ..type = type.index
       ..ignoreAccents = ignoreAccents ? 1 : 0
-      ..language = language.isNotEmpty ? strToUtf8(language) : ffi.nullptr
-      ..keyExpressionsJSON = strToUtf8(jsonEncode(keyExpressions));
+      ..language = language.isNotEmpty ? cbl.strToUtf8(language) : ffi.nullptr
+      ..keyExpressionsJSON = cbl.strToUtf8(jsonEncode(keyExpressions));
 
-    final error = CBLError.allocate();
+    final error = cbl.CBLError.allocate();
 
-    final result = CBLDatabase_CreateIndex(
+    final result = cbl.CBLDatabase_CreateIndex(
       _db,
-      strToUtf8(name),
+      cbl.strToUtf8(name),
       indexSpec.addressOf,
       error.addressOf,
     );
@@ -592,11 +595,11 @@ class Database {
   bool deleteIndex(String name) {
     assert(name.isNotEmpty, 'Name cannot be empty');
 
-    final error = CBLError.allocate();
+    final error = cbl.CBLError.allocate();
 
-    final result = CBLDatabase_DeleteIndex(
+    final result = cbl.CBLDatabase_DeleteIndex(
       _db,
-      strToUtf8(name),
+      cbl.strToUtf8(name),
       error.addressOf,
     );
 
@@ -607,5 +610,23 @@ class Database {
 
   /// Returns the names of the indexes on this database, as a Fleece array of strings.
   FLArray indexNames() =>
-      FLArray.fromPointer(CBLDatabase_IndexNames(_db).cast<_FLArray>());
+      FLArray.fromPointer(cbl.CBLDatabase_IndexNames(_db).cast<cbl.FLArray>());
 }
+
+typedef _dart_NotificationsReadyCallback = ffi.Void Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Pointer<cbl.CBLDatabase>,
+);
+
+typedef _dart_DatabaseChangeListener = ffi.Void Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Pointer<cbl.CBLDatabase>,
+  ffi.Uint32,
+  ffi.Pointer<ffi.Pointer<ffi.Int8>>,
+);
+
+typedef _dart_DocumentChangeListener = ffi.Void Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Pointer<cbl.CBLDatabase>,
+  ffi.Pointer<ffi.Int8>,
+);

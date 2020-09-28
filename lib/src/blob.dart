@@ -5,26 +5,26 @@
 part of couchbase_lite_dart;
 
 class Blob {
-  ffi.Pointer<CBLBlob> pointer;
+  ffi.Pointer<cbl.CBLBlob> pointer;
 
   Database db;
 
-  String get contentType => utf8ToStr(CBLBlob_ContentType(pointer));
+  String get contentType => cbl.utf8ToStr(cbl.CBLBlob_ContentType(pointer));
 
-  String get digest => utf8ToStr(CBLBlob_Digest(pointer));
+  String get digest => cbl.utf8ToStr(cbl.CBLBlob_Digest(pointer));
 
-  int get length => CBLBlob_Length(pointer);
+  int get length => cbl.CBLBlob_Length(pointer);
 
   Blob.createWithData(Database db, String contentType, Uint8List data) {
-    final error = pffi.allocate<CBLError>();
+    final error = pffi.allocate<cbl.CBLError>();
 
     var buf = pffi.allocate<ffi.Uint8>(count: data.length);
     var list = buf.asTypedList(data.length);
     list.setAll(0, data);
 
-    pointer = CBLBlob_CreateWithData_c(
+    pointer = cbl.CBLBlob_CreateWithData_c(
       db._db,
-      strToUtf8(contentType),
+      cbl.strToUtf8(contentType),
       buf,
       list.length,
       error,

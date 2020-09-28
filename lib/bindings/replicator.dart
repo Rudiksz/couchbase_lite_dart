@@ -2,13 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 // coverage:ignore-file
-part of couchbase_lite_dart;
+part of couchbase_lite_c_bindings;
 
 // -- Data types
 
 class CBLReplicator extends ffi.Struct {}
 
 class CBLAuthenticator extends ffi.Struct {}
+
+/// Used for C<->Dart async callbacks
+class Work extends ffi.Struct {}
 
 /// Proxy settings for the replicator.
 class CBLProxySettings extends ffi.Struct {
@@ -273,13 +276,13 @@ typedef _dart_CBLAuth_NewSession = ffi.Pointer<CBLAuthenticator> Function(
 );
 
 // ignore: unused_element
-typedef _c_CBLReplicator_PendingDocumentIDs = ffi.Pointer<_FLDict> Function(
+typedef _c_CBLReplicator_PendingDocumentIDs = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<CBLError> error,
 );
 
 // ignore: unused_element
-typedef _dart_CBLReplicator_PendingDocumentIDs = ffi.Pointer<_FLDict> Function(
+typedef _dart_CBLReplicator_PendingDocumentIDs = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<CBLError> error,
 );

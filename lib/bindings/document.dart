@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 // coverage:ignore-file
-part of couchbase_lite_dart;
+part of couchbase_lite_c_bindings;
 
 // -- Data types
 
@@ -139,11 +139,11 @@ typedef _dart_CBLDocument_MutableCopy = ffi.Pointer<CBLDocument> Function(
   ffi.Pointer<CBLDocument> original,
 );
 
-typedef _c_CBLDocument_Properties = ffi.Pointer<_FLDict> Function(
+typedef _c_CBLDocument_Properties = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLDocument> doc,
 );
 
-typedef _dart_CBLDocument_Properties = ffi.Pointer<_FLDict> Function(
+typedef _dart_CBLDocument_Properties = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLDocument> doc,
 );
 

@@ -7,10 +7,11 @@ part of couchbase_lite_dart;
 /// Retrieves the error message from the library and throws a [DatabaseException]
 ///
 /// Once the
-void databaseError(ffi.Pointer<CBLError> error) {
+void databaseError(ffi.Pointer<cbl.CBLError> error) {
   if (error == null || error.address == ffi.nullptr.address) return;
-  if (error.ref.domain > 0 && error.ref.domain < CBLMaxErrorDomainPlus1) {
-    final res = CBLError_Message(error);
+  if (error.ref.domain > 0 &&
+      error.ref.domain < cbl.CBLErrorDomain.CBLMaxErrorDomainPlus1.index - 1) {
+    final res = cbl.CBLError_Message(error);
 
     final domain = error.ref.domain;
     final code = error.ref.code;

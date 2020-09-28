@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 // coverage:ignore-file
-part of couchbase_lite_dart;
+part of couchbase_lite_c_bindings;
 
 final FLDump = _dylib.lookupFunction<_c_FLDump, _dart_FLDump>('FLDump');
 
@@ -303,60 +303,60 @@ typedef _dart_FLSlice_Compare = int Function(
 
 // -- FLDoc
 
-typedef _c_FLDoc_FromResultData = ffi.Pointer<_FLDoc> Function(
+typedef _c_FLDoc_FromResultData = ffi.Pointer<FLDoc> Function(
   ffi.Pointer<FLSliceResult> json,
   ffi.Uint8 trust,
   ffi.Pointer<FLSharedKeys> sharedKeys,
   ffi.Pointer<FLSlice> externData,
 );
 
-typedef _dart_FLDoc_FromResultData = ffi.Pointer<_FLDoc> Function(
+typedef _dart_FLDoc_FromResultData = ffi.Pointer<FLDoc> Function(
   ffi.Pointer<FLSliceResult> json,
   int trust,
   ffi.Pointer<FLSharedKeys> sharedKeys,
   ffi.Pointer<FLSlice> externData,
 );
 
-typedef _c_FLDoc_FromJSON = ffi.Pointer<_FLDoc> Function(
+typedef _c_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
   ffi.Pointer<FLSlice> json,
   ffi.Pointer<ffi.Uint8> error,
 );
 
-typedef _dart_FLDoc_FromJSON = ffi.Pointer<_FLDoc> Function(
+typedef _dart_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
   ffi.Pointer<FLSlice> json,
   ffi.Pointer<ffi.Uint8> error,
 );
 
 typedef _c_FLDoc_GetData = ffi.Pointer<FLSlice> Function(
-  ffi.Pointer<_FLDoc> doc,
+  ffi.Pointer<FLDoc> doc,
 );
 
 typedef _dart_FLDoc_GetData = ffi.Pointer<FLSlice> Function(
-  ffi.Pointer<_FLDoc> doc,
+  ffi.Pointer<FLDoc> doc,
 );
 
-typedef _c_FLDoc_GetRoot = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLDoc> doc,
+typedef _c_FLDoc_GetRoot = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDoc> doc,
 );
 
-typedef _dart_FLDoc_GetRoot = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLDoc> doc,
+typedef _dart_FLDoc_GetRoot = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDoc> doc,
 );
 
-typedef _c_FLDoc_Retain = ffi.Pointer<_FLDoc> Function(
-  ffi.Pointer<_FLDoc> doc,
+typedef _c_FLDoc_Retain = ffi.Pointer<FLDoc> Function(
+  ffi.Pointer<FLDoc> doc,
 );
 
-typedef _dart_FLDoc_Retain = ffi.Pointer<_FLDoc> Function(
-  ffi.Pointer<_FLDoc> doc,
+typedef _dart_FLDoc_Retain = ffi.Pointer<FLDoc> Function(
+  ffi.Pointer<FLDoc> doc,
 );
 
 typedef _c_FLDoc_Release = ffi.Void Function(
-  ffi.Pointer<_FLDoc> doc,
+  ffi.Pointer<FLDoc> doc,
 );
 
 typedef _dart_FLDoc_Release = void Function(
-  ffi.Pointer<_FLDoc> doc,
+  ffi.Pointer<FLDoc> doc,
 );
 
 // -- FLValue
@@ -371,22 +371,22 @@ typedef _dart_FLData_ConvertJSON = ffi.Pointer<FLSliceResult> Function(
   ffi.Pointer<ffi.Uint8> error,
 );
 
-typedef _c_FLValue_FromData = ffi.Pointer<_FLValue> Function(
+typedef _c_FLValue_FromData = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLSlice> json,
   ffi.Uint8 trust,
 );
 
-typedef _dart_FLValue_FromData = ffi.Pointer<_FLValue> Function(
+typedef _dart_FLValue_FromData = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLSlice> value,
   int trust,
 );
 
 typedef _c_FLDump = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLDump = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLDumpData = ffi.Pointer<ffi.Int8> Function(
@@ -398,125 +398,125 @@ typedef _dart_FLDumpData = ffi.Pointer<ffi.Int8> Function(
 );
 
 typedef _c_FLValue_GetType = ffi.Uint8 Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_GetType = int Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_IsEqual = ffi.Int8 Function(
-  ffi.Pointer<_FLValue> value1,
-  ffi.Pointer<_FLValue> value2,
+  ffi.Pointer<FLValue> value1,
+  ffi.Pointer<FLValue> value2,
 );
 
 typedef _dart_FLValue_IsEqual = int Function(
-  ffi.Pointer<_FLValue> value1,
-  ffi.Pointer<_FLValue> value2,
+  ffi.Pointer<FLValue> value1,
+  ffi.Pointer<FLValue> value2,
 );
 
 typedef _c_FLValue_IsInteger = ffi.Int8 Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_IsInteger = int Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_IsUnsigned = ffi.Int8 Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_IsUnsigned = int Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_IsDouble = ffi.Int8 Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_IsDouble = int Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_AsBool = ffi.Int8 Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_AsBool = int Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_AsInt = ffi.Int64 Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_AsInt = int Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_AsUnsigned = ffi.Uint64 Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_AsUnsigned = int Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_AsFloat = ffi.Float Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_AsFloat = double Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_AsDouble = ffi.Double Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_AsDouble = double Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_AsString_p = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_AsString_p = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
-typedef _c_FLValue_AsArray = ffi.Pointer<_FLArray> Function(
-  ffi.Pointer<_FLValue> value,
+typedef _c_FLValue_AsArray = ffi.Pointer<FLArray> Function(
+  ffi.Pointer<FLValue> value,
 );
 
-typedef _dart_FLValue_AsArray = ffi.Pointer<_FLArray> Function(
-  ffi.Pointer<_FLValue> value,
+typedef _dart_FLValue_AsArray = ffi.Pointer<FLArray> Function(
+  ffi.Pointer<FLValue> value,
 );
 
-typedef _c_FLValue_AsDict = ffi.Pointer<_FLDict> Function(
-  ffi.Pointer<_FLValue> value,
+typedef _c_FLValue_AsDict = ffi.Pointer<FLDict> Function(
+  ffi.Pointer<FLValue> value,
 );
 
-typedef _dart_FLValue_AsDict = ffi.Pointer<_FLDict> Function(
-  ffi.Pointer<_FLValue> value,
+typedef _dart_FLValue_AsDict = ffi.Pointer<FLDict> Function(
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_ToString = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_ToString = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLValue_ToJSON = ffi.Pointer<FLStringResult> Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLValue_ToJSON = ffi.Pointer<FLStringResult> Function(
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _c_FLKeyPath_New = ffi.Pointer<FLKeyPath> Function(
@@ -529,367 +529,367 @@ typedef _dart_FLKeyPath_New = ffi.Pointer<FLKeyPath> Function(
   ffi.Pointer<ffi.Uint8> error,
 );
 
-typedef _c_FLKeyPath_Eval = ffi.Pointer<_FLValue> Function(
+typedef _c_FLKeyPath_Eval = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLKeyPath> specifier,
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
-typedef _dart_FLKeyPath_Eval = ffi.Pointer<_FLValue> Function(
+typedef _dart_FLKeyPath_Eval = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLKeyPath> specifier,
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
 );
 
-typedef _c_FLKeyPath_EvalOnce = ffi.Pointer<_FLValue> Function(
+typedef _c_FLKeyPath_EvalOnce = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLSlice> specifier,
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
   ffi.Pointer<ffi.Uint8> error,
 );
 
-typedef _dart_FLKeyPath_EvalOnce = ffi.Pointer<_FLValue> Function(
+typedef _dart_FLKeyPath_EvalOnce = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLSlice> specifier,
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLValue> value,
   ffi.Pointer<ffi.Uint8> error,
 );
 
 // -- FLArray
-typedef _c_FLArray_AsMutable = ffi.Pointer<_FLMutableArray> Function(
-  ffi.Pointer<_FLArray> dict,
+typedef _c_FLArray_AsMutable = ffi.Pointer<FLMutableArray> Function(
+  ffi.Pointer<FLArray> dict,
 );
 
-typedef _dart_FLArray_AsMutable = ffi.Pointer<_FLMutableArray> Function(
-  ffi.Pointer<_FLArray> array,
+typedef _dart_FLArray_AsMutable = ffi.Pointer<FLMutableArray> Function(
+  ffi.Pointer<FLArray> array,
 );
 
 typedef _c_FLArray_Count = ffi.Int32 Function(
-  ffi.Pointer<_FLArray> value,
+  ffi.Pointer<FLArray> value,
 );
 
 typedef _dart_FLArray_Count = int Function(
-  ffi.Pointer<_FLArray> value,
+  ffi.Pointer<FLArray> value,
 );
 
 typedef _c_FLArray_IsEmpty = ffi.Uint8 Function(
-  ffi.Pointer<_FLArray> value,
+  ffi.Pointer<FLArray> value,
 );
 
 typedef _dart_FLArray_IsEmpty = int Function(
-  ffi.Pointer<_FLArray> value,
+  ffi.Pointer<FLArray> value,
 );
 
-typedef _c_FLArray_Get = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLArray> value,
+typedef _c_FLArray_Get = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLArray> value,
   ffi.Uint32 index,
 );
 
-typedef _dart_FLArray_Get = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLArray> value,
+typedef _dart_FLArray_Get = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLArray> value,
   int index,
 );
 
-typedef _c_FLArrayIterator_New = ffi.Pointer<_FLArrayIterator> Function(
-  ffi.Pointer<_FLArray> value,
+typedef _c_FLArrayIterator_New = ffi.Pointer<FLArrayIterator> Function(
+  ffi.Pointer<FLArray> value,
 );
 
-typedef _dart_FLArrayIterator_New = ffi.Pointer<_FLArrayIterator> Function(
-  ffi.Pointer<_FLArray> value,
+typedef _dart_FLArrayIterator_New = ffi.Pointer<FLArrayIterator> Function(
+  ffi.Pointer<FLArray> value,
 );
 
 typedef _c_FLArrayIterator_Begin = ffi.Void Function(
-  ffi.Pointer<_FLArray> value,
-  ffi.Pointer<_FLArrayIterator> iterator,
+  ffi.Pointer<FLArray> value,
+  ffi.Pointer<FLArrayIterator> iterator,
 );
 
 typedef _dart_FLArrayIterator_Begin = void Function(
-  ffi.Pointer<_FLArray> value,
-  ffi.Pointer<_FLArrayIterator> iterator,
+  ffi.Pointer<FLArray> value,
+  ffi.Pointer<FLArrayIterator> iterator,
 );
 
-typedef _c_FLArrayIterator_GetValue = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLArrayIterator> iterator,
+typedef _c_FLArrayIterator_GetValue = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLArrayIterator> iterator,
 );
 
-typedef _dart_FLArrayIterator_GetValue = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLArrayIterator> iterator,
+typedef _dart_FLArrayIterator_GetValue = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLArrayIterator> iterator,
 );
 
 typedef _c_FLArrayIterator_Next = ffi.Uint8 Function(
-  ffi.Pointer<_FLArrayIterator> iterator,
+  ffi.Pointer<FLArrayIterator> iterator,
 );
 
 typedef _dart_FLArrayIterator_Next = int Function(
-  ffi.Pointer<_FLArrayIterator> iterator,
+  ffi.Pointer<FLArrayIterator> iterator,
 );
 
 // -- FLDict
 
-typedef _c_FLDict_AsMutable = ffi.Pointer<_FLMutableDict> Function(
-  ffi.Pointer<_FLDict> dict,
+typedef _c_FLDict_AsMutable = ffi.Pointer<FLMutableDict> Function(
+  ffi.Pointer<FLDict> dict,
 );
 
-typedef _dart_FLDict_AsMutable = ffi.Pointer<_FLMutableDict> Function(
-  ffi.Pointer<_FLDict> dict,
+typedef _dart_FLDict_AsMutable = ffi.Pointer<FLMutableDict> Function(
+  ffi.Pointer<FLDict> dict,
 );
 
 typedef _c_FLDict_Count = ffi.Int32 Function(
-  ffi.Pointer<_FLDict> value,
+  ffi.Pointer<FLDict> value,
 );
 
 typedef _dart_FLDict_Count = int Function(
-  ffi.Pointer<_FLDict> value,
+  ffi.Pointer<FLDict> value,
 );
 
 typedef _c_FLDict_IsEmpty = ffi.Uint8 Function(
-  ffi.Pointer<_FLDict> value,
+  ffi.Pointer<FLDict> value,
 );
 
 typedef _dart_FLDict_IsEmpty = int Function(
-  ffi.Pointer<_FLDict> value,
+  ffi.Pointer<FLDict> value,
 );
 
-typedef _c_FLDict_Get = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLDict> value,
+typedef _c_FLDict_Get = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDict> value,
   ffi.Pointer<FLSlice> key,
 );
 
-typedef _dart_FLDict_Get = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLDict> value,
+typedef _dart_FLDict_Get = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDict> value,
   ffi.Pointer<FLSlice> key,
 );
 
-typedef _c_FLDictIterator_New = ffi.Pointer<_FLDictIterator> Function(
-  ffi.Pointer<_FLDict> value,
+typedef _c_FLDictIterator_New = ffi.Pointer<FLDictIterator> Function(
+  ffi.Pointer<FLDict> value,
 );
 
-typedef _dart_FLDictIterator_New = ffi.Pointer<_FLDictIterator> Function(
-  ffi.Pointer<_FLDict> value,
+typedef _dart_FLDictIterator_New = ffi.Pointer<FLDictIterator> Function(
+  ffi.Pointer<FLDict> value,
 );
 
 typedef _c_FLDictIterator_Begin = ffi.Void Function(
-  ffi.Pointer<_FLDict> value,
-  ffi.Pointer<_FLDictIterator> iterator,
+  ffi.Pointer<FLDict> value,
+  ffi.Pointer<FLDictIterator> iterator,
 );
 
 typedef _dart_FLDictIterator_Begin = void Function(
-  ffi.Pointer<_FLDict> value,
-  ffi.Pointer<_FLDictIterator> iterator,
+  ffi.Pointer<FLDict> value,
+  ffi.Pointer<FLDictIterator> iterator,
 );
 
-typedef _c_FLDictIterator_GetKey = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLDictIterator> iterator,
+typedef _c_FLDictIterator_GetKey = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDictIterator> iterator,
 );
 
-typedef _dart_FLDictIterator_GetKey = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLDictIterator> iterator,
+typedef _dart_FLDictIterator_GetKey = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDictIterator> iterator,
 );
 
-typedef _c_FLDictIterator_GetValue = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLDictIterator> iterator,
+typedef _c_FLDictIterator_GetValue = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDictIterator> iterator,
 );
 
-typedef _dart_FLDictIterator_GetValue = ffi.Pointer<_FLValue> Function(
-  ffi.Pointer<_FLDictIterator> iterator,
+typedef _dart_FLDictIterator_GetValue = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDictIterator> iterator,
 );
 
 typedef _c_FLDictIterator_Next = ffi.Uint8 Function(
-  ffi.Pointer<_FLDictIterator> iterator,
+  ffi.Pointer<FLDictIterator> iterator,
 );
 
 typedef _dart_FLDictIterator_Next = int Function(
-  ffi.Pointer<_FLDictIterator> iterator,
+  ffi.Pointer<FLDictIterator> iterator,
 );
 
 // -- Mutable Dictionary
 
-typedef _c_FLDict_MutableCopy = ffi.Pointer<_FLMutableDict> Function(
-  ffi.Pointer<_FLDict> source,
+typedef _c_FLDict_MutableCopy = ffi.Pointer<FLMutableDict> Function(
+  ffi.Pointer<FLDict> source,
   ffi.Uint8 copyFlags,
 );
 
-typedef _dart_FLDict_MutableCopy = ffi.Pointer<_FLMutableDict> Function(
-  ffi.Pointer<_FLDict> source,
+typedef _dart_FLDict_MutableCopy = ffi.Pointer<FLMutableDict> Function(
+  ffi.Pointer<FLDict> source,
   int copyFlags,
 );
 
 typedef _c_FLMutableDict_IsChanged = ffi.Int8 Function(
-  ffi.Pointer<_FLMutableDict> dict,
+  ffi.Pointer<FLMutableDict> dict,
 );
 
 typedef _dart_FLMutableDict_IsChanged = int Function(
-  ffi.Pointer<_FLMutableDict> dict,
+  ffi.Pointer<FLMutableDict> dict,
 );
 
-typedef _c_FLMutableDict_Set = ffi.Pointer<_FLSlot> Function(
-  ffi.Pointer<_FLMutableDict> dict,
+typedef _c_FLMutableDict_Set = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLMutableDict> dict,
   ffi.Pointer<FLSlice> key,
 );
 
-typedef _dart_FLMutableDict_Set = ffi.Pointer<_FLSlot> Function(
-  ffi.Pointer<_FLMutableDict> dict,
+typedef _dart_FLMutableDict_Set = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLMutableDict> dict,
   ffi.Pointer<FLSlice> key,
 );
 
 typedef _c_FLMutableDict_Remove = ffi.Void Function(
-  ffi.Pointer<_FLMutableDict> dict,
+  ffi.Pointer<FLMutableDict> dict,
   ffi.Pointer<FLSlice> key,
 );
 
 typedef _dart_FLMutableDict_Remove = void Function(
-  ffi.Pointer<_FLMutableDict> dict,
+  ffi.Pointer<FLMutableDict> dict,
   ffi.Pointer<FLSlice> key,
 );
 
 typedef _c_FLMutableDict_RemoveAll = ffi.Void Function(
-  ffi.Pointer<_FLMutableDict> dict,
+  ffi.Pointer<FLMutableDict> dict,
 );
 
 typedef _dart_FLMutableDict_RemoveAll = void Function(
-  ffi.Pointer<_FLMutableDict> dict,
+  ffi.Pointer<FLMutableDict> dict,
 );
 
-typedef _c_FLMutableDict_New = ffi.Pointer<_FLMutableDict> Function();
+typedef _c_FLMutableDict_New = ffi.Pointer<FLMutableDict> Function();
 
-typedef _dart_FLMutableDict_New = ffi.Pointer<_FLMutableDict> Function();
+typedef _dart_FLMutableDict_New = ffi.Pointer<FLMutableDict> Function();
 
 // -- Mutable Array
 
-typedef _c_FLArray_MutableCopy = ffi.Pointer<_FLMutableArray> Function(
-  ffi.Pointer<_FLArray> source,
+typedef _c_FLArray_MutableCopy = ffi.Pointer<FLMutableArray> Function(
+  ffi.Pointer<FLArray> source,
   ffi.Uint8 copyFlags,
 );
 
-typedef _dart_FLArray_MutableCopy = ffi.Pointer<_FLMutableArray> Function(
-  ffi.Pointer<_FLArray> source,
+typedef _dart_FLArray_MutableCopy = ffi.Pointer<FLMutableArray> Function(
+  ffi.Pointer<FLArray> source,
   int copyFlags,
 );
 
 typedef _c_FLMutableArray_IsChanged = ffi.Int8 Function(
-  ffi.Pointer<_FLMutableArray> array,
+  ffi.Pointer<FLMutableArray> array,
 );
 
 typedef _dart_FLMutableArray_IsChanged = int Function(
-  ffi.Pointer<_FLMutableArray> array,
+  ffi.Pointer<FLMutableArray> array,
 );
 
-typedef _c_FLMutableArray_Set = ffi.Pointer<_FLSlot> Function(
-  ffi.Pointer<_FLMutableArray> array,
+typedef _c_FLMutableArray_Set = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLMutableArray> array,
   ffi.Uint32 key,
 );
 
-typedef _dart_FLMutableArray_Set = ffi.Pointer<_FLSlot> Function(
-  ffi.Pointer<_FLMutableArray> array,
+typedef _dart_FLMutableArray_Set = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLMutableArray> array,
   int key,
 );
 
-typedef _c_FLMutableArray_Append = ffi.Pointer<_FLSlot> Function(
-  ffi.Pointer<_FLMutableArray> array,
+typedef _c_FLMutableArray_Append = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLMutableArray> array,
 );
 
-typedef _dart_FLMutableArray_Append = ffi.Pointer<_FLSlot> Function(
-  ffi.Pointer<_FLMutableArray> array,
+typedef _dart_FLMutableArray_Append = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLMutableArray> array,
 );
 
 typedef _c_FLMutableArray_Remove = ffi.Void Function(
-  ffi.Pointer<_FLMutableArray> array,
+  ffi.Pointer<FLMutableArray> array,
   ffi.Pointer<FLSlice> key,
 );
 
 typedef _dart_FLMutableArray_Remove = void Function(
-  ffi.Pointer<_FLMutableArray> array,
+  ffi.Pointer<FLMutableArray> array,
   ffi.Pointer<FLSlice> key,
 );
 
-typedef _c_FLMutableArray_New = ffi.Pointer<_FLMutableArray> Function();
+typedef _c_FLMutableArray_New = ffi.Pointer<FLMutableArray> Function();
 
-typedef _dart_FLMutableArray_New = ffi.Pointer<_FLMutableArray> Function();
+typedef _dart_FLMutableArray_New = ffi.Pointer<FLMutableArray> Function();
 
 // -- FLSLot
 
 typedef _c_FLSlot_SetNull = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
 );
 
 typedef _dart_FLSlot_SetNull = void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
 );
 
 typedef _c_FLSlot_SetBool = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Uint8 value,
 );
 
 typedef _dart_FLSlot_SetBool = void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   int value,
 );
 
 typedef _c_FLSlot_SetInt = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Int64 value,
 );
 
 typedef _dart_FLSlot_SetInt = void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   int value,
 );
 
 typedef _c_FLSlot_SetUInt = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Uint64 value,
 );
 
 typedef _dart_FLSlot_SetUInt = void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   int value,
 );
 
 typedef _c_FLSlot_SetFloat = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Float value,
 );
 
 typedef _dart_FLSlot_SetFloat = void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   double value,
 );
 
 typedef _c_FLSlot_SetDouble = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Double value,
 );
 
 typedef _dart_FLSlot_SetDouble = void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   double value,
 );
 
 typedef _c_FLSlot_SetString = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Pointer<FLSlice> value,
 );
 
 typedef _dart_FLSlot_SetString = void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Pointer<FLSlice> value,
 );
 
 typedef _c_FLSlot_SetData = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Pointer<FLSlice> value,
 );
 
 typedef _dart_FLSlot_SetData = void Function(
-  ffi.Pointer<_FLSlot> slot,
+  ffi.Pointer<FLSlot> slot,
   ffi.Pointer<FLSlice> value,
 );
 
 typedef _c_FLSlot_SetValue = ffi.Void Function(
-  ffi.Pointer<_FLSlot> slot,
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLSlot> slot,
+  ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLSlot_SetValue = void Function(
-  ffi.Pointer<_FLSlot> slot,
-  ffi.Pointer<_FLValue> value,
+  ffi.Pointer<FLSlot> slot,
+  ffi.Pointer<FLValue> value,
 );
 
 // !
@@ -947,31 +947,31 @@ class FLString extends ffi.Struct {
   }
 }
 
-class _FLDoc extends ffi.Struct {}
+class FLDoc extends ffi.Struct {}
 
-class _FLValue extends ffi.Struct {}
-
-// ignore: unused_element
-class _FLArray extends ffi.Struct {}
-
-class _FLDict extends ffi.Struct {}
+class FLValue extends ffi.Struct {}
 
 // ignore: unused_element
-class _FLSlot extends ffi.Struct {}
+class FLArray extends ffi.Struct {}
+
+class FLDict extends ffi.Struct {}
 
 // ignore: unused_element
-class _FLMutableArray extends ffi.Struct {}
+class FLSlot extends ffi.Struct {}
 
 // ignore: unused_element
-class _FLMutableDict extends ffi.Struct {}
+class FLMutableArray extends ffi.Struct {}
+
+// ignore: unused_element
+class FLMutableDict extends ffi.Struct {}
 
 class FLKeyPath extends ffi.Struct {}
 
 class FLSharedKeys extends ffi.Struct {}
 
-class _FLArrayIterator extends ffi.Struct {}
+class FLArrayIterator extends ffi.Struct {}
 
-class _FLDictIterator extends ffi.Struct {}
+class FLDictIterator extends ffi.Struct {}
 
 enum FLTrust { untrusted, trusted }
 
