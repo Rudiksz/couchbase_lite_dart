@@ -109,7 +109,7 @@ class FLDict extends IterableBase<FLValue> {
       default:
         // Create a value from the input
         final valueDoc = FLDoc.fromJson(jsonEncode(value));
-        if (valueDoc.error != cbl.FLError.noError) return;
+        if (valueDoc.error != FLError.noError) return;
         cbl.FLSlot_SetValue(slot, valueDoc.root.addressOf);
     }
   }

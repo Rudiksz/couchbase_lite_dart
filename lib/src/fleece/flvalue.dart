@@ -34,6 +34,7 @@ class FLValue {
   String get json {
     final cstr = cbl.FLDump(_value.cast());
     final str = cbl.utf8ToStr(cstr);
+    print(_value);
     // Dart_Free(cstr);
     return str;
   }
@@ -61,18 +62,18 @@ class FLValue {
       _value.cast(),
       error,
     );
-    if (error.value != cbl.FLError.noError.index) return null;
+    if (error.value != FLError.noError.index) return null;
     return FLValue.fromPointer(val);
   }
 
   /// Returns the data type of an arbitrary Value.
   /// (If the value is null, returns `FLValueType.undefined`.)
-  cbl.FLValueType get type {
+  FLValueType get type {
     // The C enum values start at -1
     final t = cbl.FLValue_GetType(_value) + 1;
-    return t < cbl.FLValueType.values.length
-        ? cbl.FLValueType.values[t]
-        : cbl.FLValueType.Undefined;
+    return t < FLValueType.values.length
+        ? FLValueType.values[t]
+        : FLValueType.Undefined;
   }
 
   /// Returns true if the value is non-NULL and represents an integer.
@@ -120,12 +121,12 @@ class FLValue {
   }
 
   /// If a FLValue represents an FLArray, returns it cast to FLArray, else NULL.
-  FLArray get asList => type == cbl.FLValueType.Array
+  FLArray get asList => type == FLValueType.Array
       ? FLArray.fromPointer(cbl.FLValue_AsArray(_value))
       : null;
 
   /// If a FLValue represents an map, returns it cast to FLDict, else NULL.
-  FLDict get asMap => type == cbl.FLValueType.Dict
+  FLDict get asMap => type == FLValueType.Dict
       ? FLDict.fromPointer(cbl.FLValue_AsDict(_value))
       : null;
 
@@ -143,4 +144,52 @@ class FLValue {
   @override
   bool operator ==(other) =>
       other is FLValue && cbl.FLValue_IsEqual(_value, other._value) != 0;
+}
+
+enum FLCopyFlags {
+  defaultCopy,
+  deepCopy,
+  copyImmutables,
+}
+
+enum FLError {
+  noError,
+  memoryError, // Out of memory, or allocation failed
+  outOfRange, // Array index or iterator out of range
+  invalidData, // Bad input data (NaN, non-string key, etc.)
+  encodeError, // Structural error encoding (missing value, too many ends, etc.)
+  jsonError, // Error parsing JSON
+  unknownValue, // Unparseable data in a Value (corrupt? Or from some distant future?)
+  internalError, // Something that shouldn't happen
+  notFound, // Key not found
+  sharedKeysStateError, // Misuse of shared keys (not in transaction, etc.)
+  posixError,
+  unsupported, // Operation is unsupported
+}
+
+enum FLValueType {
+  /// Type of a NULL pointer, i.e. no such value, like JSON `undefined`.
+  ///  Also the type of a value created by FLEncoder_WriteUndefined().
+  Undefined,
+
+  /// Equivalent to a JSON 'null'
+  Null,
+
+  /// A `true` or `false` value
+  Bool,
+
+  /// A numeric value, either integer or floating-point
+  Number,
+
+  /// A string
+  String,
+
+  /// Binary data (no JSON equivalent)
+  Data,
+
+  /// An array of values
+  Array,
+
+  /// A mapping of strings to values
+  Dict
 }

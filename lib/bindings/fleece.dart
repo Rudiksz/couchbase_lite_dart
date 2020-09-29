@@ -905,7 +905,7 @@ class FLSlice extends ffi.Struct {
   factory FLSlice.allocate(String string) {
     return pffi.allocate<FLSlice>().ref
       ..buf = pffi.Utf8.toUtf8(string)
-      ..size = string.length;
+      ..size = string.length ?? 0;
   }
 
   @override
@@ -979,46 +979,4 @@ enum FLCopyFlags {
   defaultCopy,
   deepCopy,
   copyImmutables,
-}
-
-enum FLError {
-  noError,
-  memoryError, // Out of memory, or allocation failed
-  outOfRange, // Array index or iterator out of range
-  invalidData, // Bad input data (NaN, non-string key, etc.)
-  encodeError, // Structural error encoding (missing value, too many ends, etc.)
-  jsonError, // Error parsing JSON
-  unknownValue, // Unparseable data in a Value (corrupt? Or from some distant future?)
-  internalError, // Something that shouldn't happen
-  notFound, // Key not found
-  sharedKeysStateError, // Misuse of shared keys (not in transaction, etc.)
-  posixError,
-  unsupported, // Operation is unsupported
-}
-
-enum FLValueType {
-  /// Type of a NULL pointer, i.e. no such value, like JSON `undefined`.
-  ///  Also the type of a value created by FLEncoder_WriteUndefined().
-  Undefined,
-
-  /// Equivalent to a JSON 'null'
-  Null,
-
-  /// A `true` or `false` value
-  Bool,
-
-  /// A numeric value, either integer or floating-point
-  Number,
-
-  /// A string
-  String,
-
-  /// Binary data (no JSON equivalent)
-  Data,
-
-  /// An array of values
-  Array,
-
-  /// A mapping of strings to values
-  Dict
 }
