@@ -1,3 +1,0 @@
-[submodule "couchbase-lite-C"]
-	path = couchbase-lite-C
-	url = https://github.com/Rudiksz/couchbase-lite-C.git
