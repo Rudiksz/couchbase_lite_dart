@@ -27,9 +27,6 @@ class Replicator {
   ///  For example: `wss://example.org/dbname`
   String endpointUrl;
 
-  /// Authentication credentials if needed
-  Authenticator authenticator;
-
   /// Push, pull, or both
   ReplicatorType replicatorType;
 
@@ -96,7 +93,10 @@ class Replicator {
   Replicator(
     this.db, {
     @required this.endpointUrl,
-    this.authenticator,
+    String username = '',
+    String password = '',
+    String sessionId = '',
+    String cookieName = '',
     this.replicatorType = ReplicatorType.pushAndPull,
     this.continuous = true,
     this.channels = const [],
@@ -129,7 +129,10 @@ class Replicator {
       cbl.strToUtf8(_id),
       db._db,
       cbl.strToUtf8(endpointUrl),
-      authenticator?.auth ?? ffi.nullptr,
+      username.isNotEmpty ? cbl.strToUtf8(username) : ffi.nullptr,
+      password.isNotEmpty ? cbl.strToUtf8(password) : ffi.nullptr,
+      sessionId.isNotEmpty ? cbl.strToUtf8(sessionId) : ffi.nullptr,
+      cookieName.isNotEmpty ? cbl.strToUtf8(cookieName) : ffi.nullptr,
       replicatorType.index,
       continuous ? 1 : 0,
       channels.isNotEmpty ? cbl.strToUtf8(jsonEncode(channels)) : ffi.nullptr,
@@ -137,9 +140,14 @@ class Replicator {
           ? cbl.strToUtf8(jsonEncode(documentIDs))
           : ffi.nullptr,
       headers.isNotEmpty ? cbl.strToUtf8(jsonEncode(headers)) : ffi.nullptr,
-      proxy?.pointer ?? ffi.nullptr,
-      cbl.strToUtf8(pinnedServerCertificate ?? ''),
-      cbl.strToUtf8(trustedRootCertificates ?? ''),
+      proxy?.pointer ??
+          ffi.nullptr, // todo(rudoka): refactor into basic C types
+      pinnedServerCertificate.isNotEmpty
+          ? cbl.strToUtf8(pinnedServerCertificate)
+          : ffi.nullptr,
+      trustedRootCertificates.isNotEmpty
+          ? cbl.strToUtf8(trustedRootCertificates)
+          : ffi.nullptr,
       pushFilter != null ? 1 : 0,
       pullFilter != null ? 1 : 0,
       _cblFilterCallback ?? ffi.nullptr,
@@ -302,44 +310,6 @@ class Replicator {
   }
 }
 
-/// Authentication credentials for the [Replicator]
-class Authenticator {
-  ffi.Pointer<cbl.CBLAuthenticator> auth;
-
-  /// Creates an authenticator for HTTP Basic (username/password) auth.
-  Authenticator.basic(String username, String password) {
-    assert(
-      username?.isNotEmpty ?? true,
-      'Authenticator: username cannot be empty',
-    );
-    assert(
-      password?.isNotEmpty ?? true,
-      'Authenticator: password cannot be empty',
-    );
-
-    auth = cbl.CBLAuth_NewBasic(
-      pffi.Utf8.toUtf8(username).cast<ffi.Int8>(),
-      pffi.Utf8.toUtf8(password).cast<ffi.Int8>(),
-    );
-  }
-
-  /// Creates an authenticator using a Couchbase Sync Gateway login [sessionID],
-  ///  and optionally a [cookieName]
-  Authenticator.session(String sessionId, {String cookieName}) {
-    assert(
-      sessionId?.isNotEmpty ?? true,
-      'Authenticator: sessionId cannot be empty',
-    );
-
-    auth = cbl.CBLAuth_NewSession(
-      pffi.Utf8.toUtf8(sessionId).cast<ffi.Int8>(),
-      (cookieName?.isNotEmpty ?? false)
-          ? pffi.Utf8.toUtf8(cookieName).cast<ffi.Int8>()
-          : ffi.nullptr,
-    );
-  }
-}
-
 enum ReplicatorFilterType { push, pull }
 
 /// Authentication credentials for the [Replicator]
@@ -372,6 +342,7 @@ class ReplicatorStatus {
   DatabaseException error;
 
   ReplicatorStatus.fromJson(String json) {
+    print(json);
     final data = jsonDecode(json);
     id = data['id'] as String;
     activityLevel = ActivityLevel.values[data['activity']];
@@ -426,5 +397,7 @@ enum ActivityLevel {
   idle,
 
   /// The replicator is actively transferring data.
-  busy
+  busy,
+
+  suspended,
 }

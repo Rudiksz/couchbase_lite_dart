@@ -31,12 +31,12 @@ void main() {
 
   test('create', () async {
     var db = Database('replcreate', directory: TESTDIR);
-    var basicAuth = Authenticator.basic(username, password);
     await asyncSleep(1000);
     var replicator = Replicator(
       db,
       endpointUrl: endpointUrl,
-      authenticator: basicAuth,
+      username: username,
+      password: password,
     );
 
     expect(
@@ -50,12 +50,12 @@ void main() {
 
   test('start', () async {
     var db = Database('replstart', directory: TESTDIR);
-    var basicAuth = Authenticator.basic(username, password);
     await asyncSleep(1000);
     var replicator = Replicator(
       db,
       endpointUrl: endpointUrl,
-      authenticator: basicAuth,
+      username: username,
+      password: password,
     );
 
     expect(
@@ -81,12 +81,12 @@ void main() {
 
   test('stop', () async {
     var db = Database('replstop', directory: TESTDIR);
-    var basicAuth = Authenticator.basic(username, password);
     await asyncSleep(1000);
     var replicator = Replicator(
       db,
       endpointUrl: endpointUrl,
-      authenticator: basicAuth,
+      username: username,
+      password: password,
     );
 
     replicator.start();
@@ -115,12 +115,12 @@ void main() {
 
   test('suspend/resume', () async {
     var db = Database('replssuspend', directory: TESTDIR);
-    var basicAuth = Authenticator.basic(username, password);
     await asyncSleep(1000);
     var replicator = Replicator(
       db,
       endpointUrl: endpointUrl,
-      authenticator: basicAuth,
+      username: username,
+      password: password,
     );
 
     replicator.start();
@@ -159,12 +159,12 @@ void main() {
 
   test('setHostReachable', () async {
     var db = Database('replhostreach', directory: TESTDIR);
-    var basicAuth = Authenticator.basic(username, password);
     await asyncSleep(1000);
     var replicator = Replicator(
       db,
       endpointUrl: endpointUrl,
-      authenticator: basicAuth,
+      username: username,
+      password: password,
     );
 
     replicator.start();
@@ -188,12 +188,12 @@ void main() {
 
   test('resetCheckPoint', () async {
     var db = Database('replcheckp', directory: TESTDIR);
-    var basicAuth = Authenticator.basic(username, password);
     await asyncSleep(1000);
     var replicator = Replicator(
       db,
       endpointUrl: endpointUrl,
-      authenticator: basicAuth,
+      username: username,
+      password: password,
     );
 
     replicator.start();
@@ -211,12 +211,12 @@ void main() {
   test('addChangeListener', () async {
     await asyncSleep(500);
     var db = Database('replchangelistener', directory: TESTDIR);
-    var basicAuth = Authenticator.basic(username, password);
     await asyncSleep(1000);
     var replicator = Replicator(
       db,
       endpointUrl: endpointUrl,
-      authenticator: basicAuth,
+      username: username,
+      password: password,
     );
 
     var status_received = false;
@@ -249,7 +249,6 @@ void main() {
 
   test('pushFilter', () async {
     var db = Database('replpushfilter', directory: TESTDIR);
-    var basicAuth = Authenticator.basic(username, password);
 
     var doc_received = false;
     Document doc_filtered;
@@ -257,7 +256,8 @@ void main() {
     var replicator = Replicator(
       db,
       endpointUrl: endpointUrl,
-      authenticator: basicAuth,
+      username: username,
+      password: password,
       pushFilter: (document, _) {
         doc_received = true;
         doc_filtered = document;

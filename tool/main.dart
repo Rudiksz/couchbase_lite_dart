@@ -22,7 +22,7 @@ void main() async {
 
   // testIndexes();
 
-  testMutableProps();
+  // testMutableProps();
 
   // Cbl.init();
 
@@ -39,7 +39,7 @@ void main() async {
 
   // testQuery();
 
-  // testReplicator();
+  testReplicator();
 
   //testDatabaseChangeListener();
 
@@ -397,7 +397,6 @@ void testQuery() async {
 
 testPushFilter() {
   var db = Database('replchangelistener', directory: '_tmp');
-  var basicAuth = Authenticator.basic('cblc_test', 'cblc_test');
 
   // ignore: unused_local_variable
   var doc_received = false;
@@ -407,7 +406,8 @@ testPushFilter() {
   var replicator = Replicator(
     db,
     endpointUrl: 'ws',
-    authenticator: basicAuth,
+    username: 'cblc_test',
+    password: 'cblc_test',
     pushFilter: (document, _) {
       doc_received = true;
       doc_filtered = document;
@@ -429,13 +429,12 @@ testReplicator() async {
   print('Database is open > ' + db.isOpen.toString());
   print('Document count >' + db.count.toString());
 
-  var basicAuth = Authenticator.basic('testuser', 'testuser');
-
   try {
     var replicator = Replicator(
       db,
-      endpointUrl: 'ws://localhost:4984/divemanager/',
-      authenticator: basicAuth,
+      endpointUrl: 'ws://localhost:4984/cblc_test/',
+      username: 'cblc_test',
+      password: 'cblc_test',
     );
 
     print(replicator);
@@ -464,7 +463,7 @@ testReplicator() async {
   }
 
   while (true) {
-    await pause(1);
+    await pause(1000);
   }
 }
 
@@ -475,14 +474,6 @@ testReplicator1() async {
   print('Document count >' + db.count.toString());
 
   await pause(1);
-
-  var basicAuth = Authenticator.basic('testuser', 'testuser');
-
-  var sessionAuth =
-      Authenticator.session('5edb36ffdfd3530ba75574f3e45d68ee2a774a70');
-
-  print(basicAuth.auth);
-  print(sessionAuth.auth);
 
   final pullFilter = (doc, isDeleted) {
     print('Inside app pull filter');
@@ -502,7 +493,9 @@ testReplicator1() async {
     var replicator = Replicator(
       db,
       endpointUrl: 'ws://localhost:4984/divemanager/',
-      authenticator: basicAuth,
+      username: 'cblc_test',
+      password: 'cblc_test',
+
       //channels: ['channel1', 'docs::testusssssdfd'],
       //documentIDs: ['testuser1'],
       //headers: {'First': 'Header', 'Another': 'Header'},
