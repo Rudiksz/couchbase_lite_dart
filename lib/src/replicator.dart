@@ -128,7 +128,7 @@ class Replicator {
     repl = cbl.CBLReplicator_New_d(
       cbl.strToUtf8(_id),
       db._db,
-      pffi.Utf8.toUtf8(endpointUrl).cast<ffi.Int8>(),
+      cbl.strToUtf8(endpointUrl),
       authenticator?.auth ?? ffi.nullptr,
       replicatorType.index,
       continuous ? 1 : 0,
@@ -138,8 +138,8 @@ class Replicator {
           : ffi.nullptr,
       headers.isNotEmpty ? cbl.strToUtf8(jsonEncode(headers)) : ffi.nullptr,
       proxy?.pointer ?? ffi.nullptr,
-      cbl.FLSlice.allocate(pinnedServerCertificate ?? '').addressOf,
-      cbl.FLSlice.allocate(trustedRootCertificates ?? '').addressOf,
+      cbl.strToUtf8(pinnedServerCertificate ?? ''),
+      cbl.strToUtf8(trustedRootCertificates ?? ''),
       pushFilter != null ? 1 : 0,
       pullFilter != null ? 1 : 0,
       _cblFilterCallback ?? ffi.nullptr,
@@ -203,7 +203,10 @@ class Replicator {
   bool _isDocumentPending(String id) {
     final error = pffi.allocate<cbl.CBLError>();
     final result = cbl.CBLReplicator_IsDocumentPending(
-        repl, cbl.FLString.allocate(id).addressOf, error);
+      repl,
+      cbl.strToUtf8(id),
+      error,
+    );
 
     databaseError(error);
 

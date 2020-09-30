@@ -101,7 +101,7 @@ class FLArray extends IterableBase<FLValue> {
         cbl.FLSlot_SetDouble(slot, value as double);
         break;
       case String:
-        cbl.FLSlot_SetString(slot, cbl.FLSlice.allocate(value).addressOf);
+        cbl.FLSlot_SetString(slot, cbl.strToUtf8(value));
         break;
       default:
         // Create a value from the input

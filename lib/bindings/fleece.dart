@@ -6,29 +6,11 @@ part of couchbase_lite_c_bindings;
 
 final FLDump = _dylib.lookupFunction<_c_FLDump, _dart_FLDump>('FLDump');
 
-final FLDumpData =
-    _dylib.lookupFunction<_c_FLDumpData, _dart_FLDumpData>('FLDumpData');
-
-// -- FLSlice
-
-final FLSlice_Equal = _dylib
-    .lookupFunction<_c_FLSlice_Equal, _dart_FLSlice_Equal>('FLSlice_Equal');
-
-final FLSlice_Compare =
-    _dylib.lookupFunction<_c_FLSlice_Compare, _dart_FLSlice_Compare>(
-        'FLSlice_Compare');
-
 // -- FLDoc
 
-final FLDoc_FromResultData =
-    _dylib.lookupFunction<_c_FLDoc_FromResultData, _dart_FLDoc_FromResultData>(
-        'FLDoc_FromResultData');
-
-final FLDoc_FromJSON = _dylib
-    .lookupFunction<_c_FLDoc_FromJSON, _dart_FLDoc_FromJSON>('FLDoc_FromJSON');
-
-final FLDoc_GetData = _dylib
-    .lookupFunction<_c_FLDoc_GetData, _dart_FLDoc_GetData>('FLDoc_GetData');
+final FLDoc_FromJSON =
+    _dylib.lookupFunction<_c_FLDoc_FromJSON, _dart_FLDoc_FromJSON>(
+        'FLDoc_FromJSON_c');
 
 final FLDoc_GetRoot = _dylib
     .lookupFunction<_c_FLDoc_GetRoot, _dart_FLDoc_GetRoot>('FLDoc_GetRoot');
@@ -40,7 +22,7 @@ final FLDoc_Release = _dylib
     .lookupFunction<_c_FLDoc_Release, _dart_FLDoc_Release>('FLDoc_Release');
 
 // -- FLValue
-
+/*
 final FLData_ConvertJSON =
     _dylib.lookupFunction<_c_FLData_ConvertJSON, _dart_FLData_ConvertJSON>(
         'FLData_ConvertJSON');
@@ -48,7 +30,7 @@ final FLData_ConvertJSON =
 final FLValue_FromData =
     _dylib.lookupFunction<_c_FLValue_FromData, _dart_FLValue_FromData>(
         'FLValue_FromData');
-
+*/
 final FLValue_GetType =
     _dylib.lookupFunction<_c_FLValue_GetType, _dart_FLValue_GetType>(
         'FLValue_GetType');
@@ -102,9 +84,6 @@ final FLValue_ToString =
     _dylib.lookupFunction<_c_FLValue_ToString, _dart_FLValue_ToString>(
         'FLValue_ToString_c');
 
-final FLValue_ToJSON = _dylib
-    .lookupFunction<_c_FLValue_ToJSON, _dart_FLValue_ToJSON>('FLValue_ToJSON');
-
 // -- FLArray
 
 final FLArray_AsMutable =
@@ -149,7 +128,7 @@ final FLDict_IsEmpty = _dylib
     .lookupFunction<_c_FLDict_IsEmpty, _dart_FLDict_IsEmpty>('FLDict_IsEmpty');
 
 final FLDict_Get =
-    _dylib.lookupFunction<_c_FLDict_Get, _dart_FLDict_Get>('FLDict_Get');
+    _dylib.lookupFunction<_c_FLDict_Get, _dart_FLDict_Get>('FLDict_Get_c');
 
 final FLDictIterator_New =
     _dylib.lookupFunction<_c_FLDictIterator_New, _dart_FLDictIterator_New>(
@@ -186,11 +165,11 @@ final FLMutableDict_IsChanged = _dylib.lookupFunction<
 
 final FLMutableDict_Set =
     _dylib.lookupFunction<_c_FLMutableDict_Set, _dart_FLMutableDict_Set>(
-        'FLMutableDict_Set');
+        'FLMutableDict_Set_c');
 
 final FLMutableDict_Remove =
     _dylib.lookupFunction<_c_FLMutableDict_Remove, _dart_FLMutableDict_Remove>(
-        'FLMutableDict_Remove');
+        'FLMutableDict_Remove_c');
 
 final FLMutableDict_RemoveAll = _dylib.lookupFunction<
     _c_FLMutableDict_RemoveAll,
@@ -244,10 +223,7 @@ final FLSlot_SetDouble =
 
 final FLSlot_SetString =
     _dylib.lookupFunction<_c_FLSlot_SetString, _dart_FLSlot_SetString>(
-        'FLSlot_SetString');
-
-final FLSlot_SetData = _dylib
-    .lookupFunction<_c_FLSlot_SetData, _dart_FLSlot_SetData>('FLSlot_SetData');
+        'FLSlot_SetString_c');
 
 final FLSlot_SetValue =
     _dylib.lookupFunction<_c_FLSlot_SetValue, _dart_FLSlot_SetValue>(
@@ -266,73 +242,39 @@ final FLSlot_SetValue =
 // -- Key paths
 
 final FLKeyPath_New = _dylib
-    .lookupFunction<_c_FLKeyPath_New, _dart_FLKeyPath_New>('FLKeyPath_New');
+    .lookupFunction<_c_FLKeyPath_New, _dart_FLKeyPath_New>('FLKeyPath_New_c');
 
 final FLKeyPath_Eval = _dylib
     .lookupFunction<_c_FLKeyPath_Eval, _dart_FLKeyPath_Eval>('FLKeyPath_Eval');
 
 final FLKeyPath_EvalOnce =
     _dylib.lookupFunction<_c_FLKeyPath_EvalOnce, _dart_FLKeyPath_EvalOnce>(
-        'FLKeyPath_EvalOnce');
+        'FLKeyPath_EvalOnce_c');
 
 // !
 // ! Function types
 // !
 
-// -- FLSlice
-
-typedef _c_FLSlice_Equal = ffi.Uint8 Function(
-  ffi.Pointer<FLSlice> a,
-  ffi.Pointer<FLSlice> b,
-);
-
-typedef _dart_FLSlice_Equal = int Function(
-  ffi.Pointer<FLSlice> a,
-  ffi.Pointer<FLSlice> b,
-);
-
-typedef _c_FLSlice_Compare = ffi.Uint32 Function(
-  ffi.Pointer<FLSlice> a,
-  ffi.Pointer<FLSlice> b,
-);
-
-typedef _dart_FLSlice_Compare = int Function(
-  ffi.Pointer<FLSlice> a,
-  ffi.Pointer<FLSlice> b,
-);
-
 // -- FLDoc
 
-typedef _c_FLDoc_FromResultData = ffi.Pointer<FLDoc> Function(
-  ffi.Pointer<FLSliceResult> json,
-  ffi.Uint8 trust,
-  ffi.Pointer<FLSharedKeys> sharedKeys,
-  ffi.Pointer<FLSlice> externData,
-);
+// typedef _c_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
+//   ffi.Pointer<FLSlice> json,
+//   ffi.Pointer<ffi.Uint8> error,
+// );
 
-typedef _dart_FLDoc_FromResultData = ffi.Pointer<FLDoc> Function(
-  ffi.Pointer<FLSliceResult> json,
-  int trust,
-  ffi.Pointer<FLSharedKeys> sharedKeys,
-  ffi.Pointer<FLSlice> externData,
-);
+// typedef _dart_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
+//   ffi.Pointer<FLSlice> json,
+//   ffi.Pointer<ffi.Uint8> error,
+// );
 
 typedef _c_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
-  ffi.Pointer<FLSlice> json,
+  ffi.Pointer<ffi.Int8> json,
   ffi.Pointer<ffi.Uint8> error,
 );
 
 typedef _dart_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
-  ffi.Pointer<FLSlice> json,
+  ffi.Pointer<ffi.Int8> json,
   ffi.Pointer<ffi.Uint8> error,
-);
-
-typedef _c_FLDoc_GetData = ffi.Pointer<FLSlice> Function(
-  ffi.Pointer<FLDoc> doc,
-);
-
-typedef _dart_FLDoc_GetData = ffi.Pointer<FLSlice> Function(
-  ffi.Pointer<FLDoc> doc,
 );
 
 typedef _c_FLDoc_GetRoot = ffi.Pointer<FLValue> Function(
@@ -361,6 +303,8 @@ typedef _dart_FLDoc_Release = void Function(
 
 // -- FLValue
 
+// TODO write one function that does this both
+/*
 typedef _c_FLData_ConvertJSON = ffi.Pointer<FLSliceResult> Function(
   ffi.Pointer<FLSlice> json,
   ffi.Pointer<ffi.Uint8> error,
@@ -380,21 +324,13 @@ typedef _dart_FLValue_FromData = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLSlice> value,
   int trust,
 );
-
+*/
 typedef _c_FLDump = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<FLValue> value,
 );
 
 typedef _dart_FLDump = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<FLValue> value,
-);
-
-typedef _c_FLDumpData = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<FLSlice> data,
-);
-
-typedef _dart_FLDumpData = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<FLSlice> data,
 );
 
 typedef _c_FLValue_GetType = ffi.Uint8 Function(
@@ -511,21 +447,13 @@ typedef _dart_FLValue_ToString = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<FLValue> value,
 );
 
-typedef _c_FLValue_ToJSON = ffi.Pointer<FLStringResult> Function(
-  ffi.Pointer<FLValue> value,
-);
-
-typedef _dart_FLValue_ToJSON = ffi.Pointer<FLStringResult> Function(
-  ffi.Pointer<FLValue> value,
-);
-
 typedef _c_FLKeyPath_New = ffi.Pointer<FLKeyPath> Function(
-  ffi.Pointer<FLSlice> specifier,
+  ffi.Pointer<ffi.Int8> specifier,
   ffi.Pointer<ffi.Uint8> error,
 );
 
 typedef _dart_FLKeyPath_New = ffi.Pointer<FLKeyPath> Function(
-  ffi.Pointer<FLSlice> specifier,
+  ffi.Pointer<ffi.Int8> specifier,
   ffi.Pointer<ffi.Uint8> error,
 );
 
@@ -540,13 +468,13 @@ typedef _dart_FLKeyPath_Eval = ffi.Pointer<FLValue> Function(
 );
 
 typedef _c_FLKeyPath_EvalOnce = ffi.Pointer<FLValue> Function(
-  ffi.Pointer<FLSlice> specifier,
+  ffi.Pointer<ffi.Int8> specifier,
   ffi.Pointer<FLValue> value,
   ffi.Pointer<ffi.Uint8> error,
 );
 
 typedef _dart_FLKeyPath_EvalOnce = ffi.Pointer<FLValue> Function(
-  ffi.Pointer<FLSlice> specifier,
+  ffi.Pointer<ffi.Int8> specifier,
   ffi.Pointer<FLValue> value,
   ffi.Pointer<ffi.Uint8> error,
 );
@@ -648,12 +576,12 @@ typedef _dart_FLDict_IsEmpty = int Function(
 
 typedef _c_FLDict_Get = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLDict> value,
-  ffi.Pointer<FLSlice> key,
+  ffi.Pointer<ffi.Int8> key,
 );
 
 typedef _dart_FLDict_Get = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLDict> value,
-  ffi.Pointer<FLSlice> key,
+  ffi.Pointer<ffi.Int8> key,
 );
 
 typedef _c_FLDictIterator_New = ffi.Pointer<FLDictIterator> Function(
@@ -720,22 +648,22 @@ typedef _dart_FLMutableDict_IsChanged = int Function(
 
 typedef _c_FLMutableDict_Set = ffi.Pointer<FLSlot> Function(
   ffi.Pointer<FLMutableDict> dict,
-  ffi.Pointer<FLSlice> key,
+  ffi.Pointer<ffi.Int8> key,
 );
 
 typedef _dart_FLMutableDict_Set = ffi.Pointer<FLSlot> Function(
   ffi.Pointer<FLMutableDict> dict,
-  ffi.Pointer<FLSlice> key,
+  ffi.Pointer<ffi.Int8> key,
 );
 
 typedef _c_FLMutableDict_Remove = ffi.Void Function(
   ffi.Pointer<FLMutableDict> dict,
-  ffi.Pointer<FLSlice> key,
+  ffi.Pointer<ffi.Int8> key,
 );
 
 typedef _dart_FLMutableDict_Remove = void Function(
   ffi.Pointer<FLMutableDict> dict,
-  ffi.Pointer<FLSlice> key,
+  ffi.Pointer<ffi.Int8> key,
 );
 
 typedef _c_FLMutableDict_RemoveAll = ffi.Void Function(
@@ -790,12 +718,14 @@ typedef _dart_FLMutableArray_Append = ffi.Pointer<FLSlot> Function(
 
 typedef _c_FLMutableArray_Remove = ffi.Void Function(
   ffi.Pointer<FLMutableArray> array,
-  ffi.Pointer<FLSlice> key,
+  ffi.Uint32 firstIndex,
+  ffi.Uint32 count,
 );
 
 typedef _dart_FLMutableArray_Remove = void Function(
   ffi.Pointer<FLMutableArray> array,
-  ffi.Pointer<FLSlice> key,
+  int firstIndex,
+  int count,
 );
 
 typedef _c_FLMutableArray_New = ffi.Pointer<FLMutableArray> Function();
@@ -864,22 +794,12 @@ typedef _dart_FLSlot_SetDouble = void Function(
 
 typedef _c_FLSlot_SetString = ffi.Void Function(
   ffi.Pointer<FLSlot> slot,
-  ffi.Pointer<FLSlice> value,
+  ffi.Pointer<ffi.Int8> value,
 );
 
 typedef _dart_FLSlot_SetString = void Function(
   ffi.Pointer<FLSlot> slot,
-  ffi.Pointer<FLSlice> value,
-);
-
-typedef _c_FLSlot_SetData = ffi.Void Function(
-  ffi.Pointer<FLSlot> slot,
-  ffi.Pointer<FLSlice> value,
-);
-
-typedef _dart_FLSlot_SetData = void Function(
-  ffi.Pointer<FLSlot> slot,
-  ffi.Pointer<FLSlice> value,
+  ffi.Pointer<ffi.Int8> value,
 );
 
 typedef _c_FLSlot_SetValue = ffi.Void Function(
@@ -896,56 +816,18 @@ typedef _dart_FLSlot_SetValue = void Function(
 // ! Data types
 // !
 
-class FLSlice extends ffi.Struct {
-  ffi.Pointer<pffi.Utf8> buf;
+// class FLSlice extends ffi.Struct {
+//   ffi.Pointer<pffi.Utf8> buf;
 
-  @ffi.Uint64()
-  int size;
+//   @ffi.Uint64()
+//   int size;
 
-  factory FLSlice.allocate(String string) {
-    return pffi.allocate<FLSlice>().ref
-      ..buf = pffi.Utf8.toUtf8(string)
-      ..size = string.length ?? 0;
-  }
-
-  @override
-  bool operator ==(dynamic other) =>
-      other is FLSlice && FLSlice_Equal(addressOf, other.addressOf) != 0;
-}
-
-class FLSliceResult extends ffi.Struct {
-  ffi.Pointer<ffi.Uint8> buf;
-
-  @ffi.Uint64()
-  int size;
-}
-
-/// Same as FLSlice
-class FLStringResult extends ffi.Struct {
-  ffi.Pointer<ffi.Int8> buf;
-
-  @ffi.Int64()
-  int size;
-
-  factory FLStringResult.allocate(String string) {
-    return pffi.allocate<FLStringResult>().ref
-      ..buf = pffi.Utf8.toUtf8(string).cast()
-      ..size = string.length ?? 0;
-  }
-}
-
-class FLString extends ffi.Struct {
-  ffi.Pointer<pffi.Utf8> buf;
-
-  @ffi.Uint64()
-  int size;
-
-  factory FLString.allocate(String string) {
-    return pffi.allocate<FLString>().ref
-      ..buf = pffi.Utf8.toUtf8(string)
-      ..size = string.length;
-  }
-}
+//   factory FLSlice.allocate(String string) {
+//     return pffi.allocate<FLSlice>().ref
+//       ..buf = pffi.Utf8.toUtf8(string)
+//       ..size = string.length ?? 0;
+//   }
+// }
 
 class FLDoc extends ffi.Struct {}
 

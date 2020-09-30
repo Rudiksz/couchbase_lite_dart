@@ -68,9 +68,8 @@ class FLDict extends IterableBase<FLValue> {
   @override
   bool get isNotEmpty => !isEmpty;
 
-  FLValue operator [](String index) => FLValue.fromPointer(
-        cbl.FLDict_Get(_value.cast(), cbl.FLSlice.allocate(index).addressOf),
-      );
+  FLValue operator [](String key) =>
+      FLValue.fromPointer(cbl.FLDict_Get(_value.cast(), cbl.strToUtf8(key)));
 
   /// Set the value of a key
   ///
@@ -82,8 +81,7 @@ class FLDict extends IterableBase<FLValue> {
     if (_mutable == ffi.nullptr) {
       return print('dictionary is not mutable');
     }
-    final slot =
-        cbl.FLMutableDict_Set(_mutable, cbl.FLSlice.allocate(index).addressOf);
+    final slot = cbl.FLMutableDict_Set(_mutable, cbl.strToUtf8(index));
 
     if (value == null) return cbl.FLSlot_SetNull(slot);
 
@@ -104,7 +102,7 @@ class FLDict extends IterableBase<FLValue> {
         cbl.FLSlot_SetDouble(slot, value as double);
         break;
       case String:
-        cbl.FLSlot_SetString(slot, cbl.FLSlice.allocate(value).addressOf);
+        cbl.FLSlot_SetString(slot, cbl.strToUtf8(value));
         break;
       default:
         // Create a value from the input

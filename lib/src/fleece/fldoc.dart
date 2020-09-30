@@ -18,21 +18,15 @@ class FLDoc {
   FLDoc.fromPointer(this._doc);
 
   FLDoc.fromJson(String json) {
-    print(json);
-    final _json = cbl.FLSlice.allocate(json);
     final error = pffi.allocate<ffi.Uint8>();
     error.value = 0;
-    _doc = cbl.FLDoc_FromJSON(_json.addressOf, error);
-    print(error.value);
+    _doc = cbl.FLDoc_FromJSON(cbl.strToUtf8(json), error);
     this.error = error.value < FLError.values.length
         ? FLError.values[error.value]
         : FLError.unsupported;
   }
 
-  FLValue get root {
-    print(_doc);
-    return _root ??= FLValue.fromPointer(cbl.FLDoc_GetRoot(_doc));
-  }
+  FLValue get root => _root ??= FLValue.fromPointer(cbl.FLDoc_GetRoot(_doc));
 
   set root(FLValue value) => _root = value;
 

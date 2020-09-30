@@ -161,8 +161,8 @@ typedef _c_CBLReplicator_New_d = ffi.Pointer<CBLReplicator> Function(
   ffi.Pointer<ffi.Int8> documentIDs,
   ffi.Pointer<ffi.Int8> headers,
   ffi.Pointer<CBLProxySettings> proxy,
-  ffi.Pointer<FLSlice> pinnedServerCertificate,
-  ffi.Pointer<FLSlice> trustedRootCertificates,
+  ffi.Pointer<ffi.Int8> pinnedServerCertificate,
+  ffi.Pointer<ffi.Int8> trustedRootCertificates,
   ffi.Uint8 pushFilter,
   ffi.Uint8 pullFilter,
   ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
@@ -181,8 +181,8 @@ typedef _dart_CBLReplicator_New_d = ffi.Pointer<CBLReplicator> Function(
   ffi.Pointer<ffi.Int8> documentIDs,
   ffi.Pointer<ffi.Int8> headers,
   ffi.Pointer<CBLProxySettings> proxy,
-  ffi.Pointer<FLSlice> pinnedServerCertificate,
-  ffi.Pointer<FLSlice> trustedRootCertificates,
+  ffi.Pointer<ffi.Int8> pinnedServerCertificate,
+  ffi.Pointer<ffi.Int8> trustedRootCertificates,
   int pushFilter,
   int pullFilter,
   ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
@@ -298,15 +298,16 @@ typedef _dart_CBLReplicator_PendingDocumentIDs_d = ffi.Pointer<ffi.Int8>
   ffi.Pointer<CBLError> error,
 );
 
+// TODO implement C function
 typedef _c_CBLReplicator_IsDocumentPending = ffi.Uint8 Function(
   ffi.Pointer<CBLReplicator> replicator,
-  ffi.Pointer<FLString> id,
+  ffi.Pointer<ffi.Int8> id,
   ffi.Pointer<CBLError> error,
 );
 
 typedef _dart_CBLReplicator_IsDocumentPending = int Function(
   ffi.Pointer<CBLReplicator> replicator,
-  ffi.Pointer<FLString> id,
+  ffi.Pointer<ffi.Int8> id,
   ffi.Pointer<CBLError> error,
 );
 

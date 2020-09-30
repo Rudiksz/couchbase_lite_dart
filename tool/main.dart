@@ -20,9 +20,9 @@ void main() async {
   Cbl.init();
   print('**** Hello World!****');
 
-  testIndexes();
+  // testIndexes();
 
-  // testMutableProps();
+  testMutableProps();
 
   // Cbl.init();
 
@@ -111,6 +111,18 @@ testIndexes() {
 }
 
 testMutableProps() async {
+  var doc = FLDoc.fromJson('{"foo": "bar", "map": [1,2,3,4]}');
+
+  print(doc.error);
+
+  var d = doc.root.asMap.mutableCopy;
+
+  print(d['test'] = 'hello');
+  print(d['foo'] = 10);
+
+  print(d.json);
+
+  return;
   var root1 = FLArray();
   var map1 = FLArray();
 

@@ -34,7 +34,6 @@ class FLValue {
   String get json {
     final cstr = cbl.FLDump(_value.cast());
     final str = cbl.utf8ToStr(cstr);
-    print(_value);
     // Dart_Free(cstr);
     return str;
   }
@@ -58,7 +57,7 @@ class FLValue {
 
     error.value = 0;
     final val = cbl.FLKeyPath_EvalOnce(
-      cbl.FLSlice.allocate(keyPath).addressOf,
+      cbl.strToUtf8(keyPath),
       _value.cast(),
       error,
     );
