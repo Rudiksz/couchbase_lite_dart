@@ -95,14 +95,13 @@ var results = q.execute();
 
 // Replicator
 
-// Create authenticator for the replicator
-var basicAuth = Authenticator.basic('testuser', 'testuser');
-
 // Create a replicator
 var replicator = Replicator(
     db,
     endpointUrl: 'ws://localhost:4984/remoteDB/',
-    authenticator: basicAuth,
+    username: 'testuser',
+    password: 'password', // or
+    // 'sessionId': 'dfhfsdyf8dfenfajfoadnf83c4dfhdfad3228yrsefd',
 );
 
 // Set up a status listener
