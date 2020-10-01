@@ -59,7 +59,7 @@ class Query {
     _q = cbl.CBLQuery_New(
       db._db,
       language.index,
-      pffi.Utf8.toUtf8(queryString).cast<ffi.Int8>(),
+      cbl.strToUtf8(queryString.replaceAll('\n', '')),
       outErrorPos,
       error,
     );
