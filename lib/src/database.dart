@@ -568,8 +568,6 @@ class Database {
     assert(name.isNotEmpty, 'Name cannot be empty');
     assert(keyExpressions.isNotEmpty,
         'You must specify at least one key to index by');
-    print(name);
-    print(jsonEncode(keyExpressions));
 
     final indexSpec = pffi.allocate<cbl.CBLIndexSpec>().ref
       ..type = type.index

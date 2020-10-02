@@ -75,7 +75,7 @@ class FLArray extends IterableBase<FLValue> {
     _mutable ??= cbl.FLArray_AsMutable(_value);
 
     if (_mutable == ffi.nullptr) {
-      return print('dictionary is not mutable');
+      throw Exception('List is not mutable');
     }
 
     final slot = index > length - 1

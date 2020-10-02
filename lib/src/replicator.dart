@@ -342,7 +342,6 @@ class ReplicatorStatus {
   DatabaseException error;
 
   ReplicatorStatus.fromJson(String json) {
-    print(json);
     final data = jsonDecode(json);
     id = data['id'] as String;
     activityLevel = ActivityLevel.values[data['activity']];

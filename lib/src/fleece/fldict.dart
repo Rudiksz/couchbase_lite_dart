@@ -79,7 +79,7 @@ class FLDict extends IterableBase<FLValue> {
     _mutable ??= cbl.FLDict_AsMutable(_value);
 
     if (_mutable == ffi.nullptr) {
-      return print('dictionary is not mutable');
+      throw Exception('Dictionary is not mutable');
     }
     final slot = cbl.FLMutableDict_Set(_mutable, cbl.strToUtf8(index));
 
@@ -89,7 +89,6 @@ class FLDict extends IterableBase<FLValue> {
       case FLValue:
       case FLDict:
       case FLArray:
-        // case FLMutableArray:
         cbl.FLSlot_SetValue(slot, value.addressOf.cast<cbl.FLValue>());
         break;
       case bool:
