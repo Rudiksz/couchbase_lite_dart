@@ -138,6 +138,9 @@ final CBLError_Message =
     _dylib.lookupFunction<_c_CBLError_Message, _dart_CBLError_Message>(
         'CBLError_Message');
 
+final CBL_Release =
+    _dylib.lookupFunction<_c_CBL_Release, _dart_CBL_Release>('CBL_Release');
+
 final Dart_Free =
     _dylib.lookupFunction<_c_Dart_Free, _dart_Dart_Free>('Dart_Free');
 
@@ -183,6 +186,10 @@ typedef _dart_CBLError_Message = ffi.Pointer<ffi.Int8> Function(
 typedef _c_Dart_Free = ffi.Void Function(ffi.Pointer pointer);
 
 typedef _dart_Dart_Free = void Function(ffi.Pointer pointer);
+
+typedef _c_CBL_Release = ffi.Void Function(ffi.Pointer pointer);
+
+typedef _dart_CBL_Release = void Function(ffi.Pointer pointer);
 
 /// Error domains, serving as namespaces for numeric error codes. */
 enum CBLErrorDomain {

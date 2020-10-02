@@ -10,6 +10,7 @@ part of couchbase_lite_dart;
 class Query {
   /// Internal pointer to the C object
   ffi.Pointer<cbl.CBLQuery> _q;
+  ffi.Pointer<cbl.CBLQuery> get ref => _q;
 
   Database db;
 
@@ -83,7 +84,7 @@ class Query {
       rows.add(jsonDecode(pffi.Utf8.fromUtf8(row.cast())));
     }
 
-    cbl.Dart_Free(result);
+    cbl.CBL_Release(result);
 
     return rows;
   }
@@ -144,8 +145,9 @@ class Query {
       return null;
     }
 
-    _listenerTokens.add(token);
     _liveQueries[token] = _q;
+
+    _listenerTokens.add(token);
     _cblListenerTokens[token] = cblToken;
     _queryChangeListeners[token] = _queryChangeStream.stream
         .where((data) => data.id == token)
@@ -156,10 +158,10 @@ class Query {
 
   /// Removes a listener with the [token] returned by [addChangeListener].
   void removeChangeListener(String token) async {
+    if (token?.isEmpty ?? true) return;
     var streamListener = _queryChangeListeners.remove(token);
 
     await streamListener?.cancel();
-
     if (_cblListenerTokens[token] != null &&
         _cblListenerTokens[token] != ffi.nullptr) {
       cbl.CBLListener_Remove(_cblListenerTokens[token]);
@@ -193,7 +195,7 @@ class Query {
       rows.add(jsonDecode(json));
     }
 
-    //Dart_Free(results);
+    cbl.CBL_Release(results);
 
     //Emit an event on the stream
     _queryChangeStream.sink.add(QueryChange(queryId, rows));
@@ -203,7 +205,7 @@ class Query {
   ///  query once it's disposed.
   void dispose() {
     _listenerTokens.toList().forEach(removeChangeListener);
-    cbl.Dart_Free(_q);
+    cbl.CBL_Release(_q);
     _q = ffi.nullptr;
   }
 }
