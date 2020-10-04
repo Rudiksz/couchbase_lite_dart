@@ -24,6 +24,8 @@ class Document {
   ffi.Pointer<cbl.CBLDocument> _doc;
   ffi.Pointer<cbl.CBLDocument> get doc => _doc;
 
+  FLDict _properties;
+
   /// Creates a document from a C pointer
   Document._internal(this._doc) {
     if (_doc != ffi.nullptr) {
@@ -34,6 +36,8 @@ class Document {
       revisionID = pffi.Utf8.fromUtf8(rev.cast());
 
       sequence = cbl.CBLDocument_Sequence(_doc);
+
+      _properties = FLDict.fromPointer(cbl.CBLDocument_Properties(_doc));
     }
   }
 
@@ -45,7 +49,7 @@ class Document {
     assert(ID?.isNotEmpty ?? true, 'Document ID cannot be empty.');
     _doc = cbl.CBLDocument_New(pffi.Utf8.toUtf8(ID).cast());
     if (data != null) {
-      properties = data;
+      jsonProperties = data;
     }
   }
 
@@ -54,35 +58,31 @@ class Document {
   /// This dictionary _reference_ is immutable, but if the document is mutable the
   /// underlying dictionary itself is mutable. You can obtain a mutable
   /// reference via [Document.mutableCopy].
-  FLDict get properties {
-    if (_doc == ffi.nullptr) return null;
-
-    return FLDict.fromPointer(cbl.CBLDocument_Properties(_doc));
-  }
-
-  /// Sets properties by encoding [data] using [jsonEncode]
-  set properties(dynamic data) => jsonProperties = jsonEncode(data);
+  FLDict get properties => _properties;
+  set properties(FLDict props) => _properties = props;
 
   /// Returns the properties as JSON encoded
-  String get jsonProperties {
-    if (_doc == ffi.nullptr) return '';
+  Map<dynamic, dynamic> get jsonProperties {
+    if (_doc == ffi.nullptr) return {};
 
     final result = cbl.CBLDocument_PropertiesAsJSON(_doc);
-    return pffi.Utf8.fromUtf8(result.cast());
+    return jsonDecode(cbl.utf8ToStr(result));
   }
 
   /// Set properties using a JSON string.
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
-  set jsonProperties(String data) {
+  set jsonProperties(Map<dynamic, dynamic> data) {
     final error = pffi.allocate<cbl.CBLError>();
     cbl.CBLDocument_SetPropertiesAsJSON(
       _doc,
-      pffi.Utf8.toUtf8(data).cast(),
+      cbl.strToUtf8(jsonEncode(data)),
       error,
     );
 
     databaseError(error);
+
+    _properties = FLDict.fromPointer(cbl.CBLDocument_Properties(_doc));
   }
 
   ///  Deletes a document from the database using [ConcurrencyControl]. Deletions are replicated.
