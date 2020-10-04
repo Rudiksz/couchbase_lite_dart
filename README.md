@@ -1,5 +1,6 @@
 - **[Introduction](#introduction)**
 - **[Feature checklist](#feature-checklist)**
+- **[Platform support](#platform-support)**
 - **[Examples](#examples)**
 - **[Resources](#resources)**
 - **[Contributing](#contributing)**
@@ -12,7 +13,7 @@ that runs locally on mobile devices
 
 This is a Dart port of the Couchbase Lite database, built on top of the Couchbase Lite C library ([CBL_C]) using dart.ffi.
 
-**Warning: This project is still in early development stage and is not production ready yet!**
+**Warning: This project is still in early development stage and breaking API changes might still happen!**
 Help with testing, documentation and development is welcome. Here's how you can [contribute](#contributing)
 
 # Feature checklist
@@ -45,7 +46,15 @@ Help with testing, documentation and development is welcome. Here's how you can 
     * [ ] Replicated document listeners
     * [ ] Conflict-resolution callbacks
 * **Blobs**
-    * [ ] TODO
+    * [x] Create, read through content based API
+    * [ ] Stream based API
+
+# Platform support
+
+* **Windows:** Bundled with the package. Beta status.
+* **Android:** Experimental, in testing phase. Currently the libraries are not bundled with the package. Contact me, if you would like to test it.
+* **iOS, macOS:** N/A
+
 
 # Examples and how to use
 Important in your main.dart call to initialize Windows specific bindings.
