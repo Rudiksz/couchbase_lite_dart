@@ -22,9 +22,26 @@ final CBLBlob_ContentType =
     _dylib.lookupFunction<_c_CBLBlob_ContentType, _dart_CBLBlob_ContentType>(
         'CBLBlob_ContentType');
 
+/// Returns a blob's metadata. This includes the `digest`, `length` and `content_type`
+/// properties, as well as any custom ones that may have been added.
+final CBLBlob_Properties =
+    _dylib.lookupFunction<_c_CBLBlob_Properties, _dart_CBLBlob_Properties>(
+        'CBLBlob_Properties');
+
 final CBLBlob_CreateWithData_c = _dylib.lookupFunction<
     _c_CBLBlob_CreateWithData_c,
     _dart_CBLBlob_CreateWithData_c>('CBLBlob_CreateWithData_c');
+
+final CBLBlob_Get =
+    _dylib.lookupFunction<_c_CBLBlob_Get, _dart_CBLBlob_Get>('CBLBlob_Get');
+
+final CBLBlob_LoadContent =
+    _dylib.lookupFunction<_c_CBLBlob_LoadContent, _dart_CBLBlob_LoadContent>(
+        'CBLBlob_LoadContent_c');
+
+final CBLBlob_GetFilePath =
+    _dylib.lookupFunction<_c_CBLBlob_GetFilePath, _dart_CBLBlob_GetFilePath>(
+        'CBLBlob_GetFilePath_c');
 
 // -- Function types
 
@@ -48,8 +65,15 @@ typedef _dart_CBLBlob_ContentType = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<CBLBlob> blob,
 );
 
+typedef _c_CBLBlob_Properties = ffi.Pointer<FLDict> Function(
+  ffi.Pointer<CBLBlob> blob,
+);
+
+typedef _dart_CBLBlob_Properties = ffi.Pointer<FLDict> Function(
+  ffi.Pointer<CBLBlob> blob,
+);
+
 typedef _c_CBLBlob_CreateWithData_c = ffi.Pointer<CBLBlob> Function(
-  ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<ffi.Int8> contentType,
   ffi.Pointer<ffi.Uint8> contents,
   ffi.Uint64 length,
@@ -57,9 +81,38 @@ typedef _c_CBLBlob_CreateWithData_c = ffi.Pointer<CBLBlob> Function(
 );
 
 typedef _dart_CBLBlob_CreateWithData_c = ffi.Pointer<CBLBlob> Function(
-  ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<ffi.Int8> contentType,
   ffi.Pointer<ffi.Uint8> contents,
   int length,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLBlob_Get = ffi.Pointer<CBLBlob> Function(
+  ffi.Pointer<FLDict> blobDict,
+);
+
+typedef _dart_CBLBlob_Get = ffi.Pointer<CBLBlob> Function(
+  ffi.Pointer<FLDict> blobDict,
+);
+
+typedef _c_CBLBlob_LoadContent = ffi.Pointer<ffi.Uint8> Function(
+  ffi.Pointer<CBLBlob> blob,
+  ffi.Pointer<ffi.Uint64> size,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLBlob_LoadContent = ffi.Pointer<ffi.Uint8> Function(
+  ffi.Pointer<CBLBlob> blob,
+  ffi.Pointer<ffi.Uint64> size,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLBlob_GetFilePath = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<CBLBlob> blob,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLBlob_GetFilePath = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<CBLBlob> blob,
   ffi.Pointer<CBLError> outError,
 );
