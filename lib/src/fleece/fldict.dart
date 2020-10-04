@@ -7,7 +7,7 @@ part of couchbase_lite_dart;
 /// FLDict is a "subclass" of FLValue, representing values that are dictionaries.
 class FLDict extends IterableBase<FLValue> {
   ffi.Pointer<cbl.FLDict> _value;
-  ffi.Pointer<cbl.FLMutableDict> _mutable;
+  bool _mutable;
 
   final error = pffi.allocate<ffi.Uint8>();
   ffi.Pointer<cbl.FLDictIterator> _c_iter = ffi.nullptr;
@@ -25,7 +25,7 @@ class FLDict extends IterableBase<FLValue> {
   FLValue get value => FLValue.fromPointer(_value.cast());
 
   bool get isMutable =>
-      (_mutable ??= cbl.FLDict_AsMutable(_value)) != ffi.nullptr;
+      _mutable ??= (cbl.FLDict_AsMutable(_value) != ffi.nullptr);
 
   /// Create a shallow mutable copy of this value
   FLDict get mutable => FLDict.fromPointer(cbl.FLDict_MutableCopy(
@@ -76,12 +76,14 @@ class FLDict extends IterableBase<FLValue> {
   /// You can set scalar values (int, bool double, String), FLValue, FLDict, FLArray.
   /// Any other object will be JSON encoded if possible.
   void operator []=(String index, dynamic value) {
-    _mutable ??= cbl.FLDict_AsMutable(_value);
-
-    if (_mutable == ffi.nullptr) {
+    if (!isMutable) {
       throw Exception('Dictionary is not mutable');
     }
-    final slot = cbl.FLMutableDict_Set(_mutable, cbl.strToUtf8(index));
+
+    // !fix for: https://forums.couchbase.com/t/27825
+    cbl.FLDict_Get(_value, cbl.strToUtf8(index));
+
+    final slot = cbl.FLMutableDict_Set(_value.cast(), cbl.strToUtf8(index));
 
     if (value == null) return cbl.FLSlot_SetNull(slot);
 
