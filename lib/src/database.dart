@@ -309,7 +309,7 @@ class Database {
   /// in the event that the document has been updated since [doc] was loaded.
   ///
   /// The handler should return true to overwrite the existing document, or false
-  /// to cancel the save. If the handler rejects the save a [DatabaseException] will be thrown.
+  /// to cancel the save. If the handler rejects the save a [CouchbaseLiteException] will be thrown.
   Document saveDocumentResolving(
       Document document, SaveConflictHandler conflictHandler) {
     final token = Uuid().v1() + Uuid().v1();
@@ -354,7 +354,7 @@ class Database {
   ///
   ///  Purges are _not_ replicated. If the document is changed on a server, it will be re-created when pulled.
   ///
-  ///  Returns true if the document was purged, false if it doesn't exists and throws [DatabaseException] if the purge failed.
+  ///  Returns true if the document was purged, false if it doesn't exists and throws [CouchbaseLiteException] if the purge failed.
   bool purgeDocument(String id) {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
@@ -374,7 +374,7 @@ class Database {
   ///  Documents don't normally expire; you have to call [setDocumentExpiration]
   ///  to set a document's expiration time.
   ///
-  /// Throws [DatabaseException] if the call failed.
+  /// Throws [CouchbaseLiteException] if the call failed.
   DateTime documentExpiration(String id) {
     final error = pffi.allocate<cbl.CBLError>();
     final result = cbl.CBLDatabase_GetDocumentExpiration(
@@ -391,7 +391,7 @@ class Database {
   ///
   /// Set [expiration] as null if the document should never expire
   ///
-  /// Throws [DatabaseException] if the call failed.
+  /// Throws [CouchbaseLiteException] if the call failed.
   bool setDocumentExpiration(String id, DateTime expiration) {
     final error = pffi.allocate<cbl.CBLError>();
     final result = cbl.CBLDatabase_SetDocumentExpiration(

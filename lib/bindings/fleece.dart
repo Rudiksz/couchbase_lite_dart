@@ -22,6 +22,11 @@ final FLDoc_Release = _dylib
     .lookupFunction<_c_FLDoc_Release, _dart_FLDoc_Release>('FLDoc_Release');
 
 // -- FLValue
+
+final FLValue_Release =
+    _dylib.lookupFunction<_c_FLValue_Release, _dart_FLValue_Release>(
+        'FLValue_Release');
+
 /*
 final FLData_ConvertJSON =
     _dylib.lookupFunction<_c_FLData_ConvertJSON, _dart_FLData_ConvertJSON>(
@@ -302,6 +307,14 @@ typedef _dart_FLDoc_Release = void Function(
 );
 
 // -- FLValue
+
+typedef _c_FLValue_Release = ffi.Void Function(
+  ffi.Pointer<FLValue> value,
+);
+
+typedef _dart_FLValue_Release = void Function(
+  ffi.Pointer<FLValue> value,
+);
 
 // TODO write one function that does this both
 /*
@@ -854,6 +867,19 @@ class FLSharedKeys extends ffi.Struct {}
 class FLArrayIterator extends ffi.Struct {}
 
 class FLDictIterator extends ffi.Struct {}
+
+class FLString extends ffi.Struct {
+  ffi.Pointer<ffi.Uint8> buf;
+
+  @ffi.Uint64()
+  int size;
+
+  factory FLString.allocate(String string) {
+    return pffi.allocate<FLString>().ref
+      ..buf = pffi.Utf8.toUtf8(string).cast<ffi.Uint8>()
+      ..size = string.length;
+  }
+}
 
 enum FLTrust { untrusted, trusted }
 

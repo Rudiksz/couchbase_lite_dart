@@ -8,6 +8,15 @@ part of couchbase_lite_c_bindings;
 
 class CBLReplicator extends ffi.Struct {}
 
+class CBLReplicatedDocument extends ffi.Struct {
+  ffi.Pointer<ffi.Int8> docId;
+
+  @ffi.Uint8()
+  int flags;
+
+  ffi.Pointer<CBLError> error;
+}
+
 class CBLAuthenticator extends ffi.Struct {}
 
 /// Used for C<->Dart async callbacks
@@ -123,9 +132,8 @@ final CBLReplicator_Status =
 /// `pushFilter` or `docIDs`, are ignored.
 /// \warning  You are responsible for releasing the returned array via \ref FLValue_Release.
 final CBLReplicator_PendingDocumentIDs = _dylib.lookupFunction<
-        _c_CBLReplicator_PendingDocumentIDs_d,
-        _dart_CBLReplicator_PendingDocumentIDs_d>(
-    'CBLReplicator_PendingDocumentIDs_d');
+    _c_CBLReplicator_PendingDocumentIDs,
+    _dart_CBLReplicator_PendingDocumentIDs>('CBLReplicator_PendingDocumentIDs');
 
 /// Indicates whether the document with the given ID has local changes that have not yet been
 /// pushed to the server by this replicator.
@@ -135,7 +143,7 @@ final CBLReplicator_PendingDocumentIDs = _dylib.lookupFunction<
 ///        To tell the difference, compare the error code to zero. */
 final CBLReplicator_IsDocumentPending = _dylib.lookupFunction<
     _c_CBLReplicator_IsDocumentPending,
-    _dart_CBLReplicator_IsDocumentPending>('CBLReplicator_IsDocumentPending');
+    _dart_CBLReplicator_IsDocumentPending>('CBLReplicator_IsDocumentPending_d');
 
 /// Creates an authenticator for HTTP Basic (username/password) auth.
 final CBLAuth_NewBasic =
@@ -169,6 +177,7 @@ typedef _c_CBLReplicator_New_d = ffi.Pointer<CBLReplicator> Function(
   ffi.Uint8 pushFilter,
   ffi.Uint8 pullFilter,
   ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
+  ffi.Pointer<ffi.NativeFunction<StatusCallback>> statusCallback,
   ffi.Uint64 dart_port,
   ffi.Pointer<CBLError> outError,
 );
@@ -192,6 +201,7 @@ typedef _dart_CBLReplicator_New_d = ffi.Pointer<CBLReplicator> Function(
   int pushFilter,
   int pullFilter,
   ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
+  ffi.Pointer<ffi.NativeFunction<StatusCallback>> statusCallback,
   int dart_port,
   ffi.Pointer<CBLError> outError,
 );
@@ -201,6 +211,11 @@ typedef FilterCallback = ffi.Int8 Function(
   ffi.Pointer<ffi.Int8> replicatorId,
   ffi.Pointer<CBLDocument>,
   ffi.Int8,
+);
+
+typedef StatusCallback = ffi.Void Function(
+  ffi.Pointer<ffi.Int8> replicatorId,
+  ffi.Pointer<FLDict>,
 );
 
 typedef _c_CBLReplicator_Start = ffi.Void Function(
@@ -249,14 +264,28 @@ typedef _dart_CBLReplicator_ResetCheckpoint = void Function(
 
 typedef _c_CBLReplicator_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
     Function(
-  ffi.Pointer<CBLReplicator> query,
+  ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<ffi.Int8> replicatorId,
   ffi.Uint64 dart_port,
 );
 
 typedef _dart_CBLReplicator_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
     Function(
-  ffi.Pointer<CBLReplicator> query,
+  ffi.Pointer<CBLReplicator> replicator,
+  ffi.Pointer<ffi.Int8> replicatorId,
+  int dart_port,
+);
+
+typedef _c_CBLReplicator_AddDocumentListener_d = ffi.Pointer<CBLListenerToken>
+    Function(
+  ffi.Pointer<CBLReplicator> replicator,
+  ffi.Pointer<ffi.Int8> replicatorId,
+  ffi.Uint64 dart_port,
+);
+
+typedef _dart_CBLReplicator_AddDocumentListener_d
+    = ffi.Pointer<CBLListenerToken> Function(
+  ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<ffi.Int8> replicatorId,
   int dart_port,
 );
@@ -281,30 +310,16 @@ typedef _dart_CBLAuth_NewSession = ffi.Pointer<CBLAuthenticator> Function(
   ffi.Pointer<ffi.Int8> cookieName,
 );
 
-// ignore: unused_element
 typedef _c_CBLReplicator_PendingDocumentIDs = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<CBLError> error,
 );
 
-// ignore: unused_element
 typedef _dart_CBLReplicator_PendingDocumentIDs = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<CBLError> error,
 );
 
-typedef _c_CBLReplicator_PendingDocumentIDs_d = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<CBLReplicator> replicator,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _dart_CBLReplicator_PendingDocumentIDs_d = ffi.Pointer<ffi.Int8>
-    Function(
-  ffi.Pointer<CBLReplicator> replicator,
-  ffi.Pointer<CBLError> error,
-);
-
-// TODO implement C function
 typedef _c_CBLReplicator_IsDocumentPending = ffi.Uint8 Function(
   ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<ffi.Int8> id,
@@ -317,10 +332,10 @@ typedef _dart_CBLReplicator_IsDocumentPending = int Function(
   ffi.Pointer<CBLError> error,
 );
 
-typedef _c_CBLReplicator_Status = ffi.Pointer<ffi.Int8> Function(
+typedef _c_CBLReplicator_Status = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLReplicator> replicator,
 );
 
-typedef _dart_CBLReplicator_Status = ffi.Pointer<ffi.Int8> Function(
+typedef _dart_CBLReplicator_Status = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLReplicator> replicator,
 );

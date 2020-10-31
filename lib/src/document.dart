@@ -74,6 +74,8 @@ class Document {
   /// Throws a [DatabaseError] in case of invalid JSON.
   set jsonProperties(Map<dynamic, dynamic> data) {
     final error = pffi.allocate<cbl.CBLError>();
+
+    print(_doc);
     cbl.CBLDocument_SetPropertiesAsJSON(
       _doc,
       cbl.strToUtf8(jsonEncode(data)),
@@ -87,7 +89,7 @@ class Document {
 
   ///  Deletes a document from the database using [ConcurrencyControl]. Deletions are replicated.
   ///
-  ///  Returns true if the document was deleted, throws [DatabaseException] if an error occurred.
+  ///  Returns true if the document was deleted, throws [CouchbaseLiteException] if an error occurred.
   bool delete(
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
     if (_doc.address == ffi.nullptr.address) return false;
@@ -104,7 +106,7 @@ class Document {
   ///
   ///  If you don't have the document in memory already, [Database.purgeDocument] is a simpler shortcut.
   ///
-  ///  Returns true if the document was purged, false if it doesn't exists and throws [DatabaseException] if the purge failed.
+  ///  Returns true if the document was purged, false if it doesn't exists and throws [CouchbaseLiteException] if the purge failed.
   bool purge() {
     if (_doc.address == ffi.nullptr.address) return false;
     final error = pffi.allocate<cbl.CBLError>();

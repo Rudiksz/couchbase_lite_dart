@@ -35,7 +35,7 @@ void main() {
 
     expect(
       () => Query(db, ''),
-      throwsA(predicate((p) => p is DatabaseException && p.code == 23)),
+      throwsA(predicate((p) => p is CouchbaseLiteException && p.code == 23)),
     );
 
     addTearDown(() => db.close());
@@ -91,7 +91,7 @@ void main() {
     query.setParameters = {'BA': 'bar'};
     expect(
       () => query.execute(),
-      throwsA(predicate((e) => e is DatabaseException && e.code == 25)),
+      throwsA(predicate((e) => e is CouchbaseLiteException && e.code == 25)),
     );
 
     addTearDown(() => db.close());

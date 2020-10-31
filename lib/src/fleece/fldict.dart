@@ -113,6 +113,13 @@ class FLDict extends IterableBase<FLValue> {
     }
   }
 
+  void dispose() {
+    if (_value != ffi.nullptr) {
+      cbl.FLValue_Release(_value.cast());
+    }
+    _value = ffi.nullptr;
+  }
+
   @override
   Iterator<FLValue> get iterator => _iter ??= FLDictValueIterator(this);
 

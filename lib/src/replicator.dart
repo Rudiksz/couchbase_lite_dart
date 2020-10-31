@@ -67,6 +67,7 @@ class Replicator {
   static ReceivePort _cblFilterListener;
   static int _filterNativePort;
   static var _cblFilterCallback;
+  static var _cblStatusCallback;
 
   static final Map<String, ReplicatorFilter> _pushReplicatorFilters = {};
   static final Map<String, ReplicatorFilter> _pullReplicatorFilters = {};
@@ -124,6 +125,9 @@ class Replicator {
       _pullReplicatorFilters[_id] = pullFilter;
     }
 
+    _cblStatusCallback = ffi.Pointer.fromFunction<cbl.StatusCallback>(
+        _cblReplicatorStatusCallback);
+
     final error = pffi.allocate<cbl.CBLError>();
     repl = cbl.CBLReplicator_New_d(
       cbl.strToUtf8(_id),
@@ -151,6 +155,7 @@ class Replicator {
       pushFilter != null ? 1 : 0,
       pullFilter != null ? 1 : 0,
       _cblFilterCallback ?? ffi.nullptr,
+      _cblStatusCallback ?? ffi.nullptr,
       _filterNativePort ?? 0,
       error,
     );
@@ -191,35 +196,6 @@ class Replicator {
   void resetCheckpoint() => cbl.CBLReplicator_ResetCheckpoint(repl);
 
   // -- Status and progress
-
-  // ignore: todo
-  // TODO(rudoka): Investigate flaky behaviour on C side. Sometimes it just hangs...
-  // ignore: unused_element
-  List get _pendingDocumentIds {
-    final ids = [];
-
-    // ! Hangs up on the C side
-    // final error = pffi.allocate<cbl.CBLError>();
-    // final response = cbl.CBLReplicator_PendingDocumentIDs(repl, error);
-
-    return ids;
-  }
-
-  // ignore: todo
-  // TODO(rudoka): Investigate flaky behaviour on C side. Sometimes it just hangs...
-  // ignore: unused_element
-  bool _isDocumentPending(String id) {
-    final error = pffi.allocate<cbl.CBLError>();
-    final result = cbl.CBLReplicator_IsDocumentPending(
-      repl,
-      cbl.strToUtf8(id),
-      error,
-    );
-
-    databaseError(error);
-
-    return result != 0;
-  }
 
   /// Registers a [callback] to be called when the replicator's status changes.
   ///
@@ -265,19 +241,73 @@ class Replicator {
 
   /// This is listening to events sent by C replicators
   void _cblStatusChangelistener(dynamic status) async {
-    _statusStream.sink.add(ReplicatorStatus.fromJson(status));
+    final work = ffi.Pointer<cbl.Work>.fromAddress(status as int);
+    cbl.CBLReplicator_ExecuteCallback(work);
+  }
+
+  /// The actual pull and push filter handler. Calls the registered Dart listeners
+  /// and returns the value they produce.
+  static void _cblReplicatorStatusCallback(
+    ffi.Pointer<ffi.Int8> replicatorId,
+    ffi.Pointer<cbl.FLDict> status,
+  ) {
+    _statusStream.sink.add(ReplicatorStatus.fromData(
+      cbl.utf8ToStr(replicatorId),
+      FLDict.fromPointer(status),
+    ));
   }
 
   // TODO
   // conflictResolver
 
   /// Returns the replicator's current status.
-  ReplicatorStatus status() {
+  ReplicatorStatus get status {
     final result = cbl.CBLReplicator_Status(repl);
-    final json = cbl.utf8ToStr(result);
-    cbl.Dart_Free(result);
+    final status = ReplicatorStatus.fromData(
+      null,
+      FLDict.fromPointer(result),
+    );
+    cbl.FLValue_Release(result.cast());
+    return status;
+  }
 
-    return ReplicatorStatus.fromJson(json);
+  /// Indicates which documents have local changes that have not yet been pushed to the server
+  /// by this replicator. This is of course a snapshot, that will go out of date as the replicator
+  /// makes progress and/or documents are saved locally.
+  ///
+  /// The result is, effectively, a set of document IDs: a dictionary whose keys are the IDs and
+  /// values are `true`.
+  /// If there are no pending documents, the dictionary is empty.
+  /// On error, NULL is returned.
+  ///
+  /// This function can be called on a stopped or un-started replicator.
+  ///
+  /// Documents that would never be pushed by this replicator, due to its configuration's
+  /// `pushFilter` or `docIDs`, are ignored.
+  ///
+  /// Throws [CouchbaseLiteException] in case of an error.
+  ///
+  /// **Note: you must call dispose on the dictionary once you are done with it.**
+  FLDict get pendingDocumentIds {
+    final error = pffi.allocate<cbl.CBLError>();
+    final response = cbl.CBLReplicator_PendingDocumentIDs(repl, error);
+    databaseError(error);
+    return FLDict.fromPointer(response);
+  }
+
+  /// Indicates whether the document with the given ID has local changes that
+  /// have not yet been pushed to the server by this replicator.
+  ///
+  /// This is equivalent to, but faster than, calling [pendingDocumentIDs] and
+  /// checking whether the result contains `docID`. See that function's documentation for details.
+  ///
+  /// Throws [CouchbaseLiteException] in case of an error.
+  bool isDocumentPending(String id) {
+    final error = pffi.allocate<cbl.CBLError>();
+    final pid = cbl.strToUtf8(id);
+    final result = cbl.CBLReplicator_IsDocumentPending(repl, pid, error);
+    databaseError(error);
+    return result != 0;
   }
 
   // -- Push&pull filters
@@ -339,22 +369,24 @@ class ReplicatorStatus {
   String id;
   ActivityLevel activityLevel;
   ReplicatorProgress progress;
-  DatabaseException error;
+  CouchbaseLiteException error;
 
-  ReplicatorStatus.fromJson(String json) {
-    final data = jsonDecode(json);
-    id = data['id'] as String;
-    activityLevel = ActivityLevel.values[data['activity']];
+  ReplicatorStatus.fromData(this.id, FLDict data) {
+    activityLevel = data['activity'].asInt < ActivityLevel.values.length - 1
+        ? ActivityLevel.values[data['activity'].asInt]
+        : ActivityLevel.offline;
 
+    final prog = data['progress'].asMap;
     progress = ReplicatorProgress(
-      data['progress']['fractionComplete'],
-      data['progress']['documentCount'],
+      prog['fractionComplete'].asDouble,
+      prog['documentCount'].asInt,
     );
 
-    error = DatabaseException(
-      data['error']['domain'],
-      data['error']['code'],
-      data['error']['message'],
+    final err = data['error'].asMap;
+    error = CouchbaseLiteException(
+      err['domain'].asInt,
+      err['code'].asInt,
+      err['message'].asString,
     );
   }
 
@@ -362,8 +394,8 @@ class ReplicatorStatus {
   String toString() {
     return '''ID: $id,
     Activity: $activityLevel,
-    Progress: (${progress.fractionComplete * 100}%, ${progress.documentCount})
-    Error: (${error.code}, ${error.message})
+    Progress: (${progress?.fractionComplete}, ${progress?.documentCount})
+    Error: (${error?.code}, ${error?.message})
     ''';
   }
 }
@@ -399,4 +431,11 @@ enum ActivityLevel {
   busy,
 
   suspended,
+}
+
+enum CBLDocumentFlags {
+  none,
+  none1,
+  deleted,
+  accessRemoved,
 }

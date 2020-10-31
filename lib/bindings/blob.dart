@@ -8,6 +8,10 @@ part of couchbase_lite_c_bindings;
 
 class CBLBlob extends ffi.Struct {}
 
+class CBLBlobReadStream extends ffi.Struct {}
+
+class CBLBlobWriteStream extends ffi.Struct {}
+
 // -- Functions
 
 final CBLBlob_Length = _dylib
@@ -39,9 +43,33 @@ final CBLBlob_LoadContent =
     _dylib.lookupFunction<_c_CBLBlob_LoadContent, _dart_CBLBlob_LoadContent>(
         'CBLBlob_LoadContent_c');
 
-final CBLBlob_GetFilePath =
-    _dylib.lookupFunction<_c_CBLBlob_GetFilePath, _dart_CBLBlob_GetFilePath>(
-        'CBLBlob_GetFilePath_c');
+final CBLBlob_OpenContentStream = _dylib.lookupFunction<
+    _c_CBLBlob_OpenContentStream,
+    _dart_CBLBlob_OpenContentStream>('CBLBlob_OpenContentStream');
+
+final CBLBlobReader_Read =
+    _dylib.lookupFunction<_c_CBLBlobReader_Read, _dart_CBLBlobReader_Read>(
+        'CBLBlobReader_Read');
+
+final CBLBlobReader_Close =
+    _dylib.lookupFunction<_c_CBLBlobReader_Close, _dart_CBLBlobReader_Close>(
+        'CBLBlobReader_Close');
+
+final CBLBlobWriter_New =
+    _dylib.lookupFunction<_c_CBLBlobWriter_New, _dart_CBLBlobWriter_New>(
+        'CBLBlobWriter_New');
+
+final CBLBlobWriter_Write =
+    _dylib.lookupFunction<_c_CBLBlobWriter_Write, _dart_CBLBlobWriter_Write>(
+        'CBLBlobWriter_Write');
+
+final CBLBlobWriter_Close =
+    _dylib.lookupFunction<_c_CBLBlobWriter_Close, _dart_CBLBlobWriter_Close>(
+        'CBLBlobWriter_Close');
+
+final CBLBlob_CreateWithStream = _dylib.lookupFunction<
+    _c_CBLBlob_CreateWithStream,
+    _dart_CBLBlob_CreateWithStream>('CBLBlob_CreateWithStream');
 
 // -- Function types
 
@@ -107,12 +135,79 @@ typedef _dart_CBLBlob_LoadContent = ffi.Pointer<ffi.Uint8> Function(
   ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLBlob_GetFilePath = ffi.Pointer<ffi.Int8> Function(
+// -- Stream API
+
+typedef _c_CBLBlob_OpenContentStream = ffi.Pointer<CBLBlobReadStream> Function(
   ffi.Pointer<CBLBlob> blob,
   ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLBlob_GetFilePath = ffi.Pointer<ffi.Int8> Function(
+typedef _dart_CBLBlob_OpenContentStream = ffi.Pointer<CBLBlobReadStream>
+    Function(
   ffi.Pointer<CBLBlob> blob,
   ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLBlobReader_Read = ffi.Uint64 Function(
+  ffi.Pointer<CBLBlobReadStream> stream,
+  ffi.Pointer dst,
+  ffi.Uint64 max_length,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLBlobReader_Read = int Function(
+  ffi.Pointer<CBLBlobReadStream> stream,
+  ffi.Pointer dst,
+  int max_length,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLBlobReader_Close = ffi.Void Function(
+  ffi.Pointer<CBLBlobReadStream> stream,
+);
+
+typedef _dart_CBLBlobReader_Close = void Function(
+  ffi.Pointer<CBLBlobReadStream> stream,
+);
+
+typedef _c_CBLBlobWriter_New = ffi.Pointer<CBLBlobWriteStream> Function(
+  ffi.Pointer<CBLDatabase> blob,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLBlobWriter_New = ffi.Pointer<CBLBlobWriteStream> Function(
+  ffi.Pointer<CBLDatabase> blob,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLBlobWriter_Write = ffi.Uint64 Function(
+  ffi.Pointer<CBLBlobWriteStream> stream,
+  ffi.Pointer data,
+  ffi.Uint64 length,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLBlobWriter_Write = int Function(
+  ffi.Pointer<CBLBlobWriteStream> stream,
+  ffi.Pointer data,
+  int length,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLBlobWriter_Close = ffi.Void Function(
+  ffi.Pointer<CBLBlobWriteStream> stream,
+);
+
+typedef _dart_CBLBlobWriter_Close = void Function(
+  ffi.Pointer<CBLBlobWriteStream> stream,
+);
+
+typedef _c_CBLBlob_CreateWithStream = ffi.Pointer<CBLBlob> Function(
+  ffi.Pointer<ffi.Int8> contentType,
+  ffi.Pointer<CBLBlobWriteStream> stream,
+);
+
+typedef _dart_CBLBlob_CreateWithStream = ffi.Pointer<CBLBlob> Function(
+  ffi.Pointer<ffi.Int8> contentType,
+  ffi.Pointer<CBLBlobWriteStream> stream,
 );

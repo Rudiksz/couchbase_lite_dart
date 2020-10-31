@@ -62,7 +62,7 @@ void main() {
     expect(
       () => Database.Delete('delete1_test', directory: '_tmp'),
       throwsA(predicate(
-          (e) => e is DatabaseException && e.domain == 1 && e.code == 16)),
+          (e) => e is CouchbaseLiteException && e.domain == 1 && e.code == 16)),
     );
 
     db.close();
@@ -120,7 +120,7 @@ void main() {
     expect(
       () => db.delete(),
       throwsA(predicate(
-          (e) => e is DatabaseException && e.domain == 1 && e.code == 16)),
+          (e) => e is CouchbaseLiteException && e.domain == 1 && e.code == 16)),
     );
 
     db1.close();
@@ -148,7 +148,7 @@ void main() {
     expect(
       () => db.endBatch(),
       throwsA(predicate(
-          (e) => e is DatabaseException && e.domain == 1 && e.code == 17)),
+          (e) => e is CouchbaseLiteException && e.domain == 1 && e.code == 17)),
     );
 
     db.beginBatch();
@@ -213,7 +213,7 @@ void main() {
     expect(
       () => db.purgeDocument('testdoc'),
       throwsA(predicate(
-          (e) => e is DatabaseException && e.domain == 1 && e.code == 7)),
+          (e) => e is CouchbaseLiteException && e.domain == 1 && e.code == 7)),
     );
     addTearDown(() => db.close());
   });

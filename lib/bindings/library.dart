@@ -23,8 +23,8 @@ final packagePath = findPackagePath(Directory.current.path);
 // ffi.DynamicLibrary _dylib;
 final _dylib = Platform.isWindows
     ? ffi.DynamicLibrary.open('$packagePath/dynlib/CouchbaseLiteC.dll')
-    // ? ffi.DynamicLibrary.open(
-    //     '../couchbase-lite-C_windows/Debug/CouchbaseLiteC.dll')
+    //? ffi.DynamicLibrary.open(
+    //    '../couchbase-lite-C_windows/Debug/CouchbaseLiteC.dll')
     : (Platform.isAndroid
         ? ffi.DynamicLibrary.open('libCouchbaseLiteC.so')
         : null);
@@ -38,6 +38,7 @@ class CblC {
     registerDart_PostCObject(ffi.NativeApi.postCObject);
     registerDart_NewNativePort(ffi.NativeApi.newNativePort);
     registerDart_CloseNativePort(ffi.NativeApi.closeNativePort);
+    registerDartPrint(wrappedPrintPointer);
   }
 }
 
@@ -92,6 +93,17 @@ final registerDart_CloseNativePort = _dylib?.lookupFunction<
         ffi.Pointer<ffi.NativeFunction<ffi.Int8 Function(ffi.Int64)>>
             functionPointer)>('RegisterDart_CloseNativePort');
 
+void wrappedPrint(ffi.Pointer<pffi.Utf8> arg) {
+  print(pffi.Utf8.fromUtf8(arg));
+}
+
+typedef _dart_Print = ffi.Void Function(ffi.Pointer<pffi.Utf8> a);
+final wrappedPrintPointer = ffi.Pointer.fromFunction<_dart_Print>(wrappedPrint);
+
+final void Function(ffi.Pointer) registerDartPrint = _dylib.lookupFunction<
+    ffi.Void Function(ffi.Pointer),
+    void Function(ffi.Pointer)>('RegisterDart_Print');
+
 /// Build a file path.
 String toFilePath(String parent, String path, {bool windows}) {
   var uri = Uri.parse(path);
@@ -144,6 +156,8 @@ final CBL_Release =
 final Dart_Free =
     _dylib.lookupFunction<_c_Dart_Free, _dart_Dart_Free>('Dart_Free');
 
+final DocTest = _dylib.lookupFunction<_c_DocTest, _dart_DocTest>('DocTest');
+
 // --- Data types
 
 /// A struct holding information about an error. It's declared on the stack by a caller, and
@@ -171,6 +185,8 @@ class CBLError extends ffi.Struct {
         ..domain = domain
         ..code = code
         ..internal_info = internal_info;
+
+  void reset() => domain = code = internal_info = 0;
 }
 
 // --- Function types
@@ -190,6 +206,10 @@ typedef _dart_Dart_Free = void Function(ffi.Pointer pointer);
 typedef _c_CBL_Release = ffi.Void Function(ffi.Pointer pointer);
 
 typedef _dart_CBL_Release = void Function(ffi.Pointer pointer);
+
+typedef _c_DocTest = ffi.Void Function(ffi.Pointer<CBLDatabase> pointer);
+
+typedef _dart_DocTest = void Function(ffi.Pointer<CBLDatabase> pointer);
 
 /// Error domains, serving as namespaces for numeric error codes. */
 enum CBLErrorDomain {

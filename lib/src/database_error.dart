@@ -4,11 +4,9 @@
 
 part of couchbase_lite_dart;
 
-/// Retrieves the error message from the library and throws a [DatabaseException]
-///
-/// Once the
+/// Retrieves the error message from the library and throws a [CouchbaseLiteException]
 void databaseError(ffi.Pointer<cbl.CBLError> error) {
-  if (error == null || error.address == ffi.nullptr.address) return;
+  if (error == null || error == ffi.nullptr) return;
   if (error.ref.domain > 0 &&
       error.ref.domain < cbl.CBLErrorDomain.CBLMaxErrorDomainPlus1.index - 1) {
     final res = cbl.CBLError_Message(error);
@@ -17,16 +15,19 @@ void databaseError(ffi.Pointer<cbl.CBLError> error) {
     final code = error.ref.code;
     final message = pffi.Utf8.fromUtf8(res.cast());
 
-    throw DatabaseException(domain, code, message);
+    pffi.free(error);
+
+    throw CouchbaseLiteException(domain, code, message);
   }
+  pffi.free(error);
 }
 
-class DatabaseException implements Exception {
+class CouchbaseLiteException implements Exception {
   int domain;
   int code;
   String message;
 
-  DatabaseException(this.domain, this.code, this.message);
+  CouchbaseLiteException(this.domain, this.code, this.message);
 
   @override
   String toString() => 'Domain: $domain, Code: $code, Message: $message';

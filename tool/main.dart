@@ -5,8 +5,11 @@
 // ignore_for_file: dead_code, always_declare_return_types, omit_local_variable_types
 
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:couchbase_lite_dart/bindings/library.dart' as cbl;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 const testDB = 'plugintest';
@@ -300,38 +303,74 @@ testFleece() async {
 testBlob() async {
   var db = Database(testDB);
   db.open();
+  // cbl.DocTest(db.ref);
   print('Database is open > ' + db.isOpen.toString());
   print('Document count >' + db.count.toString());
 
-  //db.compact();
+  // db.saveDocument(Document('testdoc1', data: {'foo': 'bar'}));
+  // db.compact();
   // return;
   // Read, modify and save document
   try {
-    var f = File('lib/src/Untitled1.png');
+    // // Reading a blob
+    var doc = db.getDocument('testdoc2');
+    print(doc.jsonProperties);
 
-    var img = f.readAsBytesSync();
+    print(doc.properties['logo'].json);
+    var bl1 = Blob.fromValue(doc.properties['logo'].asMap);
 
-    var bl = Blob.createWithData(db, 'image/png', img);
-    print(bl.pointer);
-/*
-    print(bl.contentType);
-    print(bl.digest);
-    print(bl.length);
+    print(bl1);
+    print('Stream ...');
 
-    print(bl.toMap());
-*/
-/*
-    var doc1 = db.getMutableDocument('testdoc3');
-    doc1.properties = {
-      'foo': 'bar8',
-      'logo': bl.toMap(),
-    };
-    db.saveDocument(doc1);*/
+    var s = bl1.getContentStream();
+    s.listen(
+      (data) => print(data),
+      onDone: () => print('DONE'),
+      onError: (e) => print('ERROR' + e.toString()),
+    );
+    print(s);
+
+    print('Get content ...');
+    var co = await bl1.getContent();
+
+    print(co);
+
+    print('Create new blob with stream.....');
+    var f = File('D:/blobtest12.png');
+    var stream = f.openRead();
+
+    var bl2 = await Blob.createWithStream(
+      db,
+      'image/png',
+      stream.cast<Uint8List>(),
+    );
+
+    print(bl2.properties.json);
+
+    var doc1 = db.getMutableDocument('testdoc2');
+    doc1.properties['bg'] = bl2.properties;
+    db.saveDocument(doc1);
+
+    print(bl2);
+
+    // return;
+    // Creating a blob
+    // var f = File('D:/blobtest.png');
+    // var data = f.readAsBytesSync();
+    // var bl = Blob.createWithData('image/png', data);
+
+    // print(bl.properties.json);
+    // print(bl.asMap());
+
+    // var doc1 = db.getMutableDocument('testdoc2');
+    // doc1.properties['logo'] = bl.properties;
+    // doc1.properties['test'] = 10;
+    // db.saveDocument(doc1);
   } catch (e) {
     print('Exception caught > $e');
   }
 
-  await pause(5);
+  // await pause(5);
 
   //var bl = Blob.createWithData('text/txt', '1234');
   //print(bl.pointer);
@@ -342,39 +381,75 @@ void testQuery() async {
   db.open();
   print('Database is open > ' + db.isOpen.toString());
   print('Document count >' + db.count.toString());
-  // testReplicator();
-  await pause(1);
+/*
+  var replicator = Replicator(
+    db,
+    endpointUrl: 'ws://localhost:4984/cblc_test/',
+    username: 'cblc_test',
+    password: 'cblc_test',
+  );
 
-  db.saveDocument(Document('test1',
-      data: {'name': 'Rudolf', 'pwd': '', 'age': 0, 'active': false}));
+  print(replicator);
+  replicator.start();*/
+
+  await pause(1);
+/*
+  db.saveDocument(Document('test1', data: {
+    'dt': 'P',
+    'name': 'Rudolf',
+    'pwd': '',
+    'age': 0,
+    'active': false
+  }));
   db.saveDocument(Document('test2', data: {
     'name': 'Rudolf',
     'age': 1,
     'email': 'example.com',
     'pwd': 'ddd',
-    'active': true
-  }));
+    'active': true,
+    'dt': 'P',
+  }));*/
 
   try {
-    // final q = Query(db, 'SELECT * AS center WHERE dt="AC" AND id=\$ID');
-    final q =
-        Query(db, 'SELECT pwd,active, name, age, email WHERE name = "Rudolf"');
+    final q = Query(db, 'SELECT * AS center WHERE meta.id = "test1"');
 
-    // q.setParameters = {'ID': 'testcenter1'};
-/*
-    q.addChangeListener((List results) {
-      print('New query results for: ');
-      print(results);
+    String token = q.addChangeListener((List results) {
+      print('New query results A: ' + results.toString());
     });
-*/
-    var results1 = q.execute();
-    print(results1);
+
+    await pause(1000);
+
+    print('Saving document:');
+    db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf1'}));
+
+    await pause(1000);
+
+    q.removeChangeListener(token); // cbl.CBLListener_Remove(_cblToken);
+
+    await pause(1000);
+    print('Saving document again:');
+    db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf2'}));
+    await pause(1000);
+
+    print("Releaseing the query");
+    cbl.CBL_Release(q.ref);
+
+    await pause(1000);
+
+    print('Saving document again:');
+    db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf3'}));
+    await pause(1000);
+
+    print("END");
   } on Exception catch (e) {
     print('!!! Exception caught > $e');
     print(StackTrace.current);
   }
 
-  await pause(1);
+  while (true) {
+    await pause(1000);
+  }
+
 /*
   try {
     var q1 = Query(db, 'SELECT * AS center WHERE dt='AC' AND id=\$ID');
@@ -428,42 +503,48 @@ testReplicator() async {
   db.open();
   print('Database is open > ' + db.isOpen.toString());
   print('Document count >' + db.count.toString());
-
+  Replicator replicator;
   try {
-    var replicator = Replicator(
+    replicator = Replicator(
       db,
       endpointUrl: 'ws://localhost:4984/cblc_test/',
       username: 'cblc_test',
       password: 'cblc_test',
     );
 
-    print(replicator);
-    print(replicator.status());
+    replicator.addChangeListener((change) => print(change));
+
     replicator.start();
+    // print(replicator.status);
+    // var doc = db.getMutableDocument('testdoc1');
+    // doc.properties['foor'] = 'barz';
+    // db.saveDocument(doc);
 
-    // replicator.addChangeListener((status) {
-    //   print('Replicator status: ' + status.activityLevel.toString());
-    // });
-    await pause(1);
-    print(replicator.status());
+    // print('tetdoc1 pending?');
+    // print(replicator.isDocumentPending('testdoc1'));
+    // print(replicator.pendingDocumentIds.json);
 
-    await pause(1);
-    replicator.suspend();
+    // var doc = db.getMutableDocument('testdoc1');
+    // doc.properties['foor'] = 'barz';
+    // db.saveDocument(doc);
+    // await pause(500);
+    // print('tetdoc1 pending?');
+    // print(replicator.isDocumentPending('testdoc1'));
+    // print(replicator.pendingDocumentIds.json);
+    // await pause(100);
+    // replicator.stop();
 
-    await pause(1);
-    print(replicator.status());
-
-    await pause(1);
-    replicator.stop();
-
-    await pause(1);
-    print(replicator.status());
+    await pause(1000);
+    // print(replicator.status);
   } catch (e) {
     print('!!! Exception caught > $e');
   }
-
+  int i = 0;
   while (true) {
     await pause(1000);
+    i++;
+    //if (i == 10) print(replicator.isDocumentPending('testdoc1'));
+    //print(replicator.status);
   }
 }
 
@@ -512,7 +593,7 @@ testReplicator1() async {
 
     var doc = db.getMutableDocument('testcenter1');
     print(doc.properties.json);
-    doc.jsonProperties = doc.properties.json.replaceAll('qdffd', 'RRR');
+    // doc.jsonProperties = doc.properties.json.replaceAll('qdffd', 'RRR');
     db.saveDocument(doc);
     print('here');
     await pause(1);
@@ -702,7 +783,7 @@ testDocumentExpiration() async {
 
   // Create new document
   var doc = Document('testdoc');
-  doc.properties = {'foo': 'bar'};
+  // doc.properties = {'foo': 'bar'};
   var savedDoc = db.saveDocument(doc);
   print('Created document > ' + savedDoc.toString());
 
@@ -756,7 +837,7 @@ testSaveDocument() async {
   // Read, modify and save document
   try {
     var doc1 = db.getMutableDocument('testdoc3');
-    doc1.properties = {'foo': 'bar12'};
+    // doc1.properties = {'foo': 'bar12'};
 
     await pause(10);
     // db.saveDocument(doc1);
@@ -779,7 +860,7 @@ testSaveDocument() async {
 
   // Create new document
   var doc = Document('testdoc3');
-  doc.properties = {'foo': 'bar3'};
+  // doc.properties = {'foo': 'bar3'};
   var savedDoc = db.saveDocument(doc);
   print('Created document > ' + savedDoc.toString());
 
@@ -787,19 +868,19 @@ testSaveDocument() async {
   Document doc1;
   try {
     doc1 = db.getDocument('testdoc3');
-    doc1.properties = {'foo': 'bar4'};
+    // doc1.properties = {'foo': 'bar4'};
   } catch (e) {
     print('Exception caught > $e');
   }
 
   var mutDoc = doc1.mutableCopy;
-  mutDoc.properties = {'foo': 'bar5'};
+  // mutDoc.properties = {'foo': 'bar5'};
   db.saveDocument(mutDoc);
 
   // Read, modify and save document
   try {
     var doc1 = db.getMutableDocument('testdoc3');
-    doc1.properties = {'foo': 'bar8'};
+    // doc1.properties = {'foo': 'bar8'};
     db.saveDocument(doc1);
     print('document saved');
   } catch (e) {
@@ -818,7 +899,7 @@ testDocument() {
 
   // Create new document
   var doc = Document('testdoc');
-  doc.properties = {'foo': 'bar1'};
+  // doc.properties = {'foo': 'bar1'};
   var savedDoc = db.saveDocument(doc);
   print('Created document > ' + savedDoc.toString());
 
@@ -852,7 +933,7 @@ testDocument() {
   print('Purge by id');
 
   var doc3 = Document('testdoc');
-  doc.properties = {'foo': 'bar1'};
+  // doc.properties = {'foo': 'bar1'};
   db.saveDocument(doc3);
 
   try {
@@ -906,7 +987,7 @@ testDBCopy() {
   try {
     db.open();
     db1.open();
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print(e);
   }
 
@@ -919,7 +1000,7 @@ testDBCopy() {
       copyDb[0],
       // directory: testDir,
     );
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught > $e');
   }
   print('Result > $result');
@@ -933,7 +1014,7 @@ testDBCopy() {
       copyDb[1],
       directory: testDir,
     );
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught > $e');
   }
   print('Result > $result');
@@ -947,7 +1028,7 @@ testDBCopy() {
       copyDb[2],
       // directory: testDir,
     );
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught > $e');
   }
   print('Result > $result');
@@ -967,7 +1048,7 @@ testDBCopy() {
       copyDb[3],
       directory: testDir,
     );
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught > $e');
   }
   print('Result > $result');
@@ -987,7 +1068,7 @@ testDatabaseCopy() {
       copyDb[0],
       // directory: testDir,
     );
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught > $e');
   }
   print('Result > $result');
@@ -1001,7 +1082,7 @@ testDatabaseCopy() {
       copyDb[1],
       // directory: testDir,
     );
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught > $e');
   }
   print('Result > $result');
@@ -1015,7 +1096,7 @@ testDatabaseCopy() {
       copyDb[2],
       directory: testDir,
     );
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught > $e');
   }
   print('Result > $result');
@@ -1035,7 +1116,7 @@ testDatabaseCopy() {
       copyDb[3],
       directory: testDir,
     );
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught > $e');
   }
   print('Result > $result');
@@ -1112,7 +1193,7 @@ testDBDelete() {
   try {
     db.open();
     result = db.delete();
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught >$e ');
   }
   print('Deleting $testDB > $result');
@@ -1125,7 +1206,7 @@ testDBDelete() {
     db.open();
     db1.open();
     result = db.delete();
-  } on DatabaseException catch (e) {
+  } on CouchbaseLiteException catch (e) {
     print('Exception caught >$e ');
   }
   print('Deleting $testDB > $result');
