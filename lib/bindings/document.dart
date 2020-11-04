@@ -63,6 +63,11 @@ final CBLDocument_Purge =
 final CBLDocument_Properties = _dylib.lookupFunction<_c_CBLDocument_Properties,
     _dart_CBLDocument_Properties>('CBLDocument_Properties');
 
+/// Set a document's properties.
+final CBLDocument_SetProperties = _dylib.lookupFunction<
+    _c_CBLDocument_SetProperties,
+    _dart_CBLDocument_SetProperties>('CBLDocument_SetProperties');
+
 /// Returns a document's properties as a null-terminated JSON string.
 ///
 /// You are responsible for calling `free()` on the returned string.
@@ -145,6 +150,16 @@ typedef _c_CBLDocument_Properties = ffi.Pointer<FLDict> Function(
 
 typedef _dart_CBLDocument_Properties = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLDocument> doc,
+);
+
+typedef _c_CBLDocument_SetProperties = ffi.Void Function(
+  ffi.Pointer<CBLDocument> doc,
+  ffi.Pointer<FLDict> properties,
+);
+
+typedef _dart_CBLDocument_SetProperties = void Function(
+  ffi.Pointer<CBLDocument> doc,
+  ffi.Pointer<FLDict> properties,
 );
 
 typedef _c_CBLDocument_PropertiesAsJSON = ffi.Pointer<ffi.Int8> Function(

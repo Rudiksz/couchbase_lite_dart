@@ -59,7 +59,10 @@ class Document {
   /// underlying dictionary itself is mutable. You can obtain a mutable
   /// reference via [Document.mutableCopy].
   FLDict get properties => _properties;
-  set properties(FLDict props) => _properties = props;
+  set properties(FLDict props) {
+    cbl.CBLDocument_SetProperties(_doc, props._value);
+    _properties = props;
+  }
 
   /// Returns the properties as JSON encoded
   Map<dynamic, dynamic> get jsonProperties {
@@ -75,7 +78,6 @@ class Document {
   set jsonProperties(Map<dynamic, dynamic> data) {
     final error = pffi.allocate<cbl.CBLError>();
 
-    print(_doc);
     cbl.CBLDocument_SetPropertiesAsJSON(
       _doc,
       cbl.strToUtf8(jsonEncode(data)),
