@@ -11,6 +11,12 @@ part of couchbase_lite_dart;
 /// Return `true` if the document should be replicated, `false` to skip it.
 typedef ReplicatorFilter = bool Function(Document document, bool isDeleted);
 
+typedef ConflictResolver = Document Function(
+  String documentID,
+  Document localDocument,
+  Document remoteDocument,
+);
+
 class Replicator {
   /// Pointer to the C replicator object
   ffi.Pointer<cbl.CBLReplicator> repl;
@@ -61,20 +67,45 @@ class Replicator {
   /// Return `true` if the document should be replicated, `false` to skip it.
   ReplicatorFilter pullFilter;
 
+  /// Conflict-resolution callback for use in replications. This callback will be invoked
+  /// when the replicator finds a newer server-side revision of a document that also has local
+  /// changes. The local and remote changes must be resolved before the document can be pushed
+  /// to the server.
+  ///
+  /// Unlike a filter callback, it does not need to return quickly. If it needs to prompt for
+  /// user input, that's OK.
+  ///
+  /// [localDocument] is the current revision of the document in the local database,
+  /// or NULL if the local document has been deleted.
+  ///
+  /// [remoteDocument] is the revision of the document found on the server,
+  /// or NULL if the document has been deleted on the server.
+  ///
+  /// Return the resolved document to save locally (and push, if the replicator is pushing.)
+  /// This can be the same as [localDocument] or [remoteDocument], or you can create
+  /// a mutable copy of either one and modify it appropriately.
+  /// Or return NULL if the resolution is to delete the document.
+  ConflictResolver conflictResolver;
+
   //-- Internal
 
   /// Receiver,port and callback for filter events sent by the C threads
-  static ReceivePort _cblFilterListener;
-  static int _filterNativePort;
+  static ReceivePort _cblFilterPort;
   static var _cblFilterCallback;
-  static var _cblStatusCallback;
 
   static final Map<String, ReplicatorFilter> _pushReplicatorFilters = {};
   static final Map<String, ReplicatorFilter> _pullReplicatorFilters = {};
 
+  /// Receiver,port and callback for conflict handlers sent by the C threads
+  static ReceivePort _cblConflictPort;
+  static var _cblConflictCallback;
+
+  static final Map<String, ConflictResolver> _conflictResolvers = {};
+
   /// Receiver and port for status events sent by the C threads
   static ReceivePort _cblListener;
   static int _nativePort;
+  static var _cblStatusCallback;
 
   /// Replicators that have active listeners.
   static final Map<String, ffi.Pointer<cbl.CBLReplicator>> _replicators = {};
@@ -107,22 +138,31 @@ class Replicator {
     this.trustedRootCertificates = '',
     this.pushFilter,
     this.pullFilter,
+    this.conflictResolver,
     this.proxy,
   }) {
     assert(db != null && db._db != ffi.nullptr);
     assert(endpointUrl != null && endpointUrl.isNotEmpty);
 
-    // Set up comunication protocol between Dart and C
+    // Set up comunication protocol between Dart and C for pull/push filters
     if (pullFilter != null || pushFilter != null) {
-      _cblFilterListener ??= ReceivePort()
-        ..listen(_cblReplicatorFilterListener);
-      _filterNativePort ??= _cblFilterListener.sendPort.nativePort;
+      _cblFilterPort ??= ReceivePort()..listen(_cblReplicatorFilterListener);
 
       _cblFilterCallback = ffi.Pointer.fromFunction<cbl.FilterCallback>(
           _cblReplicatorFilterCallback, 1);
 
       _pushReplicatorFilters[_id] = pushFilter;
       _pullReplicatorFilters[_id] = pullFilter;
+    }
+
+    // Set up comunication protocol between Dart and C for the conflict handler
+    if (conflictResolver != null) {
+      _cblConflictPort ??= ReceivePort()..listen(_cblConflictListener);
+
+      _cblConflictCallback = ffi.Pointer.fromFunction<cbl.ConflictCallback>(
+          _cblReplicatorConflictCallback);
+
+      _conflictResolvers[_id] = conflictResolver;
     }
 
     _cblStatusCallback = ffi.Pointer.fromFunction<cbl.StatusCallback>(
@@ -154,9 +194,12 @@ class Replicator {
           : ffi.nullptr,
       pushFilter != null ? 1 : 0,
       pullFilter != null ? 1 : 0,
+      conflictResolver != null ? 1 : 0,
       _cblFilterCallback ?? ffi.nullptr,
       _cblStatusCallback ?? ffi.nullptr,
-      _filterNativePort ?? 0,
+      _cblConflictCallback ?? ffi.nullptr,
+      _cblFilterPort != null ? _cblFilterPort.sendPort.nativePort : 0,
+      _cblConflictPort != null ? _cblConflictPort.sendPort.nativePort : 0,
       error,
     );
 
@@ -337,6 +380,40 @@ class Replicator {
     final result = callback(Document._internal(document), isDeleted != 0);
 
     return result ? 1 : 0;
+  }
+
+  // -- Conflict Resolvers
+
+  /// This is listening to push and pull filter events sent by the C replicators.
+  /// Its job is to call back C code with the provided closure, which in turn will
+  /// execute the [_cblReplicatorFilterCallback] inside the closure. Done this way
+  /// to make sure the callback is executed on the same isolate.
+  void _cblConflictListener(dynamic message) async {
+    final work = ffi.Pointer<cbl.Work>.fromAddress(message as int);
+    cbl.CBLReplicator_ExecuteCallback(work);
+  }
+
+  /// The actual pull and push filter handler. Calls the registered Dart listeners
+  /// and returns the value they produce.
+  static ffi.Pointer<cbl.CBLDocument> _cblReplicatorConflictCallback(
+    ffi.Pointer<ffi.Int8> replicatorId,
+    ffi.Pointer<ffi.Int8> documentId,
+    ffi.Pointer<cbl.CBLDocument> localDocument,
+    ffi.Pointer<cbl.CBLDocument> remoteDocument,
+  ) {
+    final callback = _conflictResolvers[cbl.utf8ToStr(replicatorId)];
+
+    if (callback == null) {
+      return ffi.nullptr;
+    }
+
+    final result = callback(
+      cbl.utf8ToStr(documentId),
+      Document._internal(localDocument),
+      Document._internal(remoteDocument),
+    );
+
+    return result._doc ?? ffi.nullptr;
   }
 }
 

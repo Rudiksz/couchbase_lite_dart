@@ -176,9 +176,12 @@ typedef _c_CBLReplicator_New_d = ffi.Pointer<CBLReplicator> Function(
   ffi.Pointer<ffi.Int8> trustedRootCertificates,
   ffi.Uint8 pushFilter,
   ffi.Uint8 pullFilter,
+  ffi.Uint8 conflictResolver,
   ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
   ffi.Pointer<ffi.NativeFunction<StatusCallback>> statusCallback,
-  ffi.Uint64 dart_port,
+  ffi.Pointer<ffi.NativeFunction<ConflictCallback>> conflictCallback,
+  ffi.Uint64 filterPort,
+  ffi.Uint64 conflictPort,
   ffi.Pointer<CBLError> outError,
 );
 
@@ -200,9 +203,12 @@ typedef _dart_CBLReplicator_New_d = ffi.Pointer<CBLReplicator> Function(
   ffi.Pointer<ffi.Int8> trustedRootCertificates,
   int pushFilter,
   int pullFilter,
+  int conflictResolver,
   ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
   ffi.Pointer<ffi.NativeFunction<StatusCallback>> statusCallback,
-  int dart_port,
+  ffi.Pointer<ffi.NativeFunction<ConflictCallback>> conflictCallback,
+  int filterPort,
+  int conflictPort,
   ffi.Pointer<CBLError> outError,
 );
 
@@ -211,6 +217,13 @@ typedef FilterCallback = ffi.Int8 Function(
   ffi.Pointer<ffi.Int8> replicatorId,
   ffi.Pointer<CBLDocument>,
   ffi.Int8,
+);
+
+typedef ConflictCallback = ffi.Pointer<CBLDocument> Function(
+  ffi.Pointer<ffi.Int8> replicatorId,
+  ffi.Pointer<ffi.Int8> documentId,
+  ffi.Pointer<CBLDocument> localDOcument,
+  ffi.Pointer<CBLDocument> remoteDocument,
 );
 
 typedef StatusCallback = ffi.Void Function(
