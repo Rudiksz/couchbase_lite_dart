@@ -40,6 +40,8 @@ class CblC {
     registerDart_CloseNativePort(ffi.NativeApi.closeNativePort);
     registerDartPrint(wrappedPrintPointer);
   }
+
+  int instanceCount() => CBL_InstanceCount();
 }
 
 ffi.Pointer<ffi.Int8> strToUtf8(String str) =>
@@ -51,7 +53,7 @@ final registerSendPort = _dylib?.lookupFunction<
     ffi.Void Function(ffi.Int64 sendPort),
     void Function(int sendPort)>('RegisterSendPort');
 
-final registerDart_PostCObject = _dylib?.lookupFunction<
+final registerDart_PostCObject = _dylib.lookupFunction<
     ffi.Void Function(
         ffi.Pointer<
                 ffi.NativeFunction<
@@ -65,7 +67,7 @@ final registerDart_PostCObject = _dylib?.lookupFunction<
                         ffi.Int64, ffi.Pointer<ffi.Dart_CObject>)>>
             functionPointer)>('RegisterDart_PostCObject');
 
-final registerDart_NewNativePort = _dylib?.lookupFunction<
+final registerDart_NewNativePort = _dylib.lookupFunction<
     ffi.Void Function(
         ffi.Pointer<
                 ffi.NativeFunction<
@@ -128,7 +130,7 @@ String findPackagePath(String currentPath, {bool windows}) {
         }
       }
     }
-    return null;
+    return '';
   }
 
   var file = File(join(currentPath, '.packages'));
@@ -137,7 +139,7 @@ String findPackagePath(String currentPath, {bool windows}) {
   } else {
     var parent = dirname(currentPath);
     if (parent == currentPath) {
-      return null;
+      return '';
     }
     return findPackagePath(parent);
   }
@@ -152,6 +154,10 @@ final CBLError_Message =
 
 final CBL_Release =
     _dylib.lookupFunction<_c_CBL_Release, _dart_CBL_Release>('CBL_Release');
+
+final CBL_InstanceCount =
+    _dylib.lookupFunction<_c_CBL_InstanceCount, _dart_CBL_InstanceCount>(
+        'CBL_InstanceCount');
 
 final Dart_Free =
     _dylib.lookupFunction<_c_Dart_Free, _dart_Dart_Free>('Dart_Free');
@@ -206,6 +212,10 @@ typedef _dart_Dart_Free = void Function(ffi.Pointer pointer);
 typedef _c_CBL_Release = ffi.Void Function(ffi.Pointer pointer);
 
 typedef _dart_CBL_Release = void Function(ffi.Pointer pointer);
+
+typedef _c_CBL_InstanceCount = ffi.Uint64 Function();
+
+typedef _dart_CBL_InstanceCount = int Function();
 
 typedef _c_DocTest = ffi.Void Function(ffi.Pointer<CBLDatabase> pointer);
 

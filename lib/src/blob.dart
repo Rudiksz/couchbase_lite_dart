@@ -62,7 +62,7 @@ class Blob {
       error.addressOf,
     );
 
-    databaseError(error.addressOf);
+    validateError(error);
   }
 
   /// Creates a new blob using data from the stream. Returns a future that will
@@ -76,7 +76,7 @@ class Blob {
     ffi.Pointer<cbl.CBLBlobWriteStream> _blobStream;
     try {
       _blobStream = cbl.CBLBlobWriter_New(db._db, error.addressOf);
-      databaseError(error.addressOf);
+      validateError(error);
     } on CouchbaseLiteException catch (e) {
       result.completeError(e);
       return result.future;

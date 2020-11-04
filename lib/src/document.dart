@@ -76,15 +76,15 @@ class Document {
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
   set jsonProperties(Map<dynamic, dynamic> data) {
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
 
     cbl.CBLDocument_SetPropertiesAsJSON(
       _doc,
       cbl.strToUtf8(jsonEncode(data)),
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
 
     _properties = FLDict.fromPointer(cbl.CBLDocument_Properties(_doc));
   }
@@ -95,10 +95,14 @@ class Document {
   bool delete(
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
     if (_doc.address == ffi.nullptr.address) return false;
-    final error = pffi.allocate<cbl.CBLError>();
-    final result = cbl.CBLDocument_Delete(_doc, concurrency.index, error);
+    final error = cbl.CBLError.allocate();
+    final result = cbl.CBLDocument_Delete(
+      _doc,
+      concurrency.index,
+      error.addressOf,
+    );
 
-    databaseError(error);
+    validateError(error);
     return result != 0;
   }
 
@@ -111,10 +115,10 @@ class Document {
   ///  Returns true if the document was purged, false if it doesn't exists and throws [CouchbaseLiteException] if the purge failed.
   bool purge() {
     if (_doc.address == ffi.nullptr.address) return false;
-    final error = pffi.allocate<cbl.CBLError>();
-    final result = cbl.CBLDocument_Purge(_doc, error);
+    final error = cbl.CBLError.allocate();
+    final result = cbl.CBLDocument_Purge(_doc, error.addressOf);
 
-    databaseError(error);
+    validateError(error);
     return result != 0;
   }
 

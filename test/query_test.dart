@@ -30,7 +30,7 @@ void main() {
 
     expect(
       Query(db, 'SELECT *'),
-      predicate<Query>((q) => q.error.ref.code == 0),
+      predicate<Query>((q) => q.error.code == 0),
     );
 
     expect(
@@ -50,7 +50,7 @@ void main() {
     addTearDown(() => db.close());
   });
 
-  test('execute', () {
+  test('execute', () async {
     var db = Database('query3', directory: TESTDIR);
     final query = Query(db, 'SELECT *');
     expect(query.execute(), []);
@@ -70,7 +70,7 @@ void main() {
       ],
     );
 
-    addTearDown(() => db.close());
+    addTearDown(() => db.delete());
   });
 
   test('parameters', () {

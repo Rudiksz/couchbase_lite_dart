@@ -5,21 +5,26 @@
 part of couchbase_lite_dart;
 
 /// Retrieves the error message from the library and throws a [CouchbaseLiteException]
-void databaseError(ffi.Pointer<cbl.CBLError> error) {
-  if (error == null || error == ffi.nullptr) return;
-  if (error.ref.domain > 0 &&
-      error.ref.domain < cbl.CBLErrorDomain.CBLMaxErrorDomainPlus1.index - 1) {
-    final res = cbl.CBLError_Message(error);
+///
+/// In case of an error calls the [cleanup] closure, if provided
+///
+/// Frees the [error] object
+void validateError(cbl.CBLError error, {Function cleanup}) {
+  if (error == null || error.addressOf == ffi.nullptr) return;
+  if (error.domain > 0 &&
+      error.domain < cbl.CBLErrorDomain.CBLMaxErrorDomainPlus1.index) {
+    final res = cbl.CBLError_Message(error.addressOf);
 
-    final domain = error.ref.domain;
-    final code = error.ref.code;
+    final domain = error.domain;
+    final code = error.code;
     final message = pffi.Utf8.fromUtf8(res.cast());
 
-    pffi.free(error);
+    if (cleanup != null) cleanup();
+    pffi.free(error.addressOf);
 
     throw CouchbaseLiteException(domain, code, message);
   }
-  pffi.free(error);
+  pffi.free(error.addressOf);
 }
 
 class CouchbaseLiteException implements Exception {

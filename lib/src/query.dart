@@ -19,7 +19,6 @@ class Query {
   String queryString;
 
   ffi.Pointer<ffi.Int32> outErrorPos = pffi.allocate();
-  ffi.Pointer<cbl.CBLError> error = pffi.allocate();
 
   // ??? Query change listeners
 
@@ -53,19 +52,17 @@ class Query {
   ///
   /// You must [dispose] the [Query] when you're finished with it.
   Query(this.db, this.queryString, {this.language = QueryLanguage.n1ql}) {
-    error.ref
-      ..domain = 0
-      ..code = 0;
+    final error = cbl.CBLError.allocate();
 
     _q = cbl.CBLQuery_New(
       db._db,
       language.index,
       cbl.strToUtf8(queryString.replaceAll('\n', '')),
       outErrorPos,
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
   }
 
   /// Runs the query, returning the results.
@@ -74,14 +71,17 @@ class Query {
   List execute() {
     assert(_q != ffi.nullptr,
         'The query was either not compiled yet or was already disposed.');
-    final result = cbl.CBLQuery_Execute(_q, error);
+    // error.reset();
+    final error = cbl.CBLError.allocate();
+    final result = cbl.CBLQuery_Execute(_q, error.addressOf);
 
-    databaseError(error);
+    validateError(error, cleanup: () => cbl.CBL_Release(result));
 
     final rows = [];
     while (cbl.CBLResultSet_Next(result) != 0) {
-      final row = cbl.CBLResultSet_RowJSON(result);
-      rows.add(jsonDecode(pffi.Utf8.fromUtf8(row.cast())));
+      final row = cbl.CBLResultSet_RowDict(result);
+      final json = FLDict.fromPointer(row).json;
+      rows.add(jsonDecode(json));
     }
 
     cbl.CBL_Release(result);
@@ -182,11 +182,15 @@ class Query {
     // assert(query != null && listener != null);
     if (query == null && listener == null) return;
 
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
 
-    final results = cbl.CBLQuery_CopyCurrentResults(query, listener, error);
+    final results = cbl.CBLQuery_CopyCurrentResults(
+      query,
+      listener,
+      error.addressOf,
+    );
 
-    databaseError(error);
+    validateError(error);
 
     final rows = [];
     while (cbl.CBLResultSet_Next(results) != 0) {

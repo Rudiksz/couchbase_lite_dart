@@ -168,7 +168,7 @@ class Replicator {
     _cblStatusCallback = ffi.Pointer.fromFunction<cbl.StatusCallback>(
         _cblReplicatorStatusCallback);
 
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
     repl = cbl.CBLReplicator_New_d(
       cbl.strToUtf8(_id),
       db._db,
@@ -200,10 +200,10 @@ class Replicator {
       _cblConflictCallback ?? ffi.nullptr,
       _cblFilterPort != null ? _cblFilterPort.sendPort.nativePort : 0,
       _cblConflictPort != null ? _cblConflictPort.sendPort.nativePort : 0,
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
   }
 
   /// Starts a replicator, asynchronously. Does nothing if it's already started.
@@ -332,9 +332,12 @@ class Replicator {
   ///
   /// **Note: you must call dispose on the dictionary once you are done with it.**
   FLDict get pendingDocumentIds {
-    final error = pffi.allocate<cbl.CBLError>();
-    final response = cbl.CBLReplicator_PendingDocumentIDs(repl, error);
-    databaseError(error);
+    final error = cbl.CBLError.allocate();
+    final response = cbl.CBLReplicator_PendingDocumentIDs(
+      repl,
+      error.addressOf,
+    );
+    validateError(error);
     return FLDict.fromPointer(response);
   }
 
@@ -346,10 +349,11 @@ class Replicator {
   ///
   /// Throws [CouchbaseLiteException] in case of an error.
   bool isDocumentPending(String id) {
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
     final pid = cbl.strToUtf8(id);
-    final result = cbl.CBLReplicator_IsDocumentPending(repl, pid, error);
-    databaseError(error);
+    final result =
+        cbl.CBLReplicator_IsDocumentPending(repl, pid, error.addressOf);
+    validateError(error);
     return result != 0;
   }
 
@@ -414,6 +418,11 @@ class Replicator {
     );
 
     return result._doc ?? ffi.nullptr;
+  }
+
+  void dispose() {
+    cbl.CBL_Release(repl);
+    repl = ffi.nullptr;
   }
 }
 

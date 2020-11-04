@@ -40,7 +40,7 @@ void main() {
     );
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel == ActivityLevel.stopped),
     );
@@ -59,7 +59,7 @@ void main() {
     );
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel == ActivityLevel.stopped),
     );
@@ -68,7 +68,7 @@ void main() {
     await asyncSleep(1000);
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel != ActivityLevel.stopped),
     );
@@ -90,19 +90,19 @@ void main() {
     );
 
     replicator.start();
-    await asyncSleep(5000);
+    await asyncSleep(1000);
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel != ActivityLevel.stopped),
     );
 
     replicator.stop();
-    await asyncSleep(5000);
+    await asyncSleep(1000);
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel == ActivityLevel.stopped),
     );
@@ -127,7 +127,7 @@ void main() {
     await asyncSleep(1000);
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel != ActivityLevel.stopped),
     );
@@ -136,7 +136,7 @@ void main() {
     await asyncSleep(1000);
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel == ActivityLevel.offline),
     );
@@ -145,7 +145,7 @@ void main() {
     await asyncSleep(1000);
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel != ActivityLevel.offline),
     );
@@ -168,14 +168,14 @@ void main() {
     );
 
     replicator.start();
-    await asyncSleep(5000);
+    await asyncSleep(1000);
     replicator.suspend();
-    await asyncSleep(5000);
+    await asyncSleep(1000);
 
     replicator.setHostReachable(false);
 
     expect(
-      replicator.status(),
+      replicator.status,
       predicate<ReplicatorStatus>(
           (e) => e.activityLevel == ActivityLevel.offline),
     );

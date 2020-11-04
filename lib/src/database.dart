@@ -108,7 +108,7 @@ class Database {
   /// * [toName]  The new database name (without the ".cblite2" extension.)
   /// * [directory]  The destination directory
   static bool Copy(String path, String toName, {String directory}) {
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
     final config = pffi.allocate<cbl.CBLDatabaseConfiguration>().ref
       ..directory = pffi.Utf8.toUtf8(directory ?? '').cast<ffi.Int8>()
       ..encryptionKey = cbl.CBLEncryptionKey().addressOf;
@@ -117,10 +117,10 @@ class Database {
       pffi.Utf8.toUtf8(path ?? '').cast(),
       pffi.Utf8.toUtf8(toName).cast(),
       config.addressOf,
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
 
     return result != 0;
   }
@@ -143,15 +143,15 @@ class Database {
   static bool Delete(String name, {String directory}) {
     // assert(name?.isNotEmpty ?? true, "Name cannot be empty");
 
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
 
     final result = cbl.CBL_DeleteDatabase(
       pffi.Utf8.toUtf8(name ?? '').cast(),
       pffi.Utf8.toUtf8(directory ?? '').cast(),
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
 
     return result != 0;
   }
@@ -166,15 +166,15 @@ class Database {
   /// Throws `DatabaseException` on failure.
   bool open() {
     if (isOpen) return true;
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
 
     _db = cbl.CBLDatabase_Open(
       pffi.Utf8.toUtf8(_name).cast(),
       _config.addressOf,
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
 
     if (isOpen) {
       final res = cbl.CBLDatabase_Path(_db);
@@ -188,10 +188,10 @@ class Database {
   bool close() {
     if (!isOpen) return true;
 
-    final error = pffi.allocate<cbl.CBLError>();
-    final result = cbl.CBLDatabase_Close(_db, error);
+    final error = cbl.CBLError.allocate();
+    final result = cbl.CBLDatabase_Close(_db, error.addressOf);
 
-    databaseError(error);
+    validateError(error);
 
     _db = ffi.nullptr;
 
@@ -202,10 +202,10 @@ class Database {
   bool compact() {
     if (_db == null) return true;
 
-    final error = pffi.allocate<cbl.CBLError>();
-    final result = cbl.CBLDatabase_Compact(_db, error);
+    final error = cbl.CBLError.allocate();
+    final result = cbl.CBLDatabase_Compact(_db, error.addressOf);
 
-    databaseError(error);
+    validateError(error);
 
     return result != 0;
   }
@@ -216,10 +216,10 @@ class Database {
   bool delete() {
     if (_db == null) return true;
 
-    final error = pffi.allocate<cbl.CBLError>();
-    final result = cbl.CBLDatabase_Delete(_db, error);
+    final error = cbl.CBLError.allocate();
+    final result = cbl.CBLDatabase_Delete(_db, error.addressOf);
 
-    databaseError(error);
+    validateError(error);
     _db = null;
 
     return result != 0;
@@ -233,10 +233,10 @@ class Database {
   bool beginBatch() {
     if (_db == null) return true;
 
-    final error = pffi.allocate<cbl.CBLError>();
-    final result = cbl.CBLDatabase_BeginBatch(_db, error);
+    final error = cbl.CBLError.allocate();
+    final result = cbl.CBLDatabase_BeginBatch(_db, error.addressOf);
 
-    databaseError(error);
+    validateError(error);
 
     return result != 0;
   }
@@ -245,10 +245,10 @@ class Database {
   bool endBatch() {
     if (_db == null) return true;
 
-    final error = pffi.allocate<cbl.CBLError>();
-    final result = cbl.CBLDatabase_EndBatch(_db, error);
+    final error = cbl.CBLError.allocate();
+    final result = cbl.CBLDatabase_EndBatch(_db, error.addressOf);
 
-    databaseError(error);
+    validateError(error);
 
     return result != 0;
   }
@@ -294,11 +294,11 @@ class Database {
   /// Returns an updated Document reflecting the saved changes, or null on failure.
   Document saveDocument(Document document,
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_SaveDocument(
-        _db, document.doc, concurrency.index, error);
+        _db, document.doc, concurrency.index, error.addressOf);
 
-    databaseError(error);
+    validateError(error);
     return result.address != ffi.nullptr.address
         ? Document._internal(result)
         : null;
@@ -319,16 +319,16 @@ class Database {
         ffi.Pointer.fromFunction<cbl.CBLSaveConflictHandler>(
             _saveConflictCallback, 1);
 
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_SaveDocumentResolving(
       _db,
       document.doc,
       conflictHandler_,
       cbl.strToUtf8(token).cast(),
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
     _saveConflictHandlers.remove(token);
     return result != ffi.nullptr ? Document._internal(result) : null;
   }
@@ -358,14 +358,14 @@ class Database {
   bool purgeDocument(String id) {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_PurgeDocumentByID(
       _db,
       pffi.Utf8.toUtf8(id).cast(),
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
     return result != 0;
   }
 
@@ -376,14 +376,14 @@ class Database {
   ///
   /// Throws [CouchbaseLiteException] if the call failed.
   DateTime documentExpiration(String id) {
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_GetDocumentExpiration(
       _db,
       pffi.Utf8.toUtf8(id).cast(),
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
     return result != 0 ? DateTime.fromMillisecondsSinceEpoch(result) : null;
   }
 
@@ -393,15 +393,15 @@ class Database {
   ///
   /// Throws [CouchbaseLiteException] if the call failed.
   bool setDocumentExpiration(String id, DateTime expiration) {
-    final error = pffi.allocate<cbl.CBLError>();
+    final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_SetDocumentExpiration(
       _db,
       pffi.Utf8.toUtf8(id).cast(),
       expiration?.millisecondsSinceEpoch ?? 0,
-      error,
+      error.addressOf,
     );
 
-    databaseError(error);
+    validateError(error);
     return result != 0;
   }
 
@@ -584,7 +584,7 @@ class Database {
       error.addressOf,
     );
 
-    databaseError(error.addressOf);
+    validateError(error);
 
     return result != 0;
   }
@@ -601,7 +601,7 @@ class Database {
       error.addressOf,
     );
 
-    databaseError(error.addressOf);
+    validateError(error);
 
     return result != 0;
   }
