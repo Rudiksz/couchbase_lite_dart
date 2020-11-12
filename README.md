@@ -47,12 +47,22 @@ Help with testing, documentation and development is welcome. Here's how you can 
     * [ ] Conflict-resolution callbacks
 * **Blobs**
     * [x] Create, read through content based API
-    * [ ] Stream based API
+    * [x] Stream based API
 
 # Platform support
 
 * **Windows:** Bundled with the package. Beta status.
-* **Android:** Experimental, in testing phase. Currently the libraries are not bundled with the package. Contact me, if you would like to test it.
+* **Android:** 
+    Some assembly is required. You can either 
+    
+    * build the shared libraries yourself from the repository:
+    https://github.com/Rudiksz/couchbase-lite-C.git using the `feature/dart` branch or the tag with the matching version
+    
+    * download the prebuilt libraries from [BUILDS]
+
+    Once you have the shared libraries place them in your project's
+    `\android\app\src\main\jniLibs\` folder
+
 * **iOS, macOS:** N/A
 
 
@@ -138,8 +148,10 @@ There are couple of ways in which you can contribute:
 * Couchbase Lite mobile [CBL]
 * Couchbase Lite C [CBL_C]
 * N1QL [N1QL]
+* Prebuilt libraries (Android, Win) [BUILDS]
 
 [CBL]: https://www.couchbase.com/nosql-databases/couchbase-mobile
 [CBL_C]: https://github.com/couchbaselabs/couchbase-lite-C
 [N1QL]: https://www.couchbase.com/n1ql
 [FLEECE]: https://github.com/couchbaselabs/fleece
+[BUILDS]: https://drive.google.com/drive/folders/1qiLdB64kq-IEsp6hFgvSqG80bzaI33Jf
