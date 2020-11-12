@@ -1,4 +1,4 @@
-## 0.2.1
+## 0.3.0
 * Added stream based API for Blobs
 * Replicator conflict resolver
 * Add keypath support for FLDict
