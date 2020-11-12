@@ -53,6 +53,7 @@ class Database {
   String get name => _name;
 
   ffi.Pointer<cbl.CBLDatabase> _db;
+  ffi.Pointer<cbl.CBLDatabase> get db => _db;
   DatabaseConfiguration _config;
 
   static final Map<String, SaveConflictHandler> _saveConflictHandlers = {};
