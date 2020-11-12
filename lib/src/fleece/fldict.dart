@@ -68,6 +68,20 @@ class FLDict extends IterableBase<FLValue> {
   @override
   bool get isNotEmpty => !isEmpty;
 
+  FLValue call(String keyPath) {
+    // Some values are not supported
+    if (keyPath.isEmpty || keyPath.contains('[]')) return null;
+
+    error.value = 0;
+    final val = cbl.FLKeyPath_EvalOnce(
+      cbl.strToUtf8(keyPath),
+      _value.cast(),
+      error,
+    );
+    if (error.value != FLError.noError.index) return null;
+    return FLValue.fromPointer(val);
+  }
+
   FLValue operator [](String key) =>
       FLValue.fromPointer(cbl.FLDict_Get(_value.cast(), cbl.strToUtf8(key)));
 
@@ -75,7 +89,7 @@ class FLDict extends IterableBase<FLValue> {
   ///
   /// You can set scalar values (int, bool double, String), FLValue, FLDict, FLArray.
   /// Any other object will be JSON encoded if possible.
-  void operator []=(String index, dynamic value) {
+  void operator []=(dynamic index, dynamic value) {
     if (!isMutable) {
       throw Exception('Dictionary is not mutable');
     }
@@ -256,8 +270,12 @@ class FLDictEntryIterator implements Iterator<MapEntry<String, FLValue>> {
   // FLArrayIterator
   @override
   MapEntry<String, FLValue> get current {
+    final keyPointer = cbl.FLDictIterator_GetKeyString(_dict._c_iter);
+    final key = cbl.utf8ToStr(keyPointer);
+    cbl.Dart_Free(keyPointer);
+
     return MapEntry<String, FLValue>(
-      FLValue.fromPointer(cbl.FLDictIterator_GetKey(_dict._c_iter)).asString,
+      key,
       FLValue.fromPointer(cbl.FLDictIterator_GetValue(_dict._c_iter)),
     );
   }
