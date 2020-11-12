@@ -44,7 +44,7 @@ Help with testing, documentation and development is welcome. Here's how you can 
     * [x] Pull/push filters
     * [x] Status listeners
     * [ ] Replicated document listeners
-    * [ ] Conflict-resolution callbacks
+    * [x] Conflict-resolution callbacks
 * **Blobs**
     * [x] Create, read through content based API
     * [x] Stream based API
