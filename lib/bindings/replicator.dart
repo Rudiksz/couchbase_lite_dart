@@ -289,6 +289,7 @@ typedef _dart_CBLReplicator_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
   int dart_port,
 );
 
+/*
 typedef _c_CBLReplicator_AddDocumentListener_d = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLReplicator> replicator,
@@ -301,7 +302,7 @@ typedef _dart_CBLReplicator_AddDocumentListener_d
   ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<ffi.Int8> replicatorId,
   int dart_port,
-);
+);*/
 
 typedef _c_CBLAuth_NewBasic = ffi.Pointer<CBLAuthenticator> Function(
   ffi.Pointer<ffi.Int8> username,
