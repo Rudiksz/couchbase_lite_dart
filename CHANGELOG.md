@@ -1,3 +1,6 @@
+## 0.3.1
+* Fix query parameter setter
+
 ## 0.3.0
 * Added stream based API for Blobs
 * Replicator conflict resolver
