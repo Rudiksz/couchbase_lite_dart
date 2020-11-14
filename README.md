@@ -67,7 +67,7 @@ Help with testing, documentation and development is welcome. Here's how you can 
 
 
 # Examples and how to use
-Important in your main.dart call to initialize Windows specific bindings.
+Important in your main.dart call to initialize Dart<->C callbacks.
 ```
 Cbl.init();
 ```
