@@ -146,6 +146,10 @@ final FLDictIterator_Begin =
 final FLDictIterator_GetKey = _dylib.lookupFunction<_c_FLDictIterator_GetKey,
     _dart_FLDictIterator_GetKey>('FLDictIterator_GetKey');
 
+final FLDictIterator_GetKeyString = _dylib.lookupFunction<
+    _c_FLDictIterator_GetKeyString,
+    _dart_FLDictIterator_GetKeyString>('FLDictIterator_GetKeyString_c');
+
 final FLDictIterator_GetValue = _dylib.lookupFunction<
     _c_FLDictIterator_GetValue,
     _dart_FLDictIterator_GetValue>('FLDictIterator_GetValue');
@@ -620,6 +624,14 @@ typedef _c_FLDictIterator_GetKey = ffi.Pointer<FLValue> Function(
 );
 
 typedef _dart_FLDictIterator_GetKey = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDictIterator> iterator,
+);
+
+typedef _c_FLDictIterator_GetKeyString = ffi.Pointer<ffi.Int8> Function(
+  ffi.Pointer<FLDictIterator> iterator,
+);
+
+typedef _dart_FLDictIterator_GetKeyString = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<FLDictIterator> iterator,
 );
 

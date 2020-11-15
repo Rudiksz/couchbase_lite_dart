@@ -1,3 +1,14 @@
+## 0.3.1
+* Fix query parameter setter
+
+## 0.3.0
+* Added stream based API for Blobs
+* Replicator conflict resolver
+* Add keypath support for FLDict
+* Fix FLDictEntryIterator not returning keys as strings
+* Fix new document properties not being initialized
+* Fix the way dll is included
+
 ## 0.2.0
 *  **Blobs** - Added basic support for blobs
 * Improve Document properties API

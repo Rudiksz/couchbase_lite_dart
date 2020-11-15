@@ -19,17 +19,25 @@ part 'query.dart';
 part 'replicator.dart';
 
 final packagePath = findPackagePath(Directory.current.path);
+final winLibPath = packagePath.isNotEmpty
+            ? '$packagePath/dynlib/CouchbaseLiteC.dll'
+            : 'CouchbaseLiteC.dll';
+
 
 // ffi.DynamicLibrary _dylib;
 final _dylib = Platform.isWindows
-    ? ffi.DynamicLibrary.open('$packagePath/dynlib/CouchbaseLiteC.dll')
-    //? ffi.DynamicLibrary.open(
-    //    '../couchbase-lite-C_windows/Debug/CouchbaseLiteC.dll')
+    ? (File(winLibPath).existsSync()
+        ? ffi.DynamicLibrary.open(winLibPath)
+        : null)
     : (Platform.isAndroid
         ? ffi.DynamicLibrary.open('libCouchbaseLiteC.so')
         : null);
 
 class CblC {
+  String get package => packagePath.isNotEmpty
+      ? '$packagePath/CouchbaseLiteC.dll'
+      : 'CouchbaseLiteC.dll';
+
   static bool isPlatformSupported() => _dylib != null;
   void init() {
     assert(isPlatformSupported());
@@ -162,8 +170,6 @@ final CBL_InstanceCount =
 final Dart_Free =
     _dylib.lookupFunction<_c_Dart_Free, _dart_Dart_Free>('Dart_Free');
 
-final DocTest = _dylib.lookupFunction<_c_DocTest, _dart_DocTest>('DocTest');
-
 // --- Data types
 
 /// A struct holding information about an error. It's declared on the stack by a caller, and
@@ -216,10 +222,6 @@ typedef _dart_CBL_Release = void Function(ffi.Pointer pointer);
 typedef _c_CBL_InstanceCount = ffi.Uint64 Function();
 
 typedef _dart_CBL_InstanceCount = int Function();
-
-typedef _c_DocTest = ffi.Void Function(ffi.Pointer<CBLDatabase> pointer);
-
-typedef _dart_DocTest = void Function(ffi.Pointer<CBLDatabase> pointer);
 
 /// Error domains, serving as namespaces for numeric error codes. */
 enum CBLErrorDomain {

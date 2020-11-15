@@ -21,7 +21,17 @@ const testDir1 = 'D:\\tmp1\\';
 // ignore
 void main() async {
   Cbl.init();
-  print('**** Hello World!****');
+
+  // First run, no fix
+  cbl.DocTest(1, 0);
+  // Second run, fix
+  cbl.DocTest(0, 1);
+  // Second run, no fix
+  cbl.DocTest(0, 0);
+
+  // print('**** Hello World!****');
+
+  // test();
 
   // testIndexes();
 
@@ -42,7 +52,7 @@ void main() async {
 
   // testQuery();
 
-  testReplicator();
+  // testReplicator();
 
   //testDatabaseChangeListener();
 
@@ -52,7 +62,7 @@ void main() async {
 
   // testSaveDocument();
 
-  //testAccessors();
+  // testAccessors();
 
   //testDatabaseDelete();
 
@@ -85,6 +95,15 @@ void main() async {
   print(db.name);
   print(db.isOpen);
   print(db.path);*/
+}
+
+test() {
+  // First run, no fix
+  cbl.DocTest(1, 0);
+  // Second run, fix
+  cbl.DocTest(0, 1);
+  // Second run, no fix
+  cbl.DocTest(0, 0);
 }
 
 testIndexes() {
@@ -413,32 +432,36 @@ void testQuery() async {
   try {
     final q = Query(db, 'SELECT * AS center WHERE meta.id = "test1"');
 
-    String token = q.addChangeListener((List results) {
-      print('New query results A: ' + results.toString());
-    });
+    var r = q.execute();
 
-    await pause(1000);
+    print(r);
 
-    print('Saving document:');
-    db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf1'}));
+    // String token = q.addChangeListener((List results) {
+    //   print('New query results A: ' + results.toString());
+    // });
 
-    await pause(1000);
+    // await pause(1000);
 
-    q.removeChangeListener(token); // cbl.CBLListener_Remove(_cblToken);
+    // print('Saving document:');
+    // db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf1'}));
 
-    await pause(1000);
-    print('Saving document again:');
-    db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf2'}));
-    await pause(1000);
+    // await pause(1000);
 
-    print("Releaseing the query");
-    cbl.CBL_Release(q.ref);
+    // q.removeChangeListener(token); // cbl.CBLListener_Remove(_cblToken);
 
-    await pause(1000);
+    // await pause(1000);
+    // print('Saving document again:');
+    // db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf2'}));
+    // await pause(1000);
 
-    print('Saving document again:');
-    db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf3'}));
-    await pause(1000);
+    // print("Releaseing the query");
+    // cbl.CBL_Release(q.ref);
+
+    // await pause(1000);
+
+    // print('Saving document again:');
+    // db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf3'}));
+    // await pause(1000);
 
     print("END");
   } on Exception catch (e) {
@@ -510,11 +533,32 @@ testReplicator() async {
       endpointUrl: 'ws://localhost:4984/cblc_test/',
       username: 'cblc_test',
       password: 'cblc_test',
+      conflictResolver: (documentID, localDocument, remoteDocument) {
+        print('Çonflict handler:');
+        print(localDocument.jsonProperties);
+        print(remoteDocument.jsonProperties);
+        final doc = Document(documentID);
+        doc.properties = remoteDocument.properties;
+        return doc;
+      },
     );
 
     replicator.addChangeListener((change) => print(change));
 
+    db.saveDocument(Document(
+      'testdoc',
+      data: {'foo': 'bar13', 'dt': 'test'},
+    ));
+
     replicator.start();
+
+    await pause(1000);
+
+    // db.saveDocument(Document(
+    //   'testdoc',
+    //   data: {'foo': 'barZ1', 'dt': 'test'},
+    // ));
+
     // print(replicator.status);
     // var doc = db.getMutableDocument('testdoc1');
     // doc.properties['foor'] = 'barz';
@@ -535,6 +579,9 @@ testReplicator() async {
     // replicator.stop();
 
     await pause(1000);
+
+    print(db.getDocument('testdoc').jsonProperties);
+
     // print(replicator.status);
   } catch (e) {
     print('!!! Exception caught > $e');
@@ -1235,6 +1282,19 @@ testAccessors() {
   db.open();
 
   print('DB count > ' + db.count.toString());
+
+  print('Instance count: ' + Cbl.instanceCount().toString());
+  Query q;
+  try {
+    q = Query(db, 'select *');
+    q.execute();
+  } catch (e) {
+    print('!!! Exception caught > $e');
+  }
+
+  print('Instance count: ' + Cbl.instanceCount().toString());
+  q?.dispose();
+  print('Instance count: ' + Cbl.instanceCount().toString());
 }
 
 const testjson = '''

@@ -114,7 +114,7 @@ class Query {
   ///  Parameters are specified in the query source as e.g. `$PARAM`. In this example,
   /// the `parameters` dictionary to this call should have a key `PARAM` that maps to
   /// the value of the parameter.
-  set setParameters(Map parameters) {
+  set parameters(Map parameters) {
     final json = jsonEncode(parameters);
     cbl.CBLQuery_SetParametersAsJSON(_q, cbl.strToUtf8(json)) != 0;
   }

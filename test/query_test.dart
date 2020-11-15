@@ -1,7 +1,6 @@
 // Copyright (c) 2020, Rudolf Martincsek. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
@@ -27,11 +26,6 @@ void main() {
 
   test('query - compiles a query', () {
     var db = Database('query1', directory: TESTDIR);
-
-    expect(
-      Query(db, 'SELECT *'),
-      predicate<Query>((q) => q.error.code == 0),
-    );
 
     expect(
       () => Query(db, ''),
@@ -83,12 +77,12 @@ void main() {
     expect(query.parameters, {});
 
     // Correct parameters set = the query should return a list
-    query.setParameters = {'BAR': 'bar'};
+    query.parameters = {'BAR': 'bar'};
     expect(query.parameters, {'BAR': 'bar'});
     expect(query.execute(), isA<List>());
 
     // Wrong parameters == executing the query throws an error
-    query.setParameters = {'BA': 'bar'};
+    query.parameters = {'BA': 'bar'};
     expect(
       () => query.execute(),
       throwsA(predicate((e) => e is CouchbaseLiteException && e.code == 25)),

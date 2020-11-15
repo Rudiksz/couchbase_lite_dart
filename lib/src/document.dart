@@ -48,9 +48,7 @@ class Document {
   Document(this.ID, {dynamic data}) {
     assert(ID?.isNotEmpty ?? true, 'Document ID cannot be empty.');
     _doc = cbl.CBLDocument_New(pffi.Utf8.toUtf8(ID).cast());
-    if (data != null) {
-      jsonProperties = data;
-    }
+    jsonProperties = data ?? {};
   }
 
   /// Returns a document's properties as a dictionary.
