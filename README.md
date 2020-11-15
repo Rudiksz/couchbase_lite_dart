@@ -78,12 +78,12 @@ doc1.properties = {'foo': 'bar'}; //<- throws a DatabaseException
 
 // Get a mutable copy
 var mutDoc = doc1.mutableCopy;
-mutDoc.properties = {'foo': 'bar'}; // <- OK>
+mutDoc.jsonProperties = {'foo': 'bar'}; // <- OK>
 db.saveDocument(mutDoc);
 
 // or retrieve
 var doc2 = db.getMutableDocument('testdoc3');
-doc2.properties = {'foo': 'bar8'};
+doc2.jsonProperties = {'foo': 'bar8'};
 db.saveDocument(doc2);
 
 // Query
