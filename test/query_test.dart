@@ -49,6 +49,8 @@ void main() {
     final query = Query(db, 'SELECT *');
     expect(query.execute(), []);
 
+    await asyncSleep(500);
+
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
     db.saveDocument(Document('testdoc1', data: {'foo': 'baz'}));
 

@@ -11,9 +11,11 @@ import '_test_utils.dart';
 const TESTDIR = '_tmp1';
 
 void main() {
-  var endpointUrl = 'ws://localhost:4984/cblc_test/';
-  var username = 'cblc_test';
-  var password = 'cblc_test';
+  var endpointUrl = 'ws://localhost:4984/cbltest/';
+  var username = 'cbltest';
+  var password = 'cbltest';
+
+  setUp(() => ChangeListeners.initalize());
 
   setUpAll(() {
     Cbl.init();
@@ -266,11 +268,11 @@ void main() {
     );
 
     replicator.start();
-    await asyncSleep(5000);
+    await asyncSleep(1000);
 
     expect(doc_received, false);
     expect(doc_filtered, isNull);
-
+    await asyncSleep(1000);
     db.saveDocument(Document(
       'testdoc',
       data: {'foo': 'bar', 'dt': 'test'},

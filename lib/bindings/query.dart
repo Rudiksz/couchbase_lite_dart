@@ -168,14 +168,12 @@ typedef _c_CBLQuery_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLQuery> query,
   ffi.Pointer<ffi.Int8> queryId,
-  ffi.Uint64 dart_port,
 );
 
 typedef _dart_CBLQuery_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLQuery> query,
   ffi.Pointer<ffi.Int8> queryId,
-  int dart_port,
 );
 
 typedef _c_CBLQuery_CopyCurrentResults = ffi.Pointer<CBLResultSet> Function(

@@ -22,23 +22,9 @@ class Query {
 
   // ??? Query change listeners
 
-  /// Receiver and port for events sent by the C threads
-  static ReceivePort _cblListener;
-  static int _nativePort;
-
-  /// Listeners tokens used by cbl.CBL in C
-  static final Map<String, ffi.Pointer<cbl.CBLListenerToken>>
-      _cblListenerTokens = {};
-
-  /// Listeners listening to the Dart stream
-  static final Map<String, StreamSubscription> _queryChangeListeners = {};
-
   /// Queries that are being listened to. Used to retrieve new results
   /// when a query change event comes in the stream
   static final Map<String, ffi.Pointer<cbl.CBLQuery>> _liveQueries = {};
-
-  /// Stream where query change events will be posted
-  static final _queryChangeStream = StreamController<QueryChange>.broadcast();
 
   // Tokens belonging to this specific query
   final List<String> _listenerTokens = [];
@@ -129,61 +115,38 @@ class Query {
   ///
   /// Returns a token to be passed to [removeChangeListener] when it's time to remove
   /// the listener.
-  String addChangeListener(Function(List) callback) {
-    // Initialize the native port to receive the asynchronous messages from C
-    _cblListener ??= ReceivePort()..listen(_cblQueryChangelistener);
-    _nativePort ??= _cblListener.sendPort.nativePort;
+  String addChangeListener(Function(List) callback) =>
+      ChangeListeners.addChangeListener<QueryChange>(
+        addListener: (String token) =>
+            cbl.CBLQuery_AddChangeListener_d(_q, cbl.strToUtf8(token)),
+        onListenerAdded: (Stream stream, String token) {
+          _liveQueries[token] = _q;
+          _listenerTokens.add(token);
+          return stream
+              .where((data) => data.id == token)
+              .listen((data) => callback(data.results));
+        },
+      );
 
-    final token = Uuid().v1();
-    final cblToken = cbl.CBLQuery_AddChangeListener_d(
-      _q,
-      cbl.strToUtf8(token),
-      _nativePort,
-    );
-
-    if (cblToken == ffi.nullptr) {
-      return null;
-    }
-
-    _liveQueries[token] = _q;
-
-    _listenerTokens.add(token);
-    _cblListenerTokens[token] = cblToken;
-    _queryChangeListeners[token] = _queryChangeStream.stream
-        .where((data) => data.id == token)
-        .listen((data) => callback(data.results));
-
-    return token;
-  }
-
-  /// Removes a listener with the [token] returned by [addChangeListener].
-  void removeChangeListener(String token) async {
-    if (token?.isEmpty ?? true) return;
-    var streamListener = _queryChangeListeners.remove(token);
-
-    await streamListener?.cancel();
-    if (_cblListenerTokens[token] != null &&
-        _cblListenerTokens[token] != ffi.nullptr) {
-      cbl.CBLListener_Remove(_cblListenerTokens[token]);
-      _cblListenerTokens.remove(token);
-      _liveQueries.remove(token);
-      _listenerTokens.remove(token);
-    }
-  }
+  /// Removes a listener callback, given the [token] that was returned when it was added.
+  void removeChangeListener(String token) =>
+      ChangeListeners.removeChangeListener(
+        token,
+        onListenerRemoved: (token) {
+          _listenerTokens.remove(token);
+          _liveQueries.remove(token);
+        },
+      );
 
   /// Internal listener to handle events from C
-  void _cblQueryChangelistener(dynamic queryId) {
+  static void _cblQueryChangelistener(dynamic queryId) {
     // Find the query and the listener
-
     final query = _liveQueries[queryId];
-    final listener = _cblListenerTokens[queryId];
+    final listener = ChangeListeners.cblToken(queryId);
 
-    // This should never happen, but it did once...
-    // assert(query != null && listener != null);
     if (query == null && listener == null) return;
 
     final error = cbl.CBLError.allocate();
-
     final results = cbl.CBLQuery_CopyCurrentResults(
       query,
       listener,
@@ -198,11 +161,10 @@ class Query {
       final json = FLDict.fromPointer(row).json;
       rows.add(jsonDecode(json));
     }
-
     cbl.CBL_Release(results);
 
     //Emit an event on the stream
-    _queryChangeStream.sink.add(QueryChange(queryId, rows));
+    ChangeListeners.stream(QueryChange).sink.add(QueryChange(queryId, rows));
   }
 
   /// Disposes the query by freeing up the memory. You can't execute the

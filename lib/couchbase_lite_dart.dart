@@ -25,6 +25,7 @@ part 'src/document.dart';
 part 'src/query.dart';
 part 'src/replicator.dart';
 part 'src/blob.dart';
+part 'src/listeners.dart';
 part 'src/database_error.dart';
 part 'src/fleece/fldoc.dart';
 part 'src/fleece/flvalue.dart';
