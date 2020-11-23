@@ -6,22 +6,45 @@ part of couchbase_lite_dart;
 
 /// FLDict is a "subclass" of FLValue, representing values that are dictionaries.
 class FLDict extends IterableBase<FLValue> {
+  /// The C pointer to the FLDict
   ffi.Pointer<cbl.FLDict> _value;
+  ffi.Pointer<cbl.FLDict> get ref => _value;
+
+  /// True if the current value was retained beyond it's scope
+  bool _retained = false;
+
   bool _mutable;
 
-  final error = pffi.allocate<ffi.Uint8>();
+  FLError error;
+
   ffi.Pointer<cbl.FLDictIterator> _c_iter = ffi.nullptr;
   Iterator<FLValue> _iter;
   FLDictValues _values;
   FLDictKeys _keys;
   FLDictEntries _entries;
 
-  FLDict.fromPointer(this._value);
-
   FLDict() {
     _value = cbl.FLMutableDict_New().cast<cbl.FLDict>();
   }
-  ffi.Pointer<cbl.FLDict> get addressOf => _value;
+
+  FLDict.fromPointer(this._value);
+
+  FLDict.fromMap(Map<dynamic, dynamic> map) {
+    _fromData(jsonEncode(map));
+  }
+
+  FLDict.fromJson(String json) {
+    _fromData(json);
+  }
+
+  void _fromData(String data) {
+    final fldoc = FLDoc.fromJson(data);
+    _value = fldoc.root?.asMap?.ref ?? ffi.nullptr;
+    error = fldoc.error;
+    retain();
+    cbl.FLDoc_Release(fldoc._doc);
+  }
+
   FLValue get value => FLValue.fromPointer(_value.cast());
 
   bool get isMutable =>
@@ -47,17 +70,11 @@ class FLDict extends IterableBase<FLValue> {
   String get json {
     final cstr = cbl.FLDump(_value.cast<cbl.FLValue>());
     final str = cbl.utf8ToStr(cstr);
-    // Dart_Free(cstr);
     return str;
   }
 
   @override
-  String toString() {
-    final cstr = cbl.FLValue_ToString(_value.cast<cbl.FLValue>());
-    final result = cbl.utf8ToStr(cstr);
-    // Dart_Free(cstr);
-    return result;
-  }
+  String toString() => json;
 
   @override
   int get length => cbl.FLDict_Count(_value);
@@ -71,15 +88,19 @@ class FLDict extends IterableBase<FLValue> {
   FLValue call(String keyPath) {
     // Some values are not supported
     if (keyPath.isEmpty || keyPath.contains('[]')) return null;
-
-    error.value = 0;
+    final outError = pffi.allocate<ffi.Uint8>();
+    outError.value = 0;
     final val = cbl.FLKeyPath_EvalOnce(
       cbl.strToUtf8(keyPath),
       _value.cast(),
-      error,
+      outError,
     );
-    if (error.value != FLError.noError.index) return null;
-    return FLValue.fromPointer(val);
+    error = outError.value < FLError.values.length
+        ? FLError.values[outError.value]
+        : FLError.unsupported;
+    pffi.free(outError);
+
+    return error == FLError.noError ? FLValue.fromPointer(val) : null;
   }
 
   FLValue operator [](String key) =>
@@ -91,13 +112,18 @@ class FLDict extends IterableBase<FLValue> {
   /// Any other object will be JSON encoded if possible.
   void operator []=(dynamic index, dynamic value) {
     if (!isMutable) {
-      throw Exception('Dictionary is not mutable');
+      throw CouchbaseLiteException(
+        cbl.CBLErrorDomain.CBLFleeceDomain.index,
+        cbl.CBLErrorCode.CBLErrorNotWriteable.index,
+        'Dictionary is not mutable',
+      );
     }
 
     // !fix for: https://forums.couchbase.com/t/27825
     cbl.FLDict_Get(_value, cbl.strToUtf8(index));
 
-    final slot = cbl.FLMutableDict_Set(_value.cast(), cbl.strToUtf8(index));
+    final slot = cbl.FLMutableDict_Set(
+        _value.cast<cbl.FLMutableDict>(), cbl.strToUtf8(index));
 
     if (value == null) return cbl.FLSlot_SetNull(slot);
 
@@ -105,7 +131,7 @@ class FLDict extends IterableBase<FLValue> {
       case FLValue:
       case FLDict:
       case FLArray:
-        cbl.FLSlot_SetValue(slot, value.addressOf.cast<cbl.FLValue>());
+        cbl.FLSlot_SetValue(slot, value.ref.cast<cbl.FLValue>());
         break;
       case bool:
         cbl.FLSlot_SetBool(slot, (value as bool) ? 1 : 0);
@@ -123,15 +149,24 @@ class FLDict extends IterableBase<FLValue> {
         // Create a value from the input
         final valueDoc = FLDoc.fromJson(jsonEncode(value));
         if (valueDoc.error != FLError.noError) return;
-        cbl.FLSlot_SetValue(slot, valueDoc.root.addressOf);
+        cbl.FLSlot_SetValue(slot, valueDoc.root.ref);
     }
   }
 
+  FLDict retain() {
+    if (_value != null && _value != ffi.nullptr && !_retained) {
+      cbl.FLValue_Retain(_value.cast());
+      _retained = true;
+    }
+    return this;
+  }
+
   void dispose() {
-    if (_value != ffi.nullptr) {
+    if (_value != null && _value != ffi.nullptr && _retained) {
       cbl.FLValue_Release(_value.cast());
     }
     _value = ffi.nullptr;
+    _retained = false;
   }
 
   @override

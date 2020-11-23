@@ -6,20 +6,47 @@ part of couchbase_lite_dart;
 
 /// FLArray is a "subclass" of FLValue, representing values that are arrays.
 class FLArray extends IterableBase<FLValue> {
+  /// The C pointer to the FLArray
   ffi.Pointer<cbl.FLArray> _value;
+  ffi.Pointer<cbl.FLArray> get ref => _value;
+
+  bool _mutable;
+
+  /// True if the current value was retained beyond it's scope
+  bool _retained = false;
+
+  // final error = pffi.allocate<ffi.Uint8>();
+  FLError error;
+
   FLArrayIterator _iter;
-  ffi.Pointer<cbl.FLMutableArray> _mutable;
-  FLArray.fromPointer(this._value);
 
   FLArray() {
     _value = cbl.FLMutableArray_New().cast<cbl.FLArray>();
   }
 
-  ffi.Pointer<cbl.FLArray> get addressOf => _value;
+  FLArray.fromPointer(this._value);
+
+  FLArray.fromList(List<dynamic> list) {
+    _fromData(jsonEncode(list));
+  }
+
+  FLArray.fromJson(String json) {
+    _fromData(json);
+  }
+
+  void _fromData(String data) {
+    final fldoc = FLDoc.fromJson(data);
+    _value = fldoc.root?.asList?.ref ?? ffi.nullptr;
+    error = fldoc.error;
+    retain();
+    cbl.FLDoc_Release(fldoc._doc);
+  }
+
+  /// Cast the FLArray as a FLValue
   FLValue get value => FLValue.fromPointer(_value.cast());
 
   bool get isMutable =>
-      (_mutable ??= cbl.FLArray_AsMutable(_value)) != ffi.nullptr;
+      _mutable ??= cbl.FLArray_AsMutable(_value) != ffi.nullptr;
 
   /// Creates a shallow mutable copy of this dictionary
   FLArray get mutable => FLArray.fromPointer(cbl.FLArray_MutableCopy(
@@ -41,7 +68,6 @@ class FLArray extends IterableBase<FLValue> {
   String get json {
     final cstr = cbl.FLDump(_value.cast());
     final str = cbl.utf8ToStr(cstr);
-    // Dart_Free(cstr);
     return str;
   }
 
@@ -49,7 +75,6 @@ class FLArray extends IterableBase<FLValue> {
   String toString() {
     final cstr = cbl.FLValue_ToString(_value.cast<cbl.FLValue>());
     final result = cbl.utf8ToStr(cstr);
-    // Dart_Free(cstr);
     return result;
   }
 
@@ -62,6 +87,24 @@ class FLArray extends IterableBase<FLValue> {
   @override
   bool get isNotEmpty => !isEmpty;
 
+  FLValue call(String keyPath) {
+    // Some values are not supported
+    if (keyPath.isEmpty || keyPath.contains('[]')) return null;
+    final outError = pffi.allocate<ffi.Uint8>();
+    outError.value = 0;
+    final val = cbl.FLKeyPath_EvalOnce(
+      cbl.strToUtf8(keyPath),
+      _value.cast(),
+      outError,
+    );
+    error = outError.value < FLError.values.length
+        ? FLError.values[outError.value]
+        : FLError.unsupported;
+    pffi.free(outError);
+
+    return error == FLError.noError ? FLValue.fromPointer(val) : null;
+  }
+
   /// Returns an value at an array index, or NULL if the index is out of range.
   FLValue operator [](int index) =>
       FLValue.fromPointer(cbl.FLArray_Get(_value, index));
@@ -72,15 +115,17 @@ class FLArray extends IterableBase<FLValue> {
   /// You can set scalar values (int, bool double, String), FLValue, FLDict, FLArray.
   /// Any other object will be JSON encoded if possible.
   void operator []=(int index, dynamic value) {
-    _mutable ??= cbl.FLArray_AsMutable(_value);
-
-    if (_mutable == ffi.nullptr) {
-      throw Exception('List is not mutable');
+    if (!isMutable) {
+      throw CouchbaseLiteException(
+        cbl.CBLErrorDomain.CBLFleeceDomain.index,
+        cbl.CBLErrorCode.CBLErrorNotWriteable.index,
+        'List is not mutable',
+      );
     }
 
     final slot = index > length - 1
-        ? cbl.FLMutableArray_Append(_mutable)
-        : cbl.FLMutableArray_Set(_mutable, index);
+        ? cbl.FLMutableArray_Append(_value.cast())
+        : cbl.FLMutableArray_Set(_value.cast(), index);
 
     if (value == null) return cbl.FLSlot_SetNull(slot);
 
@@ -88,8 +133,7 @@ class FLArray extends IterableBase<FLValue> {
       case FLValue:
       case FLDict:
       case FLArray:
-        // case FLMutableArray:
-        cbl.FLSlot_SetValue(slot, value.addressOf.cast<cbl.FLValue>());
+        cbl.FLSlot_SetValue(slot, value.ref.cast<cbl.FLValue>());
         break;
       case bool:
         cbl.FLSlot_SetBool(slot, (value as bool) ? 1 : 0);
@@ -107,17 +151,30 @@ class FLArray extends IterableBase<FLValue> {
         // Create a value from the input
         final valueDoc = FLDoc.fromJson(jsonEncode(value));
         if (valueDoc.error != FLError.noError) return;
-        cbl.FLSlot_SetValue(slot, valueDoc.root.addressOf);
+        cbl.FLSlot_SetValue(slot, valueDoc.root.ref);
     }
+  }
+
+  FLArray retain() {
+    if (_value != null && _value != ffi.nullptr && !_retained) {
+      cbl.FLValue_Retain(_value.cast());
+      _retained = true;
+    }
+    return this;
+  }
+
+  void dispose() {
+    if (_value != null && _value != ffi.nullptr && _retained) {
+      cbl.FLValue_Release(_value.cast());
+    }
+    _value = ffi.nullptr;
+    _retained = false;
+    _iter?.end();
+    _iter = null;
   }
 
   @override
   Iterator<FLValue> get iterator => _iter ??= FLArrayIterator(this);
-
-  void dispose() {
-    _iter?.end();
-    _iter = null;
-  }
 }
 
 class FLArrayIterator implements Iterator<FLValue> {

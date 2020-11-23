@@ -62,6 +62,10 @@ final CBLResultSet_Next =
     _dylib.lookupFunction<_c_CBLResultSet_Next, _dart_CBLResultSet_Next>(
         'CBLResultSet_Next');
 
+/// Returns the current result as Array.
+final CBLResultSet_RowArray = _dylib.lookupFunction<_c_CBLResultSet_RowArray,
+    _dart_CBLResultSet_RowArray>('CBLResultSet_RowArray');
+
 /// Returns the current result as Dict.
 final CBLResultSet_RowDict =
     _dylib.lookupFunction<_c_CBLResultSet_RowDict, _dart_CBLResultSet_RowDict>(
@@ -145,6 +149,14 @@ typedef _c_CBLResultSet_Next = ffi.Uint8 Function(
 );
 
 typedef _dart_CBLResultSet_Next = int Function(
+  ffi.Pointer<CBLResultSet> resultSet,
+);
+
+typedef _c_CBLResultSet_RowArray = ffi.Pointer<FLArray> Function(
+  ffi.Pointer<CBLResultSet> resultSet,
+);
+
+typedef _dart_CBLResultSet_RowArray = ffi.Pointer<FLArray> Function(
   ffi.Pointer<CBLResultSet> resultSet,
 );
 

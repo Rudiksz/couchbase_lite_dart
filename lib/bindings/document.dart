@@ -63,6 +63,11 @@ final CBLDocument_Purge =
 final CBLDocument_Properties = _dylib.lookupFunction<_c_CBLDocument_Properties,
     _dart_CBLDocument_Properties>('CBLDocument_Properties');
 
+/// Returns a document's mutable properties.
+final CBLDocument_MutableProperties = _dylib.lookupFunction<
+    _c_CBLDocument_MutableProperties,
+    _dart_CBLDocument_MutableProperties>('CBLDocument_MutableProperties');
+
 /// Set a document's properties.
 final CBLDocument_SetProperties = _dylib.lookupFunction<
     _c_CBLDocument_SetProperties,
@@ -149,6 +154,15 @@ typedef _c_CBLDocument_Properties = ffi.Pointer<FLDict> Function(
 );
 
 typedef _dart_CBLDocument_Properties = ffi.Pointer<FLDict> Function(
+  ffi.Pointer<CBLDocument> doc,
+);
+
+typedef _c_CBLDocument_MutableProperties = ffi.Pointer<FLMutableDict> Function(
+  ffi.Pointer<CBLDocument> doc,
+);
+
+typedef _dart_CBLDocument_MutableProperties = ffi.Pointer<FLMutableDict>
+    Function(
   ffi.Pointer<CBLDocument> doc,
 );
 

@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:couchbase_lite_dart/bindings/library.dart' as cbl;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 import 'package:test/test.dart';
@@ -61,8 +62,10 @@ void main() {
     await asyncSleep(1000);
     expect(
       () => Database.Delete('delete1_test', directory: '_tmp'),
-      throwsA(predicate(
-          (e) => e is CouchbaseLiteException && e.domain == 1 && e.code == 16)),
+      throwsA(predicate((e) =>
+          e is CouchbaseLiteException &&
+          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
+          e.code == cbl.CBLErrorCode.CBLErrorBusy.index)),
     );
 
     db.close();
@@ -119,8 +122,10 @@ void main() {
 
     expect(
       () => db.delete(),
-      throwsA(predicate(
-          (e) => e is CouchbaseLiteException && e.domain == 1 && e.code == 16)),
+      throwsA(predicate((e) =>
+          e is CouchbaseLiteException &&
+          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
+          e.code == cbl.CBLErrorCode.CBLErrorBusy.index)),
     );
 
     db1.close();
@@ -147,8 +152,10 @@ void main() {
     var db = Database('endbatch', directory: '_tmp');
     expect(
       () => db.endBatch(),
-      throwsA(predicate(
-          (e) => e is CouchbaseLiteException && e.domain == 1 && e.code == 17)),
+      throwsA(predicate((e) =>
+          e is CouchbaseLiteException &&
+          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
+          e.code == cbl.CBLErrorCode.CBLErrorNotInTransaction.index)),
     );
 
     db.beginBatch();
@@ -170,6 +177,56 @@ void main() {
       db.saveDocument(Document('testdoc', data: {'foo': 'bar'})),
       predicate<Document>((doc) => doc.ID == 'testdoc'),
     );
+    addTearDown(() => db.close());
+  });
+
+  test('saveDocumentResolving', () {
+    var db = Database('savedoc', directory: '_tmp');
+
+    // Conflict resolution not supported with "new" documents.
+    expect(
+      () => db.saveDocumentResolving(Document('newdoc'), (_, __) => false),
+      throwsA(predicate((e) =>
+          e is CouchbaseLiteException &&
+          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
+          e.code == cbl.CBLErrorCode.CBLErrorConflict.index)),
+    );
+
+    db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
+    {
+      final mutDoc = db.getMutableDocument('testdoc');
+      mutDoc.properties['foo'] = 'baz';
+
+      // Save new document
+      db.saveDocument(Document('testdoc', data: {'foo': 'bar1'}));
+      db.saveDocumentResolving(mutDoc, (newDoc, oldDoc) {
+        expect(newDoc.properties['foo'].asString, 'baz');
+        expect(oldDoc.properties['foo'].asString, 'bar1');
+        return true;
+      });
+      expect(db.getDocument('testdoc').properties['foo'].asString, 'baz');
+    }
+
+    // Keep old document
+    {
+      final mutDoc = db.getMutableDocument('testdoc');
+      mutDoc.properties['foo'] = 'baz';
+
+      db.saveDocument(Document('testdoc', data: {'foo': 'bar1'}));
+      expect(
+        () => db.saveDocumentResolving(mutDoc, (newDoc, oldDoc) {
+          expect(newDoc.properties['foo'].asString, 'baz');
+          expect(oldDoc.properties['foo'].asString, 'bar1');
+          return false;
+        }),
+        throwsA(predicate((e) =>
+            e is CouchbaseLiteException &&
+            e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
+            e.code == cbl.CBLErrorCode.CBLErrorConflict.index)),
+      );
+      expect(db.getDocument('testdoc').properties['foo'].asString, 'bar1');
+    }
+
     addTearDown(() => db.close());
   });
 
@@ -212,8 +269,10 @@ void main() {
 
     expect(
       () => db.purgeDocument('testdoc'),
-      throwsA(predicate(
-          (e) => e is CouchbaseLiteException && e.domain == 1 && e.code == 7)),
+      throwsA(predicate((e) =>
+          e is CouchbaseLiteException &&
+          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
+          e.code == cbl.CBLErrorCode.CBLErrorNotFound.index)),
     );
     addTearDown(() => db.close());
   });

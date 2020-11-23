@@ -1,3 +1,19 @@
+## 0.4.0
+* **(!!)** Queries now return a ResultSet object instead of a Dart list. Use `ResultSet.allResults` to get the previous behaviour.
+* **(!!)** Renamed Document `jsonProperties` setter/getter to `json`
+* **(+)** Document constructor's `data` accepts `FLValue`, a json string or json-encodable object as input
+* **(+)** Documents now can hold a reference to the database and have `save`, `delete`, `expiration` methods
+* **(+)** `FLArray` has two new constructors `fromList` and `fromJson`
+* **(+)** `FLDict` has two new constructors `fromMap` and `fromJson`
+* **(+)** `FLArray` and `FLDict` support keypath accessor similar to `FLValue` as `FLArray()` and `FLDict()`. Normal key access using `[]` is unchanged.
+* **(+)** Implemented `CBLLog` class to manage messages that Couchbase Lite logs at runtime. Ability to control the `domain` and `level` of messages logged to either the `console`, `file` or a `callback` registered by the application.
+* Fix mutable document's nested properties not being mutable
+* Clean up listeners and other C callbacks implementation
+* Fix database and document listeners on Android
+* Fix blob `getContent` not returning the correct value
+* Added tests for `Document`, `Blob` and the `Fleece` classes
+* Lots of fixes and improvements in code structure and documentation
+
 ## 0.3.1
 * Fix query parameter setter
 

@@ -4,19 +4,6 @@
 
 part of couchbase_lite_dart;
 
-/// A callback that can decide whether a particular [document] should be pushed or pulled.
-///
-/// It should not take a long time to return, or it will slow down the replicator.
-///
-/// Return `true` if the document should be replicated, `false` to skip it.
-typedef ReplicatorFilter = bool Function(Document document, bool isDeleted);
-
-typedef ConflictResolver = Document Function(
-  String documentID,
-  Document localDocument,
-  Document remoteDocument,
-);
-
 class Replicator {
   /// Pointer to the C replicator object
   ffi.Pointer<cbl.CBLReplicator> repl;
@@ -43,9 +30,6 @@ class Replicator {
 
   /// Optional set of document IDs to replicate.
   List<String> documentIDs = [];
-
-  /// HTTP client proxy settings
-  ReplicatorProxySettings proxy;
 
   /// Extra HTTP headers to add to the WebSocket request.
   Map<String, String> headers = {};
@@ -113,7 +97,6 @@ class Replicator {
     this.pushFilter,
     this.pullFilter,
     this.conflictResolver,
-    this.proxy,
   }) {
     assert(db != null && db._db != ffi.nullptr);
     assert(endpointUrl != null && endpointUrl.isNotEmpty);
@@ -145,8 +128,7 @@ class Replicator {
           ? cbl.strToUtf8(jsonEncode(documentIDs))
           : ffi.nullptr,
       headers.isNotEmpty ? cbl.strToUtf8(jsonEncode(headers)) : ffi.nullptr,
-      proxy?.pointer ??
-          ffi.nullptr, // todo(rudoka): refactor into basic C types
+      ffi.nullptr, // todo(rudoka): implement proxy config
       pinnedServerCertificate.isNotEmpty
           ? cbl.strToUtf8(pinnedServerCertificate)
           : ffi.nullptr,
@@ -194,7 +176,7 @@ class Replicator {
   /// server have gotten out of sync somehow.
   void resetCheckpoint() => cbl.CBLReplicator_ResetCheckpoint(repl);
 
-  // -- Status and progress
+  // ++ Status and progress
 
   /// Registers a [callback] to be called when the replicator's status changes.
   ///
@@ -225,6 +207,20 @@ class Replicator {
     );
     cbl.FLValue_Release(result.cast());
     return status;
+  }
+
+  /// The actual pull and push filter handler. Calls the registered Dart listeners
+  /// and returns the value they produce.
+  static void _cblReplicatorStatusCallback(
+    ffi.Pointer<ffi.Int8> replicatorId,
+    ffi.Pointer<cbl.FLDict> status,
+  ) {
+    ChangeListeners.stream<ReplicatorStatus>().sink.add(
+          ReplicatorStatus.fromData(
+            cbl.utf8ToStr(replicatorId),
+            FLDict.fromPointer(status),
+          ),
+        );
   }
 
   /// Indicates which documents have local changes that have not yet been pushed to the server
@@ -270,7 +266,7 @@ class Replicator {
     return result != 0;
   }
 
-  // -- Push&pull filters
+  // ++ Push&pull filters
 
   /// The actual pull and push filter handler. Calls the registered Dart listeners
   /// and returns the value they produce.
@@ -285,12 +281,12 @@ class Replicator {
             ? _pushReplicatorFilters[cbl.utf8ToStr(replicatorId)]
             : _pullReplicatorFilters[cbl.utf8ToStr(replicatorId)];
 
-    final result = callback(Document._internal(document), isDeleted != 0);
+    final result = callback(Document.fromPointer(document), isDeleted != 0);
 
     return result ? 1 : 0;
   }
 
-  // -- Conflict Resolvers
+  // ++ Conflict Resolvers
 
   /// The actual pull and push filter handler. Calls the registered Dart listeners
   /// and returns the value they produce.
@@ -308,8 +304,8 @@ class Replicator {
 
     final result = callback(
       cbl.utf8ToStr(documentId),
-      Document._internal(localDocument),
-      Document._internal(remoteDocument),
+      Document.fromPointer(localDocument),
+      Document.fromPointer(remoteDocument),
     );
 
     return result._doc ?? ffi.nullptr;
@@ -318,30 +314,6 @@ class Replicator {
   void dispose() {
     cbl.CBL_Release(repl);
     repl = ffi.nullptr;
-  }
-}
-
-enum ReplicatorFilterType { push, pull }
-
-/// Authentication credentials for the [Replicator]
-class ReplicatorProxySettings {
-  ffi.Pointer<cbl.CBLProxySettings> pointer;
-
-  /// Creates an authenticator for HTTP Basic (username/password) auth.
-  ReplicatorProxySettings({
-    String hostname,
-    int port,
-    String username = '',
-    String password = '',
-    ReplicatorProxyType type = ReplicatorProxyType.http,
-  }) {
-    pointer = pffi.allocate<cbl.CBLProxySettings>();
-    pointer.ref
-      ..type = type.index
-      ..hostname = cbl.strToUtf8(hostname)
-      ..port = port
-      ..username = cbl.strToUtf8(username)
-      ..password = cbl.strToUtf8(password);
   }
 }
 
@@ -391,9 +363,26 @@ class ReplicatorProgress {
   int documentCount;
 }
 
+/// A callback that can decide whether a particular [document] should be pushed or pulled.
+///
+/// It should not take a long time to return, or it will slow down the replicator.
+///
+/// Return `true` if the document should be replicated, `false` to skip it.
+typedef ReplicatorFilter = bool Function(Document document, bool isDeleted);
+
+typedef ConflictResolver = Document Function(
+  String documentID,
+  Document localDocument,
+  Document remoteDocument,
+);
+
+enum ReplicatorFilterType { push, pull }
+
 enum ReplicatorType { pushAndPull, push, pull }
 
 enum ReplicatorProxyType { http, https }
+
+enum CBLDocumentFlags { none, none1, deleted, accessRemoved }
 
 enum ActivityLevel {
   /// The replicator is unstarted, finished, or hit a fatal error.
@@ -412,11 +401,4 @@ enum ActivityLevel {
   busy,
 
   suspended,
-}
-
-enum CBLDocumentFlags {
-  none,
-  none1,
-  deleted,
-  accessRemoved,
 }

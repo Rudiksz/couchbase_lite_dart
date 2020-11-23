@@ -30,5 +30,5 @@ class FLDoc {
 
   set root(FLValue value) => _root = value;
 
-  void dispose() => pffi.free(_doc);
+  void dispose() => cbl.FLDoc_Release(_doc);
 }

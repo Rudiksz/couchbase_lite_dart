@@ -7,6 +7,8 @@ part of couchbase_lite_dart;
 ///  A Document is essentially a JSON object with an ID string that's unique
 ///  in its database.
 class Document {
+  Database db;
+
   String ID;
 
   /// The revision ID, is a short opaque string that's guaranteed to be
@@ -20,6 +22,10 @@ class Document {
   /// abstract 'clock' to tell relative modification times.
   int sequence;
 
+  bool isMutable;
+
+  bool _new = false;
+
   /// Internal pointer to the C object
   ffi.Pointer<cbl.CBLDocument> _doc;
   ffi.Pointer<cbl.CBLDocument> get doc => _doc;
@@ -27,17 +33,22 @@ class Document {
   FLDict _properties;
 
   /// Creates a document from a C pointer
-  Document._internal(this._doc) {
+  Document.fromPointer(this._doc, {this.isMutable = false, this.db}) {
     if (_doc != ffi.nullptr) {
       final id = cbl.CBLDocument_ID(_doc);
-      ID = pffi.Utf8.fromUtf8(id.cast());
+      ID = cbl.utf8ToStr(id);
 
       final rev = cbl.CBLDocument_RevisionID(_doc);
-      revisionID = pffi.Utf8.fromUtf8(rev.cast());
+      revisionID = cbl.utf8ToStr(rev);
 
       sequence = cbl.CBLDocument_Sequence(_doc);
 
       _properties = FLDict.fromPointer(cbl.CBLDocument_Properties(_doc));
+
+      // !Fix for (https://github.com/couchbaselabs/couchbase-lite-C/issues/88)
+      if (isMutable) {
+        properties = _properties.mutableCopy;
+      }
     }
   }
 
@@ -45,10 +56,20 @@ class Document {
   /// database until saved.
   ///
   /// [Data] can be any JSON encodable object
-  Document(this.ID, {dynamic data}) {
+  Document(
+    this.ID, {
+    dynamic data,
+    this.db,
+    this.isMutable = true,
+  }) {
     assert(ID?.isNotEmpty ?? true, 'Document ID cannot be empty.');
-    _doc = cbl.CBLDocument_New(pffi.Utf8.toUtf8(ID).cast());
-    jsonProperties = data ?? {};
+    _doc = cbl.CBLDocument_New(cbl.strToUtf8(ID));
+    _new = true;
+    if (data is FLDict) {
+      properties = data;
+    } else {
+      map = (data is String) ? jsonDecode(data) : (data ?? {});
+    }
   }
 
   /// Returns a document's properties as a dictionary.
@@ -62,18 +83,35 @@ class Document {
     _properties = props;
   }
 
-  /// Returns the properties as JSON encoded
-  Map<dynamic, dynamic> get jsonProperties {
-    if (_doc == ffi.nullptr) return {};
-
-    final result = cbl.CBLDocument_PropertiesAsJSON(_doc);
-    return jsonDecode(cbl.utf8ToStr(result));
-  }
+  /// Returns the properties as JSON string.
+  ///
+  /// The same as `properties.json`
+  String get json => _properties?.json;
 
   /// Set properties using a JSON string.
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
-  set jsonProperties(Map<dynamic, dynamic> data) {
+  set json(String json) {
+    final error = cbl.CBLError.allocate();
+
+    cbl.CBLDocument_SetPropertiesAsJSON(
+      _doc,
+      cbl.strToUtf8(json),
+      error.addressOf,
+    );
+
+    validateError(error);
+
+    _properties = FLDict.fromPointer(cbl.CBLDocument_Properties(_doc));
+  }
+
+  /// Get the properties as a map.
+  Map<dynamic, dynamic> get map => jsonDecode(json);
+
+  /// Set properties using a JSON encodable value.
+  ///
+  /// Throws a [DatabaseError] in case of invalid JSON.
+  set map(Map<dynamic, dynamic> data) {
     final error = cbl.CBLError.allocate();
 
     cbl.CBLDocument_SetPropertiesAsJSON(
@@ -87,12 +125,65 @@ class Document {
     _properties = FLDict.fromPointer(cbl.CBLDocument_Properties(_doc));
   }
 
+  /// Saves the document.
+  ///
+  /// If a conflicting revision has been saved since [document] was loaded, the [concurrency]
+  /// parameter specifies whether the save should fail, or the conflicting revision should
+  /// be overwritten with the revision being saved.
+  ///
+  /// If you need finer-grained control, call [saveResolving] instead.
+  /// Returns an updated Document reflecting the saved changes, or null on failure.
+  ///
+  /// If the document doesn't belong to any database, it's a noop
+  Document save() {
+    assert(db != null, 'This document doesn\'t belong to any database');
+    return db?.saveDocument(this);
+  }
+
+  /// Saves the document. This function is the same as
+  /// [saveDocument], except that it allows for custom conflict handling
+  /// in the event that the document has been updated since [doc] was loaded.
+  ///
+  /// The handler should return true to overwrite the existing document, or false
+  /// to cancel the save. If the handler rejects the save a [CouchbaseLiteException] will be thrown.
+  ///
+  /// If the document doesn't belong to any database, it's a noop
+  Document saveResolving(SaveConflictHandler conflictHandler) {
+    assert(db != null, 'This document doesn\'t belong to any database');
+    return db?.saveDocumentResolving(this, conflictHandler);
+  }
+
+  ///  The time, if any, at which the document will expire and be purged.
+  ///
+  ///  Documents don't normally expire; you have to call [setDocumentExpiration]
+  ///  to set a document's expiration time.
+  ///
+  /// Throws [CouchbaseLiteException] if the call failed.
+  ///
+  /// If the document doesn't belong to any database, it's a noop
+  DateTime get expiration {
+    assert(db != null, 'This document doesn\'t belong to any database');
+    return db?.documentExpiration(ID);
+  }
+
+  /// Sets or clears the [expiration] time of the document.
+  ///
+  /// Set [expiration] as null if the document should never expire
+  ///
+  /// Throws [CouchbaseLiteException] if the call failed.
+  ///
+  /// If the document doesn't belong to any database, it's a noop
+  set expiration(DateTime expiration) {
+    assert(db != null, 'This document doesn\'t belong to any database');
+    db?.setDocumentExpiration(ID, expiration);
+  }
+
   ///  Deletes a document from the database using [ConcurrencyControl]. Deletions are replicated.
   ///
   ///  Returns true if the document was deleted, throws [CouchbaseLiteException] if an error occurred.
   bool delete(
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
-    if (_doc.address == ffi.nullptr.address) return false;
+    if (_doc == ffi.nullptr) return false;
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDocument_Delete(
       _doc,
@@ -112,7 +203,7 @@ class Document {
   ///
   ///  Returns true if the document was purged, false if it doesn't exists and throws [CouchbaseLiteException] if the purge failed.
   bool purge() {
-    if (_doc.address == ffi.nullptr.address) return false;
+    if (_doc == ffi.nullptr) return false;
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDocument_Purge(_doc, error.addressOf);
 
@@ -127,6 +218,8 @@ class Document {
   Document get mutableCopy {
     final result = cbl.CBLDocument_MutableCopy(_doc);
 
-    return result != ffi.nullptr ? Document._internal(result) : null;
+    return result != ffi.nullptr
+        ? Document.fromPointer(result, isMutable: true, db: db)
+        : null;
   }
 }

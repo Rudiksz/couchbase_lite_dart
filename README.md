@@ -13,7 +13,7 @@ that runs locally on mobile devices
 
 This is a Dart port of the Couchbase Lite database, built on top of the Couchbase Lite C library ([CBL_C]) using dart.ffi.
 
-**Warning: This project is still in early development stage and breaking API changes might still happen!**
+**Warning: This project is still in early development stage, the API is still fluid and breaking changes might still happen!**
 Help with testing, documentation and development is welcome. Here's how you can [contribute](#contributing)
 
 # Feature checklist
@@ -44,7 +44,7 @@ Help with testing, documentation and development is welcome. Here's how you can 
     * [x] Pull/push filters
     * [x] Status listeners
     * [ ] Replicated document listeners
-    * [x] Conflict-resolution callbacks
+    * [x] Conflict-resolution callbacks ([See issue #86](https://github.com/couchbaselabs/couchbase-lite-C/issues/86))
 * **Blobs**
     * [x] Create, read through content based API
     * [x] Stream based API
@@ -104,9 +104,12 @@ final q = Query(db, 'SELECT * WHERE foo=\$VALUE');
 q.setParameters = {'VALUE': 'bar'};
 
 // Optionally Turn it into a "live query"
-q.addChangeListener((List results) {
+q.addChangeListener((ResultSet results) {
     print('New query results: ');
-    print(results);
+    while(results.next()){
+        final row = results.rowDict;
+        print(row.json);
+    }
 });
 
 // Execute the query
@@ -135,10 +138,20 @@ replicator.start();
 See the example folder for a more complete example, including the Fleece API.
 
 # Contributing
+Current milestones for versioning are:
+* 0.5.0 - consolidate and document the core API for idiomatic Dart.  Breaking changes after that should be deprecated first, if possible.
+* 1.0.0 
+    - Align the API to the official SDK's as much as possible and where it makes sense.
+    - Implement solid memory management to eliminate memory leaks - a mix of automatic and manual disposal of objects
+    - make the library "production ready"
+    - Documentation beyond what dart docs has: best practices, tips, caveats, N1SQL features, extensive examples
+* post 1.0.0
+    - JSONQuery language support for queries, with a QueryBuilder API like the official SDK has
+
 There are couple of ways in which you can contribute:
 
-* Testing - current status is: it runs on my computer
-* Help with building the dynamic libraries for Android/iOS. I have the C library source code and some custom wrapper code to make it work with Dart's ffi. Currently I have only managed to build it for Windows. In particular iOS/macOS is welcome.
+* Testing
+* Adding/testing iOS/macOs. I have the C library source code and some custom wrapper code to make it work with Dart's ffi.
 * Fixing bugs
 * Improve documentation
 * Write examples

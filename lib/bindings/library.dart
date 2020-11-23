@@ -18,6 +18,7 @@ part 'fleece.dart';
 part 'listeners.dart';
 part 'query.dart';
 part 'replicator.dart';
+part 'log.dart';
 
 final packagePath = findPackagePath(Directory.current.path);
 final winLibPath = packagePath.isNotEmpty
@@ -210,6 +211,8 @@ class CBLError extends ffi.Struct {
         ..internal_info = internal_info;
 
   void reset() => domain = code = internal_info = 0;
+
+  void free() => pffi.free(addressOf);
 }
 
 // --- Function types
@@ -223,6 +226,8 @@ typedef _dart_CBLError_Message = ffi.Pointer<ffi.Int8> Function(
 );
 
 typedef _c_RegisterDartPorts = ffi.Void Function(
+  ffi.Uint64 database_listener_port,
+  ffi.Uint64 document_listener_port,
   ffi.Uint64 query_listener_port,
   ffi.Uint64 replicator_status_port,
   ffi.Uint64 replicator_filter_port,
@@ -233,6 +238,8 @@ typedef _c_RegisterDartPorts = ffi.Void Function(
 );
 
 typedef _dart_RegisterDartPorts = void Function(
+  int database_listener_port,
+  int document_listener_port,
   int query_listener_port,
   int replicator_status_port,
   int replicator_filter_port,
@@ -256,6 +263,9 @@ typedef _dart_CBL_InstanceCount = int Function();
 
 /// Error domains, serving as namespaces for numeric error codes. */
 enum CBLErrorDomain {
+  /// Dummay value, because the C enum index starts at 1
+  dummy,
+
   ///< code is a Couchbase Lite error code; see \ref CBLErrorCode
   CBLDomain,
 
@@ -280,6 +290,9 @@ enum CBLErrorDomain {
 
 /// Couchbase Lite error codes, in the CBLDomain. */
 enum CBLErrorCode {
+  /// Dummay value, because the C enum index starts at 1
+  dummy,
+
   /*1*/ ///< Internal assertion failure
   CBLErrorAssertionFailed,
 

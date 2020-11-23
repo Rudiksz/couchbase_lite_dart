@@ -17,7 +17,7 @@ void validateError(cbl.CBLError error, {Function cleanup}) {
 
     final domain = error.domain;
     final code = error.code;
-    final message = pffi.Utf8.fromUtf8(res.cast());
+    final message = cbl.utf8ToStr(res);
 
     if (cleanup != null) cleanup();
     pffi.free(error.addressOf);
