@@ -298,7 +298,7 @@ testFleece() async {
   print(props['logo.length'].type);
 
   // DocumentProperties_Benchmark().report();
-  // DocumentJsonProperties_Benchmark().report();
+  // Documentjson_Benchmark().report();
 }
 
 testBlob() async {
@@ -315,7 +315,7 @@ testBlob() async {
   try {
     // // Reading a blob
     var doc = db.getDocument('testdoc2');
-    print(doc.jsonProperties);
+    print(doc.json);
 
     print(doc.properties['logo'].json);
     var bl1 = Blob.fromValue(doc.properties['logo'].asMap);
@@ -585,7 +585,7 @@ testReplicator1() async {
 
     var doc = db.getMutableDocument('testcenter1');
     print(doc.properties.json);
-    // doc.jsonProperties = doc.properties.json.replaceAll('qdffd', 'RRR');
+    // doc.json = doc.properties.json.replaceAll('qdffd', 'RRR');
     db.saveDocument(doc);
     print('here');
     await pause(1);
@@ -788,7 +788,7 @@ testDocumentExpiration() async {
   print('Document revisionID > ' + doc1.revisionID.toString());
   print('Document sequence > ' + doc1.sequence.toString());
   print(doc1?.properties);
-  print(doc1?.jsonProperties);
+  print(doc1?.json);
 
   var ex = db.documentExpiration('testdoc');
   print('Document expiration time > ' + (ex?.toIso8601String() ?? 'never'));
@@ -815,7 +815,7 @@ testDocumentExpiration() async {
     print('Document revisionID > ' + doc2.revisionID.toString());
     print('Document sequence > ' + doc2.sequence.toString());
     print(doc2?.properties);
-    print(doc2?.jsonProperties);
+    print(doc2?.json);
   }
 }
 
@@ -904,7 +904,7 @@ testDocument() {
   print('Document revisionID > ' + doc1.revisionID.toString());
   print('Document sequence > ' + doc1.sequence.toString());
   print(doc1?.properties);
-  print(doc1?.jsonProperties);
+  print(doc1?.json);
 
   print('reading missing document');
   var doc2 = db.getDocument('missingdoc');
