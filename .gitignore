@@ -9,4 +9,4 @@
 
 build/
 plugintest.cblite2/
-# *.so
+*.so
