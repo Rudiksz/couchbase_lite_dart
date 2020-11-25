@@ -71,6 +71,33 @@ Important in your main.dart call to initialize Dart<->C callbacks.
 ```
 Cbl.init();
 ```
+* **(!!)** Deprecated methods and codes. on (v0.4.0)
+- jsonProperties deprecated to json
+```
+    q.parameters = {'VALUE': AppTables.variation};
+    q.addChangeListener((List results) {
+      for (Map map in results) {
+    q.addChangeListener(( results) {
+      for (Map map in results.allResults) {
+        map.forEach((key, value) {
+          _variation.add(Variation.fromMap(value));
+        });
+```
+- TO
+```
+    q.parameters = {'VALUE': AppTables.variation,};
+    q.addChangeListener((List results) {
+    for (Map map in results) {
+    q.addChangeListener(( results) {
+    for (Map map in results.allResults) {
+        map.forEach((key, value) {
+        _stocks.add(Variation.fromMap(value));
+        });
+```
+
+* **(!!)** New setter and getter on Document
+- map 
+- json The same as `properties.json`
 
 then
 
@@ -88,12 +115,12 @@ doc1.properties = {'foo': 'bar'}; //<- throws a DatabaseException
 
 // Get a mutable copy
 var mutDoc = doc1.mutableCopy;
-mutDoc.jsonProperties = {'foo': 'bar'}; // <- OK>
+mutDoc.json = {'foo': 'bar'}; // <- OK>
 db.saveDocument(mutDoc);
 
 // or retrieve
 var doc2 = db.getMutableDocument('testdoc3');
-doc2.jsonProperties = {'foo': 'bar8'};
+doc2.json = {'foo': 'bar8'};
 db.saveDocument(doc2);
 
 // Query
