@@ -218,14 +218,14 @@ final CBLDatabase_SetDocumentExpiration = _dylib.lookupFunction<
 /// documents are changed on disk.
 final CBLDatabase_AddChangeListener = _dylib.lookupFunction<
     _c_CBLDatabase_AddChangeListener,
-    _dart_CBLDatabase_AddChangeListener>('CBLDatabase_AddChangeListener');
+    _dart_CBLDatabase_AddChangeListener>('CBLDatabase_AddChangeListener_d');
 
 /// Registers a document change listener callback. It will be called after a specific document
 /// is changed on disk.
 final CBLDatabase_AddDocumentChangeListener = _dylib.lookupFunction<
         _c_CBLDatabase_AddDocumentChangeListener,
         _dart_CBLDatabase_AddDocumentChangeListener>(
-    'CBLDatabase_AddDocumentChangeListener');
+    'CBLDatabase_AddDocumentChangeListener_d');
 
 /// Switches the database to buffered-notification mode. Notifications for objects belonging
 /// to this database (documents, queries, replicators, and of course the database) will not be
@@ -479,15 +479,13 @@ typedef CBLDatabaseChangeListener = ffi.Void Function(
 typedef _c_CBLDatabase_AddChangeListener = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.NativeFunction<CBLDatabaseChangeListener>> listener,
-  ffi.Pointer<ffi.Void> context,
+  ffi.Pointer<ffi.Int8> context,
 );
 
 typedef _dart_CBLDatabase_AddChangeListener = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.NativeFunction<CBLDatabaseChangeListener>> listener,
-  ffi.Pointer<ffi.Void> context,
+  ffi.Pointer<ffi.Int8> context,
 );
 
 typedef CBLDocumentChangeListener = ffi.Void Function(
@@ -500,16 +498,14 @@ typedef _c_CBLDatabase_AddDocumentChangeListener = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<ffi.Int8> docID,
-  ffi.Pointer<ffi.NativeFunction<CBLDocumentChangeListener>> listener,
-  ffi.Pointer<ffi.Void> context,
+  ffi.Pointer<ffi.Int8> context,
 );
 
 typedef _dart_CBLDatabase_AddDocumentChangeListener
     = ffi.Pointer<CBLListenerToken> Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<ffi.Int8> docID,
-  ffi.Pointer<ffi.NativeFunction<CBLDocumentChangeListener>> listener,
-  ffi.Pointer<ffi.Void> context,
+  ffi.Pointer<ffi.Int8> context,
 );
 
 typedef CBLNotificationsReadyCallback = ffi.Void Function(

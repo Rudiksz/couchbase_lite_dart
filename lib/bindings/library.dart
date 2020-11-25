@@ -7,6 +7,7 @@ library couchbase_lite_c_bindings;
 import 'dart:convert';
 import 'dart:ffi' as ffi;
 import 'dart:io';
+import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:ffi/ffi.dart' as pffi;
 import 'package:path/path.dart';
 
@@ -17,12 +18,12 @@ part 'fleece.dart';
 part 'listeners.dart';
 part 'query.dart';
 part 'replicator.dart';
+part 'log.dart';
 
 final packagePath = findPackagePath(Directory.current.path);
 final winLibPath = packagePath.isNotEmpty
-            ? '$packagePath/dynlib/CouchbaseLiteC.dll'
-            : 'CouchbaseLiteC.dll';
-
+    ? '$packagePath/dynlib/CouchbaseLiteC.dll'
+    : 'CouchbaseLiteC.dll';
 
 // ffi.DynamicLibrary _dylib;
 final _dylib = Platform.isWindows
@@ -47,6 +48,8 @@ class CblC {
     registerDart_NewNativePort(ffi.NativeApi.newNativePort);
     registerDart_CloseNativePort(ffi.NativeApi.closeNativePort);
     registerDartPrint(wrappedPrintPointer);
+
+    ChangeListeners.initalize();
   }
 
   int instanceCount() => CBL_InstanceCount();
@@ -156,6 +159,11 @@ String findPackagePath(String currentPath, {bool windows}) {
 /// Returns a message describing an error.
 ///
 ///  It is the caller's responsibility to free the returned C string by calling `free`.
+
+final RegisterDartPorts =
+    _dylib.lookupFunction<_c_RegisterDartPorts, _dart_RegisterDartPorts>(
+        'RegisterDartPorts');
+
 final CBLError_Message =
     _dylib.lookupFunction<_c_CBLError_Message, _dart_CBLError_Message>(
         'CBLError_Message');
@@ -169,6 +177,10 @@ final CBL_InstanceCount =
 
 final Dart_Free =
     _dylib.lookupFunction<_c_Dart_Free, _dart_Dart_Free>('Dart_Free');
+
+final Dart_ExecuteCallback = _dylib.lookupFunction<
+    ffi.Void Function(ffi.Pointer<Work>),
+    void Function(ffi.Pointer<Work>)>('Dart_ExecuteCallback');
 
 // --- Data types
 
@@ -199,6 +211,8 @@ class CBLError extends ffi.Struct {
         ..internal_info = internal_info;
 
   void reset() => domain = code = internal_info = 0;
+
+  void free() => pffi.free(addressOf);
 }
 
 // --- Function types
@@ -209,6 +223,30 @@ typedef _c_CBLError_Message = ffi.Pointer<ffi.Int8> Function(
 
 typedef _dart_CBLError_Message = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<CBLError> error,
+);
+
+typedef _c_RegisterDartPorts = ffi.Void Function(
+  ffi.Uint64 database_listener_port,
+  ffi.Uint64 document_listener_port,
+  ffi.Uint64 query_listener_port,
+  ffi.Uint64 replicator_status_port,
+  ffi.Uint64 replicator_filter_port,
+  ffi.Uint64 replicator_conflict_port,
+  ffi.Pointer<ffi.NativeFunction<StatusCallback>> statusCallback,
+  ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
+  ffi.Pointer<ffi.NativeFunction<ConflictCallback>> conflictCallback,
+);
+
+typedef _dart_RegisterDartPorts = void Function(
+  int database_listener_port,
+  int document_listener_port,
+  int query_listener_port,
+  int replicator_status_port,
+  int replicator_filter_port,
+  int replicator_conflict_port,
+  ffi.Pointer<ffi.NativeFunction<StatusCallback>> statusCallback,
+  ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
+  ffi.Pointer<ffi.NativeFunction<ConflictCallback>> conflictCallback,
 );
 
 typedef _c_Dart_Free = ffi.Void Function(ffi.Pointer pointer);
@@ -225,6 +263,9 @@ typedef _dart_CBL_InstanceCount = int Function();
 
 /// Error domains, serving as namespaces for numeric error codes. */
 enum CBLErrorDomain {
+  /// Dummay value, because the C enum index starts at 1
+  dummy,
+
   ///< code is a Couchbase Lite error code; see \ref CBLErrorCode
   CBLDomain,
 
@@ -249,6 +290,9 @@ enum CBLErrorDomain {
 
 /// Couchbase Lite error codes, in the CBLDomain. */
 enum CBLErrorCode {
+  /// Dummay value, because the C enum index starts at 1
+  dummy,
+
   /*1*/ ///< Internal assertion failure
   CBLErrorAssertionFailed,
 

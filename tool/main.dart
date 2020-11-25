@@ -22,16 +22,7 @@ const testDir1 = 'D:\\tmp1\\';
 void main() async {
   Cbl.init();
 
-  // First run, no fix
-  cbl.DocTest(1, 0);
-  // Second run, fix
-  cbl.DocTest(0, 1);
-  // Second run, no fix
-  cbl.DocTest(0, 0);
-
-  // print('**** Hello World!****');
-
-  // test();
+  print('**** Hello World!****');
 
   // testIndexes();
 
@@ -50,7 +41,7 @@ void main() async {
 
   // testBlob();
 
-  // testQuery();
+  testQuery();
 
   // testReplicator();
 
@@ -95,15 +86,6 @@ void main() async {
   print(db.name);
   print(db.isOpen);
   print(db.path);*/
-}
-
-test() {
-  // First run, no fix
-  cbl.DocTest(1, 0);
-  // Second run, fix
-  cbl.DocTest(0, 1);
-  // Second run, no fix
-  cbl.DocTest(0, 0);
 }
 
 testIndexes() {
@@ -395,102 +377,58 @@ testBlob() async {
   //print(bl.pointer);
 }
 
-void testQuery() async {
+void testQuery() {
   var db = Database(testDB);
   db.open();
   print('Database is open > ' + db.isOpen.toString());
   print('Document count >' + db.count.toString());
-/*
-  var replicator = Replicator(
-    db,
-    endpointUrl: 'ws://localhost:4984/cblc_test/',
-    username: 'cblc_test',
-    password: 'cblc_test',
-  );
 
-  print(replicator);
-  replicator.start();*/
+  // await pause(1);
+  // db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf1'}));
+  // db.saveDocument(Document('test2', data: {'dt': 'P', 'name': 'Rudolf2'}));
 
-  await pause(1);
-/*
-  db.saveDocument(Document('test1', data: {
-    'dt': 'P',
-    'name': 'Rudolf',
-    'pwd': '',
-    'age': 0,
-    'active': false
-  }));
-  db.saveDocument(Document('test2', data: {
-    'name': 'Rudolf',
-    'age': 1,
-    'email': 'example.com',
-    'pwd': 'ddd',
-    'active': true,
-    'dt': 'P',
-  }));*/
+  final q = Query(db, 'SELECT * WHERE name LIKE \$NAME');
 
-  try {
-    final q = Query(db, 'SELECT * AS center WHERE meta.id = "test1"');
+  q.parameters = {'NAME': 'Rudolf'};
 
-    var r = q.execute();
+  var result = q.execute();
 
-    print(r);
+  print(result);
+  print('here');
 
-    // String token = q.addChangeListener((List results) {
-    //   print('New query results A: ' + results.toString());
-    // });
+  return;
 
-    // await pause(1000);
+  // try {
+  //   final q = Query(db, 'SELECT * WHERE name = \$NAME');
 
-    // print('Saving document:');
-    // db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf1'}));
+  //   q.parameters = {'NAME': 'Rudolf1'};
 
-    // await pause(1000);
+  //   String token = q.addChangeListener((List results) {
+  //     print('New query results A: ' + results.toString());
+  //   });
 
-    // q.removeChangeListener(token); // cbl.CBLListener_Remove(_cblToken);
+  //   final q1 = Query(db, 'SELECT * WHERE name = \$NAME');
 
-    // await pause(1000);
-    // print('Saving document again:');
-    // db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf2'}));
-    // await pause(1000);
+  //   q1.parameters = {'NAME': 'Rudolf2'};
 
-    // print("Releaseing the query");
-    // cbl.CBL_Release(q.ref);
+  //   String token1 = q1.addChangeListener((List results) {
+  //     print('New query results B: ' + results.toString());
+  //   });
 
-    // await pause(1000);
+  //   await pause(1000);
 
-    // print('Saving document again:');
-    // db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf3'}));
-    // await pause(1000);
+  //   print('Saving document:');
+  //   db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf2'}));
 
-    print("END");
-  } on Exception catch (e) {
-    print('!!! Exception caught > $e');
-    print(StackTrace.current);
-  }
+  //   print("END");
+  // } on Exception catch (e) {
+  //   print('!!! Exception caught > $e');
+  //   print(StackTrace.current);
+  // }
 
-  while (true) {
-    await pause(1000);
-  }
-
-/*
-  try {
-    var q1 = Query(db, 'SELECT * AS center WHERE dt='AC' AND id=\$ID');
-
-    q1.setParameters({'ID': 'testcenter2'});
-
-    q1.addChangeListener((List results) {
-      print('New query results for: ');
-      print(results);
-    });
-
-    q1.execute();
-    // print(results2);
-  } on Exception catch (e) {
-    print('!!! Exception caught > $e');
-    print(StackTrace.current);
-  }
-*/
+  // while (true) {
+  //   await pause(1000);
+  // }
 }
 
 testPushFilter() {
@@ -527,65 +465,72 @@ testReplicator() async {
   print('Database is open > ' + db.isOpen.toString());
   print('Document count >' + db.count.toString());
   Replicator replicator;
-  try {
-    replicator = Replicator(
-      db,
-      endpointUrl: 'ws://localhost:4984/cblc_test/',
-      username: 'cblc_test',
-      password: 'cblc_test',
-      conflictResolver: (documentID, localDocument, remoteDocument) {
-        print('Çonflict handler:');
-        print(localDocument.jsonProperties);
-        print(remoteDocument.jsonProperties);
-        final doc = Document(documentID);
-        doc.properties = remoteDocument.properties;
-        return doc;
-      },
-    );
 
-    replicator.addChangeListener((change) => print(change));
+  replicator = Replicator(
+    db,
+    endpointUrl: 'ws://localhost:4984/cbltest/',
+    username: 'cbltest',
+    password: 'cbltest',
+    pushFilter: (doc, isDeleted) {
+      print('---111111----');
+      print(doc);
+      return true;
+    },
+  );
 
-    db.saveDocument(Document(
-      'testdoc',
-      data: {'foo': 'bar13', 'dt': 'test'},
-    ));
+  final replicator1 = Replicator(
+    db,
+    endpointUrl: 'ws://localhost:4984/cbltest/',
+    username: 'cbltest',
+    password: 'cbltest',
+    pullFilter: (doc, isDeleted) {
+      print('---222222---');
+      print(doc);
+      return true;
+    },
+  );
 
-    replicator.start();
+  // replicator.addChangeListener((change) => print(change));
+  replicator.start();
+  replicator1.start();
 
-    await pause(1000);
+  await pause(1000);
 
-    // db.saveDocument(Document(
-    //   'testdoc',
-    //   data: {'foo': 'barZ1', 'dt': 'test'},
-    // ));
+  db.saveDocument(Document(
+    'testdoc',
+    data: {'foo': 'bar13', 'dt': 'test'},
+  ));
 
-    // print(replicator.status);
-    // var doc = db.getMutableDocument('testdoc1');
-    // doc.properties['foor'] = 'barz';
-    // db.saveDocument(doc);
+  // db.saveDocument(Document(
+  //   'testdoc',
+  //   data: {'foo': 'barZ1', 'dt': 'test'},
+  // ));
 
-    // print('tetdoc1 pending?');
-    // print(replicator.isDocumentPending('testdoc1'));
-    // print(replicator.pendingDocumentIds.json);
+  // print(replicator.status);
+  // var doc = db.getMutableDocument('testdoc1');
+  // doc.properties['foor'] = 'barz';
+  // db.saveDocument(doc);
 
-    // var doc = db.getMutableDocument('testdoc1');
-    // doc.properties['foor'] = 'barz';
-    // db.saveDocument(doc);
-    // await pause(500);
-    // print('tetdoc1 pending?');
-    // print(replicator.isDocumentPending('testdoc1'));
-    // print(replicator.pendingDocumentIds.json);
-    // await pause(100);
-    // replicator.stop();
+  // print('tetdoc1 pending?');
+  // print(replicator.isDocumentPending('testdoc1'));
+  // print(replicator.pendingDocumentIds.json);
 
-    await pause(1000);
+  // var doc = db.getMutableDocument('testdoc1');
+  // doc.properties['foor'] = 'barz';
+  // db.saveDocument(doc);
+  // await pause(500);
+  // print('tetdoc1 pending?');
+  // print(replicator.isDocumentPending('testdoc1'));
+  // print(replicator.pendingDocumentIds.json);
+  // await pause(100);
+  // replicator.stop();
 
-    print(db.getDocument('testdoc').jsonProperties);
+  await pause(1000);
 
-    // print(replicator.status);
-  } catch (e) {
-    print('!!! Exception caught > $e');
-  }
+  // print(replicator.status);
+  // } catch (e) {
+  //   print('!!! Exception caught > $e');
+  // }
   int i = 0;
   while (true) {
     await pause(1000);
@@ -1007,272 +952,6 @@ testDocument() {
   }
 
   print('Document count >' + db.count.toString());
-}
-
-testDatabaseExists() {
-  print('**** Database.exists() START');
-
-  print('$testDir$testDB > ' +
-      Database.exists(testDB, directory: testDir).toString());
-  print('$testDir1$testDB > ' +
-      Database.exists(testDB, directory: testDir1).toString());
-  print(' ');
-  print('$testDB1 > ' + (Database.exists(testDB1)).toString());
-  print('$testDir$testDB1 > ' +
-      Database.exists(testDB1, directory: testDir).toString());
-  print('$testDir1$testDB1 > ' +
-      Database.exists(testDB1, directory: testDir1).toString());
-
-  print('**** Database.exists() END');
-}
-
-testDBCopy() {
-  Database db = Database(testDB), db1 = Database(testDB, directory: testDir);
-  List<String> copyDb = List.generate(10, (i) => '_copy$i');
-  bool result = false;
-
-  try {
-    db.open();
-    db1.open();
-  } on CouchbaseLiteException catch (e) {
-    print(e);
-  }
-
-  print('----');
-  print('Copying ' + testDB + '.cblite2\\' + ' -> ' + copyDb[0]);
-
-  result = false;
-  try {
-    result = db.copy(
-      copyDb[0],
-      // directory: testDir,
-    );
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught > $e');
-  }
-  print('Result > $result');
-
-  print('----');
-  print('Copying ' + testDB + '.cblite2\\' + ' -> ' + testDir + copyDb[1]);
-
-  result = false;
-  try {
-    result = db.copy(
-      copyDb[1],
-      directory: testDir,
-    );
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught > $e');
-  }
-  print('Result > $result');
-
-  print('----');
-  print('Copying ' + testDir + testDB + '.cblite2\\' + ' -> ' + copyDb[2]);
-
-  result = false;
-  try {
-    result = db1.copy(
-      copyDb[2],
-      // directory: testDir,
-    );
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught > $e');
-  }
-  print('Result > $result');
-
-  print('----');
-  print('Copying ' +
-      testDir +
-      testDB +
-      '.cblite2\\' +
-      ' -> ' +
-      testDir +
-      copyDb[3]);
-
-  result = false;
-  try {
-    result = db1.copy(
-      copyDb[3],
-      directory: testDir,
-    );
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught > $e');
-  }
-  print('Result > $result');
-}
-
-testDatabaseCopy() {
-  print('****');
-  bool result = false;
-  List<String> copyDb = List.generate(10, (i) => '_copy$i');
-
-  print('----');
-  print('Copying ' + testDB + '.cblite2\\' + ' -> ' + copyDb[0]);
-  result = false;
-  try {
-    result = Database.Copy(
-      testDB + '.cblite2\\',
-      copyDb[0],
-      // directory: testDir,
-    );
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught > $e');
-  }
-  print('Result > $result');
-
-  print('----');
-  print('Copying ' + testDir + testDB + '.cblite2\\' + ' -> ' + copyDb[1]);
-  result = false;
-  try {
-    result = Database.Copy(
-      testDir + testDB + '.cblite2\\',
-      copyDb[1],
-      // directory: testDir,
-    );
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught > $e');
-  }
-  print('Result > $result');
-
-  print('----');
-  print('Copying ' + testDB + '.cblite2\\' + ' -> ' + testDir + copyDb[2]);
-  result = false;
-  try {
-    result = Database.Copy(
-      testDB + '.cblite2\\',
-      copyDb[2],
-      directory: testDir,
-    );
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught > $e');
-  }
-  print('Result > $result');
-
-  print('----');
-  print('Copying ' +
-      testDir +
-      testDB +
-      '.cblite2\\' +
-      ' -> ' +
-      testDir +
-      copyDb[3]);
-  result = false;
-  try {
-    result = Database.Copy(
-      testDir + testDB + '.cblite2\\',
-      copyDb[3],
-      directory: testDir,
-    );
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught > $e');
-  }
-  print('Result > $result');
-
-  print('****');
-}
-
-testDatabaseClose() {
-  Database db = Database(testDB), db1 = Database(testDB);
-  bool result = false;
-  print('*****');
-  db.open();
-  db1.open();
-  result = db.close();
-
-  print('Closing $testDB > $result');
-  print(db.isOpen);
-  result = db.close();
-
-  print('Closing $testDB > $result');
-  print(db.isOpen);
-}
-
-testDatabaseCompact() {
-  Database db = Database(testDB), db1 = Database(testDB);
-  bool result = false;
-  print('*****');
-  db.open();
-  //db1.open();
-  result = db.compact();
-  print('Compacting $testDB > $result');
-
-  result = db1.compact();
-  print('Compacting $testDB1 > $result');
-}
-
-testDatabaseDelete() {
-  Database db = Database(testDB);
-  bool result = false;
-  print('*****');
-
-  try {
-    db.open();
-    db.close();
-    result = Database.Delete(testDB);
-  } catch (e) {
-    print('!!! Exception caught >$e ');
-  }
-  print('Deleting existing `$testDB` without open connections > $result');
-
-  result = null;
-  try {
-    result = Database.Delete(testDB);
-  } catch (e) {
-    print('!!! Exception caught >$e ');
-  }
-  print('Deleting non existing `$testDB`  > $result');
-
-  result = null;
-  try {
-    db.open();
-    result = Database.Delete(testDB);
-  } catch (e) {
-    print('!!! Exception caught > $e');
-  }
-  print('Deleting existing `$testDB` with open connections > $result');
-}
-
-testDBDelete() {
-  Database db = Database(testDB), db1 = Database(testDB);
-  bool result = false;
-  print('*****');
-
-  try {
-    db.open();
-    result = db.delete();
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught >$e ');
-  }
-  print('Deleting $testDB > $result');
-
-  db = Database(testDB);
-  db1 = Database(testDB);
-
-  result = false;
-  try {
-    db.open();
-    db1.open();
-    result = db.delete();
-  } on CouchbaseLiteException catch (e) {
-    print('Exception caught >$e ');
-  }
-  print('Deleting $testDB > $result');
-}
-
-testDatabaseBatch() {
-  Database db = Database(testDB);
-  bool result = false;
-  print('*****');
-
-  db.open();
-
-  result = db.beginBatch();
-
-  print('Begin batch on $testDB > $result');
-
-  result = db.endBatch();
-
-  print('End batch on $testDB > $result');
 }
 
 testAccessors() {

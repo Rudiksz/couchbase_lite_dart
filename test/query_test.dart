@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 import 'dart:io';
 
+import 'package:couchbase_lite_dart/bindings/library.dart' as cbl;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:test/test.dart';
 
@@ -19,8 +20,8 @@ void main() {
   });
 
   tearDownAll(() {
-    if (Directory('test/_tmp/').existsSync()) {
-      Directory('test/_tmp/').delete(recursive: true);
+    if (Directory(TESTDIR).existsSync()) {
+      Directory(TESTDIR).delete(recursive: true);
     }
   });
 
@@ -29,7 +30,9 @@ void main() {
 
     expect(
       () => Query(db, ''),
-      throwsA(predicate((p) => p is CouchbaseLiteException && p.code == 23)),
+      throwsA(predicate((p) =>
+          p is CouchbaseLiteException &&
+          p.code == cbl.CBLErrorCode.CBLErrorInvalidQuery.index)),
     );
 
     addTearDown(() => db.close());
@@ -47,13 +50,15 @@ void main() {
   test('execute', () async {
     var db = Database('query3', directory: TESTDIR);
     final query = Query(db, 'SELECT *');
-    expect(query.execute(), []);
+    expect(query.execute().allResults, []);
+
+    await asyncSleep(500);
 
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
     db.saveDocument(Document('testdoc1', data: {'foo': 'baz'}));
 
     expect(
-      query.execute(),
+      query.execute().allResults,
       [
         {
           '*': {'foo': 'bar'}
@@ -79,16 +84,48 @@ void main() {
     // Correct parameters set = the query should return a list
     query.parameters = {'BAR': 'bar'};
     expect(query.parameters, {'BAR': 'bar'});
-    expect(query.execute(), isA<List>());
+    expect(query.execute().allResults, isA<List>());
 
     // Wrong parameters == executing the query throws an error
     query.parameters = {'BA': 'bar'};
     expect(
       () => query.execute(),
-      throwsA(predicate((e) => e is CouchbaseLiteException && e.code == 25)),
+      throwsA(predicate((e) =>
+          e is CouchbaseLiteException &&
+          e.code == cbl.CBLErrorCode.CBLErrorInvalidQueryParam.index)),
     );
 
     addTearDown(() => db.close());
+  });
+
+  test('ResultSet', () async {
+    var db = Database('query3', directory: TESTDIR);
+    final query = Query(db, 'SELECT foo');
+    expect(query.execute().next(), false);
+
+    await asyncSleep(500);
+
+    db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
+    db.saveDocument(Document('testdoc1', data: {'foo': 'baz'}));
+
+    final result = query.execute();
+    expect(result.next(), true);
+    expect(result.rowDict, isA<FLDict>());
+    expect(result.rowDict['foo'].asString, 'bar');
+
+    expect(result.rowArray, isA<FLArray>());
+    expect(result.rowArray[0].asString, 'bar');
+
+    expect(result.next(), true);
+    expect(result.rowDict, isA<FLDict>());
+    expect(result.rowDict['foo'].asString, 'baz');
+
+    expect(result.rowArray, isA<FLArray>());
+    expect(result.rowArray[0].asString, 'baz');
+
+    expect(result.next(), false);
+
+    addTearDown(() => db.delete());
   });
 
   test('changeListener', () async {
@@ -98,17 +135,18 @@ void main() {
 
     final query = Query(db, 'SELECT * WHERE foo LIKE "%ba%"');
     var changes_received = false;
-    var results = [];
+    List rows;
 
-    var token = query.addChangeListener((items) {
+    var token = query.addChangeListener((results) {
       changes_received = true;
-      results = items;
+      rows = results.allResults;
     });
 
     await asyncSleep(500);
     expect(token, isA<String>());
     expect(changes_received, true);
-    expect(results, [
+
+    expect(rows, [
       {
         '*': {'foo': 'bar'}
       }
@@ -119,7 +157,7 @@ void main() {
 
     await asyncSleep(2000);
     expect(changes_received, true);
-    expect(results, [
+    expect(rows, [
       {
         '*': {'foo': 'bar'}
       },
@@ -136,7 +174,7 @@ void main() {
 
     await asyncSleep(1000);
     expect(changes_received, false);
-    expect(results, [
+    expect(rows, [
       {
         '*': {'foo': 'bar'}
       },

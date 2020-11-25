@@ -19,13 +19,14 @@ import 'package:uuid/uuid.dart';
 
 import 'bindings/library.dart' as cbl;
 
-part 'src/base.dart';
 part 'src/database.dart';
 part 'src/document.dart';
 part 'src/query.dart';
 part 'src/replicator.dart';
 part 'src/blob.dart';
+part 'src/listeners.dart';
 part 'src/database_error.dart';
+part 'src/log.dart';
 part 'src/fleece/fldoc.dart';
 part 'src/fleece/flvalue.dart';
 part 'src/fleece/fldict.dart';

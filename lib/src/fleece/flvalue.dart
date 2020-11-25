@@ -17,15 +17,15 @@ part of couchbase_lite_dart;
 /// as well as FLValue. The result will be a default value of that type, e.g. false or 0
 /// or NULL, unless otherwise specified.
 class FLValue {
+  /// The C pointer to the FLValue
   ffi.Pointer<cbl.FLValue> _value;
-  ffi.Pointer<cbl.FLValue> get addressOf => _value;
-  set value(FLValue value) => _value = value.addressOf;
-
-  final error = pffi.allocate<ffi.Uint8>();
+  ffi.Pointer<cbl.FLValue> get ref => _value;
 
   FLValue() {
     _value = pffi.allocate<cbl.FLValue>();
   }
+
+  int error;
 
   FLValue.fromPointer(this._value);
 
@@ -34,7 +34,6 @@ class FLValue {
   String get json {
     final cstr = cbl.FLDump(_value.cast());
     final str = cbl.utf8ToStr(cstr);
-    // Dart_Free(cstr);
     return str;
   }
 
@@ -55,18 +54,20 @@ class FLValue {
     // Some values are not supported
     if (keyPath.isEmpty || keyPath.contains('[]')) return null;
 
-    error.value = 0;
+    final outError = pffi.allocate<ffi.Uint8>()..value = 0;
     final val = cbl.FLKeyPath_EvalOnce(
       cbl.strToUtf8(keyPath),
-      _value.cast(),
-      error,
+      _value,
+      outError,
     );
-    if (error.value != FLError.noError.index) return null;
-    return FLValue.fromPointer(val);
+    error = outError.value;
+    pffi.free(outError);
+
+    return error == FLError.noError.index ? FLValue.fromPointer(val) : null;
   }
 
   /// Returns the data type of an arbitrary Value.
-  /// (If the value is null, returns `FLValueType.undefined`.)
+  /// (If the value is null, returns `FLValueType.Undefined`.)
   FLValueType get type {
     // The C enum values start at -1
     final t = cbl.FLValue_GetType(_value) + 1;
@@ -101,7 +102,7 @@ class FLValue {
   ///
   /// This is the same as `asInt` except that it _can't_ handle negative numbers, but
   /// does correctly return large `uint64_t` values of 2^63 and up.
-  int get asUnsinged => cbl.FLValue_AsUnsigned(_value);
+  int get asUnsigned => cbl.FLValue_AsUnsigned(_value);
 
   /// Returns a value coerced to a 32-bit floating point number.
   /// True and false are returned as 1.0 and 0.0, and integers are converted to float. All other
@@ -115,7 +116,6 @@ class FLValue {
   String get asString {
     final cstr = cbl.FLValue_AsString(_value);
     final result = cbl.utf8ToStr(cstr);
-    // Dart_Free(cstr);
     return result;
   }
 
@@ -135,7 +135,6 @@ class FLValue {
   String toString() {
     final cstr = cbl.FLValue_ToString(_value);
     final result = cbl.utf8ToStr(cstr);
-    // Dart_Free(cstr);
     return result;
   }
 

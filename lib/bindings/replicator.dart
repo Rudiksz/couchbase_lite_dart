@@ -109,10 +109,6 @@ final CBLReplicator_AddChangeListener_d = _dylib.lookupFunction<
         _dart_CBLReplicator_AddChangeListener_d>(
     'CBLReplicator_AddChangeListener_d');
 
-final CBLReplicator_ExecuteCallback = _dylib.lookupFunction<
-    ffi.Void Function(ffi.Pointer<Work>),
-    void Function(ffi.Pointer<Work>)>('CBLReplicator_ExecuteCallback');
-
 /// Returns the replicator's current status.
 final CBLReplicator_Status =
     _dylib.lookupFunction<_c_CBLReplicator_Status, _dart_CBLReplicator_Status>(
@@ -177,11 +173,6 @@ typedef _c_CBLReplicator_New_d = ffi.Pointer<CBLReplicator> Function(
   ffi.Uint8 pushFilter,
   ffi.Uint8 pullFilter,
   ffi.Uint8 conflictResolver,
-  ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
-  ffi.Pointer<ffi.NativeFunction<StatusCallback>> statusCallback,
-  ffi.Pointer<ffi.NativeFunction<ConflictCallback>> conflictCallback,
-  ffi.Uint64 filterPort,
-  ffi.Uint64 conflictPort,
   ffi.Pointer<CBLError> outError,
 );
 
@@ -204,11 +195,6 @@ typedef _dart_CBLReplicator_New_d = ffi.Pointer<CBLReplicator> Function(
   int pushFilter,
   int pullFilter,
   int conflictResolver,
-  ffi.Pointer<ffi.NativeFunction<FilterCallback>> filterCallback,
-  ffi.Pointer<ffi.NativeFunction<StatusCallback>> statusCallback,
-  ffi.Pointer<ffi.NativeFunction<ConflictCallback>> conflictCallback,
-  int filterPort,
-  int conflictPort,
   ffi.Pointer<CBLError> outError,
 );
 
@@ -279,14 +265,12 @@ typedef _c_CBLReplicator_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<ffi.Int8> replicatorId,
-  ffi.Uint64 dart_port,
 );
 
 typedef _dart_CBLReplicator_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLReplicator> replicator,
   ffi.Pointer<ffi.Int8> replicatorId,
-  int dart_port,
 );
 
 /*

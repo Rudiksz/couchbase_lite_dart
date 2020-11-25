@@ -44,8 +44,9 @@ part of couchbase_lite_dart;
 /// ```
 class Blob {
   ffi.Pointer<cbl.CBLBlob> pointer;
+  ffi.Pointer<cbl.CBLBlobWriteStream> _blobStream;
 
-  Blob._internal(this.pointer);
+  Blob._internal(this.pointer, [this._blobStream]);
 
   /// Creates a new blob given its contents as a single block of data.
   Blob.createWithData(String contentType, Uint8List data) {
@@ -93,11 +94,15 @@ class Blob {
         cbl.CBLBlobWriter_Write(_blobStream, buf, list.length, error.addressOf);
         pffi.free(buf);
       },
-      onDone: () => result.complete(
-        Blob._internal(
-          cbl.CBLBlob_CreateWithStream(cbl.strToUtf8(contentType), _blobStream),
-        ),
-      ),
+      onDone: () {
+        return result.complete(
+          Blob._internal(
+            cbl.CBLBlob_CreateWithStream(
+                cbl.strToUtf8(contentType), _blobStream),
+            _blobStream,
+          ),
+        );
+      },
       onError: (error) {
         cbl.CBLBlobWriter_Close(_blobStream);
         result.completeError(CouchbaseLiteException(
@@ -115,11 +120,11 @@ class Blob {
   /// Create a [Blob] object corresponding to a blob dictionary in a document.
   factory Blob.fromValue(FLDict dict) {
     if (dict == null ||
-        dict.addressOf == ffi.nullptr ||
+        dict.ref == ffi.nullptr ||
         dict['@type'] == null ||
         dict['@type'].asString != 'blob') return null;
 
-    return Blob._internal(cbl.CBLBlob_Get(dict.addressOf));
+    return Blob._internal(cbl.CBLBlob_Get(dict.ref));
   }
 
   Uint8List _content;
@@ -146,7 +151,6 @@ class Blob {
   Stream<Uint8List> getContentStream({int chunk = 10240}) async* {
     final error = cbl.CBLError.allocate();
     final blobStream = cbl.CBLBlob_OpenContentStream(pointer, error.addressOf);
-    final data = pffi.allocate<ffi.Uint8>(count: chunk);
 
     if (error.domain != 0) {
       pffi.free(error.addressOf);
@@ -159,23 +163,35 @@ class Blob {
     var count = 0;
     do {
       error.reset();
-
+      final data = pffi.allocate<ffi.Uint8>(count: chunk);
       count = cbl.CBLBlobReader_Read(blobStream, data, chunk, error.addressOf);
 
       if (count > 0) {
         yield data.asTypedList(count);
       }
+      pffi.free(data);
     } while (count > 0);
 
     cbl.CBLBlobReader_Close(blobStream);
-    pffi.free(data);
+    // pffi.free(data);
     pffi.free(error.addressOf);
   }
 
+  void closeStream() => cbl.CBLBlobWriter_Close(_blobStream);
+
   /// Reads the blob's contents into memory and returns them.
-  Future<Uint8List> getContent() async =>
-      _content ??= await getContentStream().reduce((p, e) {
-        p.addAll(e);
-        return p;
-      });
+  Future<Uint8List> getContent() async {
+    if (_content != null) return _content;
+
+    _content = Uint8List(0);
+
+    await for (var value in getContentStream()) {
+      final _tmp = Uint8List(_content.length + value.length);
+
+      _tmp.setAll(0, _content);
+      _tmp.setAll(_content.length, value);
+      _content = _tmp;
+    }
+    return _content;
+  }
 }

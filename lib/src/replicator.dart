@@ -4,19 +4,6 @@
 
 part of couchbase_lite_dart;
 
-/// A callback that can decide whether a particular [document] should be pushed or pulled.
-///
-/// It should not take a long time to return, or it will slow down the replicator.
-///
-/// Return `true` if the document should be replicated, `false` to skip it.
-typedef ReplicatorFilter = bool Function(Document document, bool isDeleted);
-
-typedef ConflictResolver = Document Function(
-  String documentID,
-  Document localDocument,
-  Document remoteDocument,
-);
-
 class Replicator {
   /// Pointer to the C replicator object
   ffi.Pointer<cbl.CBLReplicator> repl;
@@ -43,9 +30,6 @@ class Replicator {
 
   /// Optional set of document IDs to replicate.
   List<String> documentIDs = [];
-
-  /// HTTP client proxy settings
-  ReplicatorProxySettings proxy;
 
   /// Extra HTTP headers to add to the WebSocket request.
   Map<String, String> headers = {};
@@ -89,36 +73,10 @@ class Replicator {
 
   //-- Internal
 
-  /// Receiver,port and callback for filter events sent by the C threads
-  static ReceivePort _cblFilterPort;
-  static var _cblFilterCallback;
-
   static final Map<String, ReplicatorFilter> _pushReplicatorFilters = {};
   static final Map<String, ReplicatorFilter> _pullReplicatorFilters = {};
 
-  /// Receiver,port and callback for conflict handlers sent by the C threads
-  static ReceivePort _cblConflictPort;
-  static var _cblConflictCallback;
-
   static final Map<String, ConflictResolver> _conflictResolvers = {};
-
-  /// Receiver and port for status events sent by the C threads
-  static ReceivePort _cblListener;
-  static int _nativePort;
-  static var _cblStatusCallback;
-
-  /// Replicators that have active listeners.
-  static final Map<String, ffi.Pointer<cbl.CBLReplicator>> _replicators = {};
-
-  /// Stream where status change events will be posted for the Dart listeners to consume.
-  static final _statusStream = StreamController<ReplicatorStatus>.broadcast();
-
-  /// Listeners listening to the Dart stream
-  static final Map<String, StreamSubscription> _statusListeners = {};
-
-  /// Listener tokens used by cbl.CBL (in C)
-  static final Map<String, ffi.Pointer<cbl.CBLListenerToken>>
-      _cblListenerTokens = {};
 
   /// A replicator is a background task that synchronizes changes between a local database and
   /// another database on a remote server (or on a peer device, or even another local database.)
@@ -139,34 +97,20 @@ class Replicator {
     this.pushFilter,
     this.pullFilter,
     this.conflictResolver,
-    this.proxy,
   }) {
     assert(db != null && db._db != ffi.nullptr);
     assert(endpointUrl != null && endpointUrl.isNotEmpty);
 
     // Set up comunication protocol between Dart and C for pull/push filters
     if (pullFilter != null || pushFilter != null) {
-      _cblFilterPort ??= ReceivePort()..listen(_cblReplicatorFilterListener);
-
-      _cblFilterCallback = ffi.Pointer.fromFunction<cbl.FilterCallback>(
-          _cblReplicatorFilterCallback, 1);
-
       _pushReplicatorFilters[_id] = pushFilter;
       _pullReplicatorFilters[_id] = pullFilter;
     }
 
     // Set up comunication protocol between Dart and C for the conflict handler
     if (conflictResolver != null) {
-      _cblConflictPort ??= ReceivePort()..listen(_cblConflictListener);
-
-      _cblConflictCallback = ffi.Pointer.fromFunction<cbl.ConflictCallback>(
-          _cblReplicatorConflictCallback);
-
       _conflictResolvers[_id] = conflictResolver;
     }
-
-    _cblStatusCallback = ffi.Pointer.fromFunction<cbl.StatusCallback>(
-        _cblReplicatorStatusCallback);
 
     final error = cbl.CBLError.allocate();
     repl = cbl.CBLReplicator_New_d(
@@ -184,8 +128,7 @@ class Replicator {
           ? cbl.strToUtf8(jsonEncode(documentIDs))
           : ffi.nullptr,
       headers.isNotEmpty ? cbl.strToUtf8(jsonEncode(headers)) : ffi.nullptr,
-      proxy?.pointer ??
-          ffi.nullptr, // todo(rudoka): refactor into basic C types
+      ffi.nullptr, // todo(rudoka): implement proxy config
       pinnedServerCertificate.isNotEmpty
           ? cbl.strToUtf8(pinnedServerCertificate)
           : ffi.nullptr,
@@ -195,11 +138,6 @@ class Replicator {
       pushFilter != null ? 1 : 0,
       pullFilter != null ? 1 : 0,
       conflictResolver != null ? 1 : 0,
-      _cblFilterCallback ?? ffi.nullptr,
-      _cblStatusCallback ?? ffi.nullptr,
-      _cblConflictCallback ?? ffi.nullptr,
-      _cblFilterPort != null ? _cblFilterPort.sendPort.nativePort : 0,
-      _cblConflictPort != null ? _cblConflictPort.sendPort.nativePort : 0,
       error.addressOf,
     );
 
@@ -238,54 +176,37 @@ class Replicator {
   /// server have gotten out of sync somehow.
   void resetCheckpoint() => cbl.CBLReplicator_ResetCheckpoint(repl);
 
-  // -- Status and progress
+  // ++ Status and progress
 
   /// Registers a [callback] to be called when the replicator's status changes.
   ///
   /// Returns a token to be passed to [removeChangeListener] when it's time to remove
   /// the listener.
   String addChangeListener(Function(ReplicatorStatus) callback) {
-    // Initialize the native port to receive the asynchronous messages from C
-    _cblListener ??= ReceivePort()..listen(_cblStatusChangelistener);
-    _nativePort ??= _cblListener.sendPort.nativePort;
-
-    final token = Uuid().v1();
-    final cblToken = cbl.CBLReplicator_AddChangeListener_d(
-      repl,
-      cbl.strToUtf8(token),
-      _nativePort,
+    final token = ChangeListeners.addChangeListener<ReplicatorStatus>(
+      addListener: (String token) =>
+          cbl.CBLReplicator_AddChangeListener_d(repl, cbl.strToUtf8(token)),
+      onListenerAdded: (Stream stream, String token) => stream
+          .where((data) => data.id == token)
+          .listen((data) => callback(data)),
     );
-
-    if (cblToken == ffi.nullptr) {
-      return null;
-    }
-
-    _replicators[token] = repl;
-    _cblListenerTokens[token] = cblToken;
-    _statusListeners[token] = _statusStream.stream
-        .where((data) => data.id == token)
-        .listen((data) => callback(data));
 
     return token;
   }
 
   /// Removes a listener callback, given the [token] that was returned when it was added.
-  void removeChangeListener(String token) async {
-    var streamListener = _statusListeners.remove(token);
+  void removeChangeListener(String token) =>
+      ChangeListeners.removeChangeListener(token);
 
-    await streamListener?.cancel();
-
-    if (_cblListenerTokens[token] != null &&
-        _cblListenerTokens[token] != ffi.nullptr) {
-      cbl.CBLListener_Remove(_cblListenerTokens[token]);
-      _cblListenerTokens.remove(token);
-    }
-  }
-
-  /// This is listening to events sent by C replicators
-  void _cblStatusChangelistener(dynamic status) async {
-    final work = ffi.Pointer<cbl.Work>.fromAddress(status as int);
-    cbl.CBLReplicator_ExecuteCallback(work);
+  /// Returns the replicator's current status.
+  ReplicatorStatus get status {
+    final result = cbl.CBLReplicator_Status(repl);
+    final status = ReplicatorStatus.fromData(
+      _id,
+      FLDict.fromPointer(result),
+    );
+    cbl.FLValue_Release(result.cast());
+    return status;
   }
 
   /// The actual pull and push filter handler. Calls the registered Dart listeners
@@ -294,24 +215,12 @@ class Replicator {
     ffi.Pointer<ffi.Int8> replicatorId,
     ffi.Pointer<cbl.FLDict> status,
   ) {
-    _statusStream.sink.add(ReplicatorStatus.fromData(
-      cbl.utf8ToStr(replicatorId),
-      FLDict.fromPointer(status),
-    ));
-  }
-
-  // TODO
-  // conflictResolver
-
-  /// Returns the replicator's current status.
-  ReplicatorStatus get status {
-    final result = cbl.CBLReplicator_Status(repl);
-    final status = ReplicatorStatus.fromData(
-      null,
-      FLDict.fromPointer(result),
-    );
-    cbl.FLValue_Release(result.cast());
-    return status;
+    ChangeListeners.stream<ReplicatorStatus>().sink.add(
+          ReplicatorStatus.fromData(
+            cbl.utf8ToStr(replicatorId),
+            FLDict.fromPointer(status),
+          ),
+        );
   }
 
   /// Indicates which documents have local changes that have not yet been pushed to the server
@@ -357,16 +266,7 @@ class Replicator {
     return result != 0;
   }
 
-  // -- Push&pull filters
-
-  /// This is listening to push and pull filter events sent by the C replicators.
-  /// Its job is to call back C code with the provided closure, which in turn will
-  /// execute the [_cblReplicatorFilterCallback] inside the closure. Done this way
-  /// to make sure the callback is executed on the same isolate.
-  void _cblReplicatorFilterListener(dynamic message) async {
-    final work = ffi.Pointer<cbl.Work>.fromAddress(message as int);
-    cbl.CBLReplicator_ExecuteCallback(work);
-  }
+  // ++ Push&pull filters
 
   /// The actual pull and push filter handler. Calls the registered Dart listeners
   /// and returns the value they produce.
@@ -381,21 +281,12 @@ class Replicator {
             ? _pushReplicatorFilters[cbl.utf8ToStr(replicatorId)]
             : _pullReplicatorFilters[cbl.utf8ToStr(replicatorId)];
 
-    final result = callback(Document._internal(document), isDeleted != 0);
+    final result = callback(Document.fromPointer(document), isDeleted != 0);
 
     return result ? 1 : 0;
   }
 
-  // -- Conflict Resolvers
-
-  /// This is listening to push and pull filter events sent by the C replicators.
-  /// Its job is to call back C code with the provided closure, which in turn will
-  /// execute the [_cblReplicatorFilterCallback] inside the closure. Done this way
-  /// to make sure the callback is executed on the same isolate.
-  void _cblConflictListener(dynamic message) async {
-    final work = ffi.Pointer<cbl.Work>.fromAddress(message as int);
-    cbl.CBLReplicator_ExecuteCallback(work);
-  }
+  // ++ Conflict Resolvers
 
   /// The actual pull and push filter handler. Calls the registered Dart listeners
   /// and returns the value they produce.
@@ -413,8 +304,8 @@ class Replicator {
 
     final result = callback(
       cbl.utf8ToStr(documentId),
-      Document._internal(localDocument),
-      Document._internal(remoteDocument),
+      Document.fromPointer(localDocument),
+      Document.fromPointer(remoteDocument),
     );
 
     return result._doc ?? ffi.nullptr;
@@ -423,30 +314,6 @@ class Replicator {
   void dispose() {
     cbl.CBL_Release(repl);
     repl = ffi.nullptr;
-  }
-}
-
-enum ReplicatorFilterType { push, pull }
-
-/// Authentication credentials for the [Replicator]
-class ReplicatorProxySettings {
-  ffi.Pointer<cbl.CBLProxySettings> pointer;
-
-  /// Creates an authenticator for HTTP Basic (username/password) auth.
-  ReplicatorProxySettings({
-    String hostname,
-    int port,
-    String username = '',
-    String password = '',
-    ReplicatorProxyType type = ReplicatorProxyType.http,
-  }) {
-    pointer = pffi.allocate<cbl.CBLProxySettings>();
-    pointer.ref
-      ..type = type.index
-      ..hostname = cbl.strToUtf8(hostname)
-      ..port = port
-      ..username = cbl.strToUtf8(username)
-      ..password = cbl.strToUtf8(password);
   }
 }
 
@@ -496,9 +363,26 @@ class ReplicatorProgress {
   int documentCount;
 }
 
+/// A callback that can decide whether a particular [document] should be pushed or pulled.
+///
+/// It should not take a long time to return, or it will slow down the replicator.
+///
+/// Return `true` if the document should be replicated, `false` to skip it.
+typedef ReplicatorFilter = bool Function(Document document, bool isDeleted);
+
+typedef ConflictResolver = Document Function(
+  String documentID,
+  Document localDocument,
+  Document remoteDocument,
+);
+
+enum ReplicatorFilterType { push, pull }
+
 enum ReplicatorType { pushAndPull, push, pull }
 
 enum ReplicatorProxyType { http, https }
+
+enum CBLDocumentFlags { none, none1, deleted, accessRemoved }
 
 enum ActivityLevel {
   /// The replicator is unstarted, finished, or hit a fatal error.
@@ -517,11 +401,4 @@ enum ActivityLevel {
   busy,
 
   suspended,
-}
-
-enum CBLDocumentFlags {
-  none,
-  none1,
-  deleted,
-  accessRemoved,
 }

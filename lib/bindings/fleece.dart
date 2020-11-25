@@ -23,9 +23,16 @@ final FLDoc_Release = _dylib
 
 // -- FLValue
 
+final FLValue_Retain = _dylib
+    .lookupFunction<_c_FLValue_Retain, _dart_FLValue_Retain>('FLValue_Retain');
+
 final FLValue_Release =
     _dylib.lookupFunction<_c_FLValue_Release, _dart_FLValue_Release>(
         'FLValue_Release');
+
+final FLValue_FromJSON =
+    _dylib.lookupFunction<_c_FLValue_FromJSON, _dart_FLValue_FromJSON>(
+        'FLValue_FromJSON');
 
 /*
 final FLData_ConvertJSON =
@@ -238,16 +245,6 @@ final FLSlot_SetValue =
     _dylib.lookupFunction<_c_FLSlot_SetValue, _dart_FLSlot_SetValue>(
         'FLSlot_SetValue');
 
-// void FLSlot_SetNull(FLSlot FLNONNULL) FLAPI;             ///< Stores a JSON null into a slot.
-// void FLSlot_SetBool(FLSlot FLNONNULL, bool) FLAPI;       ///< Stores a boolean into a slot.
-// void FLSlot_SetInt(FLSlot FLNONNULL, int64_t) FLAPI;     ///< Stores an integer into a slot.
-// void FLSlot_SetUInt(FLSlot FLNONNULL, uint64_t) FLAPI;   ///< Stores an unsigned integer into a slot.
-// void FLSlot_SetFloat(FLSlot FLNONNULL, float) FLAPI;     ///< Stores a float into a slot.
-// void FLSlot_SetDouble(FLSlot FLNONNULL, double) FLAPI;   ///< Stores a double into a slot.
-// void FLSlot_SetString(FLSlot FLNONNULL, FLString) FLAPI; ///< Stores a string into a slot.
-// void FLSlot_SetData(FLSlot FLNONNULL, FLSlice) FLAPI;    ///< Stores a data blob into a slot.
-// void FLSlot_SetValue(FLSlot FLNONNULL, FLValue) FLAPI;
-
 // -- Key paths
 
 final FLKeyPath_New = _dylib
@@ -265,16 +262,6 @@ final FLKeyPath_EvalOnce =
 // !
 
 // -- FLDoc
-
-// typedef _c_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
-//   ffi.Pointer<FLSlice> json,
-//   ffi.Pointer<ffi.Uint8> error,
-// );
-
-// typedef _dart_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
-//   ffi.Pointer<FLSlice> json,
-//   ffi.Pointer<ffi.Uint8> error,
-// );
 
 typedef _c_FLDoc_FromJSON = ffi.Pointer<FLDoc> Function(
   ffi.Pointer<ffi.Int8> json,
@@ -312,6 +299,24 @@ typedef _dart_FLDoc_Release = void Function(
 
 // -- FLValue
 
+typedef _c_FLValue_FromJSON = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<ffi.Int8> json,
+  ffi.Pointer<ffi.Uint8> error,
+);
+
+typedef _dart_FLValue_FromJSON = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<ffi.Int8> json,
+  ffi.Pointer<ffi.Uint8> error,
+);
+
+typedef _c_FLValue_Retain = ffi.Void Function(
+  ffi.Pointer<FLValue> value,
+);
+
+typedef _dart_FLValue_Retain = void Function(
+  ffi.Pointer<FLValue> value,
+);
+
 typedef _c_FLValue_Release = ffi.Void Function(
   ffi.Pointer<FLValue> value,
 );
@@ -320,28 +325,6 @@ typedef _dart_FLValue_Release = void Function(
   ffi.Pointer<FLValue> value,
 );
 
-// TODO write one function that does this both
-/*
-typedef _c_FLData_ConvertJSON = ffi.Pointer<FLSliceResult> Function(
-  ffi.Pointer<FLSlice> json,
-  ffi.Pointer<ffi.Uint8> error,
-);
-
-typedef _dart_FLData_ConvertJSON = ffi.Pointer<FLSliceResult> Function(
-  ffi.Pointer<FLSlice> value,
-  ffi.Pointer<ffi.Uint8> error,
-);
-
-typedef _c_FLValue_FromData = ffi.Pointer<FLValue> Function(
-  ffi.Pointer<FLSlice> json,
-  ffi.Uint8 trust,
-);
-
-typedef _dart_FLValue_FromData = ffi.Pointer<FLValue> Function(
-  ffi.Pointer<FLSlice> value,
-  int trust,
-);
-*/
 typedef _c_FLDump = ffi.Pointer<ffi.Int8> Function(
   ffi.Pointer<FLValue> value,
 );

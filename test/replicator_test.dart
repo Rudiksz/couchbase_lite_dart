@@ -11,9 +11,11 @@ import '_test_utils.dart';
 const TESTDIR = '_tmp1';
 
 void main() {
-  var endpointUrl = 'ws://localhost:4984/cblc_test/';
-  var username = 'cblc_test';
-  var password = 'cblc_test';
+  var endpointUrl = 'ws://localhost:4984/cbltest/';
+  var username = 'cbltest';
+  var password = 'cbltest';
+
+  setUp(() => ChangeListeners.initalize());
 
   setUpAll(() {
     Cbl.init();
@@ -222,7 +224,7 @@ void main() {
     var status_received = false;
     ReplicatorStatus status;
 
-    replicator.addChangeListener((newStatus) {
+    final token = replicator.addChangeListener((newStatus) {
       status_received = true;
       status = newStatus;
     });
@@ -241,8 +243,19 @@ void main() {
     expect(status_received, true);
     expect(status.activityLevel, ActivityLevel.stopped);
 
-    addTearDown(() {
+    await asyncSleep(5000);
+
+    status_received = false;
+
+    replicator.removeChangeListener(token);
+    await asyncSleep(500);
+    replicator.start();
+
+    expect(status_received, false);
+
+    addTearDown(() async {
       replicator.stop();
+      await asyncSleep(500);
       db.close();
     });
   });
@@ -266,11 +279,11 @@ void main() {
     );
 
     replicator.start();
-    await asyncSleep(5000);
+    await asyncSleep(1000);
 
     expect(doc_received, false);
     expect(doc_filtered, isNull);
-
+    await asyncSleep(1000);
     db.saveDocument(Document(
       'testdoc',
       data: {'foo': 'bar', 'dt': 'test'},
@@ -280,6 +293,65 @@ void main() {
 
     expect(doc_received, true);
     expect(doc_filtered.ID, 'testdoc');
+
+    addTearDown(() {
+      replicator.stop();
+      db.close();
+    });
+  });
+
+  test('isDocumentPending', () async {
+    var db = Database('pendingdoc', directory: TESTDIR);
+
+    await asyncSleep(100);
+    var replicator = Replicator(
+      db,
+      endpointUrl: endpointUrl,
+      username: username,
+      password: password,
+    );
+
+    db.saveDocument(Document(
+      'testdoc',
+      data: {'foo': 'bar', 'dt': 'test'},
+    ));
+
+    expect(replicator.isDocumentPending('testdoc'), true);
+    await asyncSleep(500);
+    replicator.start();
+    await asyncSleep(5000);
+    expect(replicator.isDocumentPending('testdoc'), false);
+
+    addTearDown(() {
+      replicator.stop();
+      db.close();
+    });
+  });
+
+  test('pendingDocumentIds', () async {
+    var db = Database('pendingDocumentIds', directory: TESTDIR);
+
+    await asyncSleep(100);
+    var replicator = Replicator(
+      db,
+      endpointUrl: endpointUrl,
+      username: username,
+      password: password,
+    );
+
+    db.saveDocument(Document(
+      'testdoc',
+      data: {'foo': 'bar', 'dt': 'test'},
+    ));
+
+    expect(replicator.pendingDocumentIds.length, 1);
+    expect(replicator.pendingDocumentIds.json, '{"testdoc":true}');
+    await asyncSleep(500);
+    replicator.start();
+    await asyncSleep(5000);
+
+    expect(replicator.pendingDocumentIds.length, 0);
+    expect(replicator.pendingDocumentIds.json, '');
 
     addTearDown(() {
       replicator.stop();

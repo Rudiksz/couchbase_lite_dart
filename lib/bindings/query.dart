@@ -62,6 +62,10 @@ final CBLResultSet_Next =
     _dylib.lookupFunction<_c_CBLResultSet_Next, _dart_CBLResultSet_Next>(
         'CBLResultSet_Next');
 
+/// Returns the current result as Array.
+final CBLResultSet_RowArray = _dylib.lookupFunction<_c_CBLResultSet_RowArray,
+    _dart_CBLResultSet_RowArray>('CBLResultSet_RowArray');
+
 /// Returns the current result as Dict.
 final CBLResultSet_RowDict =
     _dylib.lookupFunction<_c_CBLResultSet_RowDict, _dart_CBLResultSet_RowDict>(
@@ -148,6 +152,14 @@ typedef _dart_CBLResultSet_Next = int Function(
   ffi.Pointer<CBLResultSet> resultSet,
 );
 
+typedef _c_CBLResultSet_RowArray = ffi.Pointer<FLArray> Function(
+  ffi.Pointer<CBLResultSet> resultSet,
+);
+
+typedef _dart_CBLResultSet_RowArray = ffi.Pointer<FLArray> Function(
+  ffi.Pointer<CBLResultSet> resultSet,
+);
+
 typedef _c_CBLResultSet_RowDict = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLResultSet> resultSet,
 );
@@ -168,14 +180,12 @@ typedef _c_CBLQuery_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLQuery> query,
   ffi.Pointer<ffi.Int8> queryId,
-  ffi.Uint64 dart_port,
 );
 
 typedef _dart_CBLQuery_AddChangeListener_d = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLQuery> query,
   ffi.Pointer<ffi.Int8> queryId,
-  int dart_port,
 );
 
 typedef _c_CBLQuery_CopyCurrentResults = ffi.Pointer<CBLResultSet> Function(

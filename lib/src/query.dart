@@ -9,8 +9,10 @@ part of couchbase_lite_dart;
 /// you can think of as "SQL for JSON" or "SQL++".
 class Query {
   /// Internal pointer to the C object
-  ffi.Pointer<cbl.CBLQuery> _q;
-  ffi.Pointer<cbl.CBLQuery> get ref => _q;
+  ffi.Pointer<cbl.CBLQuery> _query;
+
+  /// Internal pointer to the C object
+  ffi.Pointer<cbl.CBLQuery> get ref => _query;
 
   Database db;
 
@@ -18,29 +20,13 @@ class Query {
 
   String queryString;
 
-  ffi.Pointer<ffi.Int32> outErrorPos = pffi.allocate();
-
-  // ??? Query change listeners
-
-  /// Receiver and port for events sent by the C threads
-  static ReceivePort _cblListener;
-  static int _nativePort;
-
-  /// Listeners tokens used by cbl.CBL in C
-  static final Map<String, ffi.Pointer<cbl.CBLListenerToken>>
-      _cblListenerTokens = {};
-
-  /// Listeners listening to the Dart stream
-  static final Map<String, StreamSubscription> _queryChangeListeners = {};
+  ffi.Pointer<ffi.Int32> outErrorPos = pffi.allocate<ffi.Int32>();
 
   /// Queries that are being listened to. Used to retrieve new results
-  /// when a query change event comes in the stream
+  /// when a query change event comes in the stream.
   static final Map<String, ffi.Pointer<cbl.CBLQuery>> _liveQueries = {};
 
-  /// Stream where query change events will be posted
-  static final _queryChangeStream = StreamController<QueryChange>.broadcast();
-
-  // Tokens belonging to this specific query
+  // Tokens belonging to this specific query. Used to remove listeners when disposing a query.
   final List<String> _listenerTokens = [];
 
   /// Creates a new query by compiling the input string.
@@ -54,7 +40,7 @@ class Query {
   Query(this.db, this.queryString, {this.language = QueryLanguage.n1ql}) {
     final error = cbl.CBLError.allocate();
 
-    _q = cbl.CBLQuery_New(
+    _query = cbl.CBLQuery_New(
       db._db,
       language.index,
       cbl.strToUtf8(queryString.replaceAll('\n', '')),
@@ -67,40 +53,34 @@ class Query {
 
   /// Runs the query, returning the results.
   ///
-  /// Throws [DatabaseError].
-  List execute() {
-    assert(_q != ffi.nullptr,
+  /// To obtain the results you'll typically call [ResultSet.next()] in a `while` loop,
+  /// examining the values in the [ResultSet] each time around.
+  ///
+  /// You must release the result set when you're finished with it.
+  ResultSet execute() {
+    assert(_query != ffi.nullptr,
         'The query was either not compiled yet or was already disposed.');
     // error.reset();
     final error = cbl.CBLError.allocate();
-    final result = cbl.CBLQuery_Execute(_q, error.addressOf);
+    final result = cbl.CBLQuery_Execute(_query, error.addressOf);
 
     validateError(error, cleanup: () => cbl.CBL_Release(result));
 
-    final rows = [];
-    while (cbl.CBLResultSet_Next(result) != 0) {
-      final row = cbl.CBLResultSet_RowDict(result);
-      final json = FLDict.fromPointer(row).json;
-      rows.add(jsonDecode(json));
-    }
-
-    cbl.CBL_Release(result);
-
-    return rows;
+    return ResultSet(result);
   }
 
   /// Returns information about the query, including the translated SQLite form, and the search
-  ///  strategy. You can use this to help optimize the query: the word `SCAN` in the strategy
-  ///  indicates a linear scan of the entire database, which should be avoided by adding an index.
-  ///  The strategy will also show which index(es), if any, are used.
+  /// strategy. You can use this to help optimize the query: the word `SCAN` in the strategy
+  /// indicates a linear scan of the entire database, which should be avoided by adding an index.
+  /// The strategy will also show which index(es), if any, are used.
   String explain() {
-    final result = cbl.CBLQuery_Explain_c(_q);
+    final result = cbl.CBLQuery_Explain_c(_query);
     return pffi.Utf8.fromUtf8(result.cast());
   }
 
   /// Returns the query's current parameter bindings, if any.
   Map get parameters {
-    final result = cbl.CBLQuery_ParametersAsJSON(_q);
+    final result = cbl.CBLQuery_ParametersAsJSON(_query);
     if (result == ffi.nullptr) return {};
 
     return jsonDecode(cbl.utf8ToStr(result));
@@ -109,19 +89,19 @@ class Query {
   /// Assigns values to the query's parameters.
   ///
   /// These values will be substited for those parameters whenever the query is executed,
-  ///  until they are next assigned.
+  /// until they are next assigned.
   ///
-  ///  Parameters are specified in the query source as e.g. `$PARAM`. In this example,
+  /// Parameters are specified in the query source as e.g. `$PARAM`. In this example,
   /// the `parameters` dictionary to this call should have a key `PARAM` that maps to
   /// the value of the parameter.
   set parameters(Map parameters) {
     final json = jsonEncode(parameters);
-    cbl.CBLQuery_SetParametersAsJSON(_q, cbl.strToUtf8(json)) != 0;
+    cbl.CBLQuery_SetParametersAsJSON(_query, cbl.strToUtf8(json)) != 0;
   }
 
-  // ? Query change listener
+  // ++ Query change listener
 
-  ///  Registers a [callback] to be called after one or more documents are changed on disk.
+  /// Registers a [callback] to be called after one or more documents are changed on disk.
   ///
   /// When the first change listener is added, the query will run (in the background) and notify
   /// the listener(s) of the results when ready. After that, it will run in the background after
@@ -129,94 +109,127 @@ class Query {
   ///
   /// Returns a token to be passed to [removeChangeListener] when it's time to remove
   /// the listener.
-  String addChangeListener(Function(List) callback) {
-    // Initialize the native port to receive the asynchronous messages from C
-    _cblListener ??= ReceivePort()..listen(_cblQueryChangelistener);
-    _nativePort ??= _cblListener.sendPort.nativePort;
+  String addChangeListener(Function(ResultSet) callback) =>
+      ChangeListeners.addChangeListener<QueryChange>(
+        addListener: (String token) =>
+            cbl.CBLQuery_AddChangeListener_d(_query, cbl.strToUtf8(token)),
+        onListenerAdded: (Stream<QueryChange> stream, String token) {
+          _liveQueries[token] = _query;
+          _listenerTokens.add(token);
+          return stream
+              .where((data) => data.id == token)
+              .listen((data) => callback(data.results));
+        },
+      );
 
-    final token = Uuid().v1();
-    final cblToken = cbl.CBLQuery_AddChangeListener_d(
-      _q,
-      cbl.strToUtf8(token),
-      _nativePort,
-    );
+  /// Removes a change listener, given the [token] that was returned when it was added.
+  void removeChangeListener(String token) =>
+      ChangeListeners.removeChangeListener(
+        token,
+        onListenerRemoved: (token) {
+          _listenerTokens.remove(token);
+          _liveQueries.remove(token);
+        },
+      );
 
-    if (cblToken == ffi.nullptr) {
-      return null;
-    }
-
-    _liveQueries[token] = _q;
-
-    _listenerTokens.add(token);
-    _cblListenerTokens[token] = cblToken;
-    _queryChangeListeners[token] = _queryChangeStream.stream
-        .where((data) => data.id == token)
-        .listen((data) => callback(data.results));
-
-    return token;
-  }
-
-  /// Removes a listener with the [token] returned by [addChangeListener].
-  void removeChangeListener(String token) async {
-    if (token?.isEmpty ?? true) return;
-    var streamListener = _queryChangeListeners.remove(token);
-
-    await streamListener?.cancel();
-    if (_cblListenerTokens[token] != null &&
-        _cblListenerTokens[token] != ffi.nullptr) {
-      cbl.CBLListener_Remove(_cblListenerTokens[token]);
-      _cblListenerTokens.remove(token);
-      _liveQueries.remove(token);
-      _listenerTokens.remove(token);
-    }
-  }
-
-  /// Internal listener to handle events from C
-  void _cblQueryChangelistener(dynamic queryId) {
+  /// Internal listener to handle change events from C
+  static void _cblQueryChangelistener(dynamic queryId) {
     // Find the query and the listener
+    final liveQuery = _liveQueries[queryId];
+    final listener = ChangeListeners.cblToken(queryId);
 
-    final query = _liveQueries[queryId];
-    final listener = _cblListenerTokens[queryId];
-
-    // This should never happen, but it did once...
-    // assert(query != null && listener != null);
-    if (query == null && listener == null) return;
+    if (liveQuery == null || listener == null) return;
 
     final error = cbl.CBLError.allocate();
-
     final results = cbl.CBLQuery_CopyCurrentResults(
-      query,
+      liveQuery,
       listener,
       error.addressOf,
     );
 
     validateError(error);
 
-    final rows = [];
-    while (cbl.CBLResultSet_Next(results) != 0) {
-      final row = cbl.CBLResultSet_RowDict(results);
-      final json = FLDict.fromPointer(row).json;
-      rows.add(jsonDecode(json));
-    }
-
-    cbl.CBL_Release(results);
-
     //Emit an event on the stream
-    _queryChangeStream.sink.add(QueryChange(queryId, rows));
+    ChangeListeners.stream<QueryChange>()
+        .sink
+        .add(QueryChange(queryId, ResultSet(results)));
   }
 
   /// Disposes the query by freeing up the memory. You can't execute the
-  ///  query once it's disposed.
+  /// query once it's disposed.
   void dispose() {
     _listenerTokens.toList().forEach(removeChangeListener);
-    cbl.CBL_Release(_q);
-    _q = ffi.nullptr;
+    cbl.CBL_Release(_query);
+    _query = ffi.nullptr;
   }
 }
 
+/// A [ResultSet] is an iterator over the results returned by a query. It exposes one
+/// result at a time -- as a collection of values indexed either by position or by name --
+/// and can be stepped from one result to the next.
+
+/// It's important to note that the initial position of the iterator is _before_ the first
+/// result, so [ResultSet.next()] must be called _first_. Example:
+
+/// ```
+/// ResultSet rs = q.execute();
+/// while (rs.next()) {
+///     FLDict rowAsMap = rs.rowDict;
+///     FLArray rowAsList = rs.rowArray;
+///     ...
+/// }
+/// rs.dispose();
+/// ```
+class ResultSet {
+  final ffi.Pointer<cbl.CBLResultSet> _results;
+  bool _hasRow = false;
+  ResultSet(this._results);
+
+  /// Moves the result-set iterator to the next result.
+  /// Returns false if there are no more results.
+  /// This must be called _before_ examining the first result.
+  bool next() =>
+      _hasRow = _results != ffi.nullptr && cbl.CBLResultSet_Next(_results) != 0;
+
+  ///Returns the current result as a dictionary mapping column names to values.
+  ///
+  /// **Note**: The dictionary reference is only valid until the result-set is advanced or disposed.
+  /// If you want to keep it for longer, call `FLDict.retain()`, and `FLDict.dispose()` when done.
+  FLDict get rowDict =>
+      _hasRow ? FLDict.fromPointer(cbl.CBLResultSet_RowDict(_results)) : null;
+
+  /// Returns the current result as an array of column values.
+  ///
+  /// **Note**: The array reference is only valid until the result-set is advanced or disposed.
+  /// If you want to keep it for longer, call `FLArray.retain()`, and `FLArray.dispose()` when done.
+  FLArray get rowArray =>
+      _hasRow ? FLArray.fromPointer(cbl.CBLResultSet_RowArray(_results)) : null;
+
+  /// Returns the results as a List.
+  ///
+  /// The result set is disposed and cannot be used after calling this method.
+  List get allResults {
+    final rows = [];
+    while (next()) {
+      rows.add(jsonDecode(rowDict.json));
+    }
+    dispose();
+    return rows;
+  }
+
+  /// Releases the result set, freeing up memory
+  void dispose() {
+    if (_results != ffi.nullptr) {
+      cbl.CBL_Release(_results);
+      _results == ffi.nullptr;
+    }
+  }
+}
+
+/// Contains the information about the query result changes reported by a query object.
 class QueryChange {
   String id;
-  List results;
+  ResultSet results;
   QueryChange(this.id, this.results);
 }
 

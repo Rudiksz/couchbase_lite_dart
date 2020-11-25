@@ -4,74 +4,32 @@
 
 part of couchbase_lite_dart;
 
-enum ConcurrencyControl { lastWriteWins, failOnConflict }
-
-/// Flags for how to open a database.
-class DatabaseFlags {
-  /// Create the database if it doesn't exist
-  static const create = 1;
-
-  /// Open file read-only
-  static const readOnly = 2;
-
-  /// Disable upgrading an older-version database
-  static const noUpgrade = 4;
-}
-
-class DatabaseConfiguration {
-  /// The parent directory of the database
-  String directory;
-
-  // Options for opening the database
-  int flags;
-
-  cbl.CBLDatabaseConfiguration _cbl_config;
-  cbl.CBLDatabaseConfiguration get ref => _cbl_config;
-  ffi.Pointer<cbl.CBLDatabaseConfiguration> get addressOf =>
-      _cbl_config.addressOf;
-
-  DatabaseConfiguration(this.directory, this.flags) {
-    _cbl_config = pffi.allocate<cbl.CBLDatabaseConfiguration>().ref
-      ..directory = pffi.Utf8.toUtf8(directory ?? '').cast<ffi.Int8>()
-      ..flags = flags
-      ..encryptionKey = cbl.CBLEncryptionKey().addressOf;
-  }
-}
-
-/// A callback that can decide whether a [documentBeingSaved] should be saved in
-/// case of conflict.
-///
-/// It should not take a long time to return.
-///
-/// Return `true` if the document should be saved, `false` to skip it.
-typedef SaveConflictHandler = bool Function(
-    Document documentBeingSaved, Document conflictingDocument);
-
 /// A Database is both a filesystem object and a container for documents.
 class Database {
+  String id;
+
   final String _name;
   String get name => _name;
 
+  /// The C database object
   ffi.Pointer<cbl.CBLDatabase> _db;
   ffi.Pointer<cbl.CBLDatabase> get db => _db;
+
   DatabaseConfiguration _config;
 
   static final Map<String, SaveConflictHandler> _saveConflictHandlers = {};
 
-  final Map<String, ffi.Pointer<cbl.CBLListenerToken>> _docListeners = {};
-  final Map<String, ffi.Pointer<cbl.CBLListenerToken>> _dbListeners = {};
+  /// Database instances that that have change listeners. Used to retrieve the
+  /// correct database object when a database or document change event comes in the stream
+  static final Map<String, Database> _liveDatabases = {};
 
-  final Map<String, StreamSubscription> _docListenerTokens = {};
-  final Map<String, StreamSubscription> _dbListenerTokens = {};
-
-  static final _docStream = StreamController<String>.broadcast();
-  static final _dbStream = StreamController<List<String>>.broadcast();
-
+  // TODO(rudiksz) check if this is thread safe (specially on Android)
+  /// Callback that will be called when a notification is ready in buffered mode.
   void Function() onNotificationsReady;
+
   static final Map<ffi.Pointer<cbl.CBLDatabase>, void Function()>
       _notificationsReadyCallbacks = {};
 
-  // ignore: unused_field
   String _path;
   String get path => _path;
 
@@ -98,8 +56,8 @@ class Database {
   ///
   /// If [directory] is `null`, [name] must be an absolute or relative path to the database.
   static bool exists(String name, {String directory}) {
-    return cbl.CBL_DatabaseExists(pffi.Utf8.toUtf8(name).cast(),
-            pffi.Utf8.toUtf8(directory ?? '').cast()) !=
+    return cbl.CBL_DatabaseExists(
+            cbl.strToUtf8(name), cbl.strToUtf8(directory ?? '')) !=
         0;
   }
 
@@ -111,12 +69,12 @@ class Database {
   static bool Copy(String path, String toName, {String directory}) {
     final error = cbl.CBLError.allocate();
     final config = pffi.allocate<cbl.CBLDatabaseConfiguration>().ref
-      ..directory = pffi.Utf8.toUtf8(directory ?? '').cast<ffi.Int8>()
+      ..directory = cbl.strToUtf8(directory ?? '')
       ..encryptionKey = cbl.CBLEncryptionKey().addressOf;
 
     final result = cbl.CBL_CopyDatabase(
-      pffi.Utf8.toUtf8(path ?? '').cast(),
-      pffi.Utf8.toUtf8(toName).cast(),
+      cbl.strToUtf8(path ?? ''),
+      cbl.strToUtf8(toName),
       config.addressOf,
       error.addressOf,
     );
@@ -147,8 +105,8 @@ class Database {
     final error = cbl.CBLError.allocate();
 
     final result = cbl.CBL_DeleteDatabase(
-      pffi.Utf8.toUtf8(name ?? '').cast(),
-      pffi.Utf8.toUtf8(directory ?? '').cast(),
+      cbl.strToUtf8(name ?? ''),
+      cbl.strToUtf8(directory ?? ''),
       error.addressOf,
     );
 
@@ -170,7 +128,7 @@ class Database {
     final error = cbl.CBLError.allocate();
 
     _db = cbl.CBLDatabase_Open(
-      pffi.Utf8.toUtf8(_name).cast(),
+      cbl.strToUtf8(_name),
       _config.addressOf,
       error.addressOf,
     );
@@ -179,7 +137,7 @@ class Database {
 
     if (isOpen) {
       final res = cbl.CBLDatabase_Path(_db);
-      _path = pffi.Utf8.fromUtf8(res.cast());
+      _path = cbl.utf8ToStr(res);
     }
 
     return isOpen;
@@ -265,11 +223,10 @@ class Database {
   Document getDocument(String id) {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
-    final result =
-        cbl.CBLDatabase_GetDocument(_db, pffi.Utf8.toUtf8(id).cast());
+    final result = cbl.CBLDatabase_GetDocument(_db, cbl.strToUtf8(id));
 
     return result.address != ffi.nullptr.address
-        ? Document._internal(result)
+        ? Document.fromPointer(result, db: this)
         : null;
   }
 
@@ -277,11 +234,10 @@ class Database {
   Document getMutableDocument(String id) {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
-    final result =
-        cbl.CBLDatabase_GetMutableDocument(_db, pffi.Utf8.toUtf8(id).cast());
+    final result = cbl.CBLDatabase_GetMutableDocument(_db, cbl.strToUtf8(id));
 
     return result.address != ffi.nullptr.address
-        ? Document._internal(result)
+        ? Document.fromPointer(result, db: this)
         : null;
   }
 
@@ -301,7 +257,7 @@ class Database {
 
     validateError(error);
     return result.address != ffi.nullptr.address
-        ? Document._internal(result)
+        ? Document.fromPointer(result, db: this)
         : null;
   }
 
@@ -313,6 +269,15 @@ class Database {
   /// to cancel the save. If the handler rejects the save a [CouchbaseLiteException] will be thrown.
   Document saveDocumentResolving(
       Document document, SaveConflictHandler conflictHandler) {
+    if (document._new) {
+      throw CouchbaseLiteException(
+        cbl.CBLErrorDomain.CBLDomain.index,
+        cbl.CBLErrorCode.CBLErrorConflict.index,
+        '''Only documents returned by the methods [getDocument], [getMutableDocument] 
+        or [saveDocument] can be saved with a conflict handler.''',
+      );
+    }
+
     final token = Uuid().v1() + Uuid().v1();
     _saveConflictHandlers[token] = conflictHandler;
 
@@ -331,7 +296,7 @@ class Database {
 
     validateError(error);
     _saveConflictHandlers.remove(token);
-    return result != ffi.nullptr ? Document._internal(result) : null;
+    return result != ffi.nullptr ? Document.fromPointer(result) : null;
   }
 
   /// The actual conflict filter handler. Calls the registered Dart listeners
@@ -344,8 +309,8 @@ class Database {
     final callback = _saveConflictHandlers[cbl.utf8ToStr(saveId.cast())];
 
     final result = callback(
-      Document._internal(documentBeingSaved),
-      Document._internal(conflictingDocument),
+      Document.fromPointer(documentBeingSaved),
+      Document.fromPointer(conflictingDocument),
     );
 
     return result ? 1 : 0;
@@ -362,7 +327,7 @@ class Database {
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_PurgeDocumentByID(
       _db,
-      pffi.Utf8.toUtf8(id).cast(),
+      cbl.strToUtf8(id),
       error.addressOf,
     );
 
@@ -380,7 +345,7 @@ class Database {
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_GetDocumentExpiration(
       _db,
-      pffi.Utf8.toUtf8(id).cast(),
+      cbl.strToUtf8(id),
       error.addressOf,
     );
 
@@ -397,7 +362,7 @@ class Database {
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_SetDocumentExpiration(
       _db,
-      pffi.Utf8.toUtf8(id).cast(),
+      cbl.strToUtf8(id),
       expiration?.millisecondsSinceEpoch ?? 0,
       error.addressOf,
     );
@@ -412,51 +377,37 @@ class Database {
   ///
   /// Returns a token to be passed to [removeChangeListener] when it's time to remove
   /// the listener.
-  String addChangeListener(Function(DatabaseChange) callback) {
-    final token = Uuid().v1();
-    final listener =
-        ffi.Pointer.fromFunction<_dart_DatabaseChangeListener>(_changeListener);
-
-    _dbListeners[token] ??= cbl.CBLDatabase_AddChangeListener(
-      _db,
-      listener,
-      ffi.nullptr,
-    );
-
-    _dbListenerTokens[token] = _dbStream.stream.listen(
-      (d) => callback(DatabaseChange(this, d)),
-    );
-
-    return token;
-  }
+  String addChangeListener(Function(DatabaseChange) callback) =>
+      ChangeListeners.addChangeListener<DatabaseChange>(
+        addListener: (String token) =>
+            cbl.CBLDatabase_AddChangeListener(_db, cbl.strToUtf8(token)),
+        onListenerAdded: (Stream<DatabaseChange> stream, String token) {
+          _liveDatabases[token] = this;
+          return stream
+              .where((data) => data.database == this)
+              .listen((data) => callback(data));
+        },
+      );
 
   /// Removes a previously registered listener using a [token] returned
   /// by [addChangeListener]
-  void removeChangeListener(String token) async {
-    var streamListener = _dbListenerTokens.remove(token);
-
-    await streamListener?.cancel();
-
-    if (_dbListeners[token] != null &&
-        _dbListeners[token].address != ffi.nullptr.address) {
-      cbl.CBLListener_Remove(_dbListeners[token]);
-      _dbListeners.remove(token);
-    }
-  }
+  void removeChangeListener(String token) =>
+      ChangeListeners.removeChangeListener(
+        token,
+        onListenerRemoved: (token) {
+          _liveDatabases.remove(token);
+        },
+      );
 
   /// Internal listener to handle events from C
-  static void _changeListener(
-    ffi.Pointer<ffi.Void> context,
-    ffi.Pointer<cbl.CBLDatabase> db,
-    int count,
-    ffi.Pointer<ffi.Pointer<ffi.Int8>> docIds,
-  ) {
-    final ids = <String>[];
-    for (var i = 0; i < count; i++) {
-      ids.add(pffi.Utf8.fromUtf8(docIds[0].cast()));
-    }
-
-    _dbStream.sink.add(ids);
+  static dynamic _changeListener(dynamic _change) {
+    final change = jsonDecode(_change as String);
+    ChangeListeners.stream<DatabaseChange>().sink.add(
+          DatabaseChange(
+            _liveDatabases[change['databaseId']],
+            (change['docIDs'] as List).cast(),
+          ),
+        );
   }
 
   // -- Document change listener
@@ -467,46 +418,41 @@ class Database {
   /// Returns a token to be passed to [removeDocumentChangeListener] when it's time to remove
   /// the listener.
   String addDocumentChangeListener(
-      String id, Function(DocumentChange) callback) {
-    final token = Uuid().v1();
-    final listener = ffi.Pointer.fromFunction<_dart_DocumentChangeListener>(
-        _documentChangeListener);
-
-    _docListeners[token] ??= cbl.CBLDatabase_AddDocumentChangeListener(
-      _db,
-      pffi.Utf8.toUtf8(id).cast(),
-      listener,
-      ffi.nullptr,
-    );
-
-    _docListenerTokens[token] = _docStream.stream
-        .where((d) => d == id)
-        .listen((d) => callback(DocumentChange(this, d)));
-
-    return token;
-  }
+          String id, Function(DocumentChange) callback) =>
+      ChangeListeners.addChangeListener<DocumentChange>(
+        addListener: (String token) =>
+            cbl.CBLDatabase_AddDocumentChangeListener(
+          _db,
+          cbl.strToUtf8(id),
+          cbl.strToUtf8(token),
+        ),
+        onListenerAdded: (Stream<DocumentChange> stream, String token) {
+          _liveDatabases[token] = this;
+          return stream
+              .where((data) => data.database == this)
+              .listen((data) => callback(data));
+        },
+      );
 
   /// Removes a previously registered listener using a [token] returned
   /// by [addChangeListener]
-  void removeDocumentChangeListener(String token) async {
-    var streamListener = _docListenerTokens.remove(token);
-
-    await streamListener?.cancel();
-
-    if (_docListeners[token] != null &&
-        _docListeners[token].address != ffi.nullptr.address) {
-      cbl.CBLListener_Remove(_docListeners[token]);
-      _docListeners.remove(token);
-    }
-  }
+  void removeDocumentChangeListener(String token) =>
+      ChangeListeners.removeChangeListener(
+        token,
+        onListenerRemoved: (token) {
+          _liveDatabases.remove(token);
+        },
+      );
 
   /// Internal listener to handle events from C
-  static void _documentChangeListener(
-    ffi.Pointer<ffi.Void> context,
-    ffi.Pointer<cbl.CBLDatabase> db,
-    ffi.Pointer<ffi.Int8> s,
-  ) {
-    _docStream.sink.add(pffi.Utf8.fromUtf8(s.cast()));
+  static dynamic _documentChangeListener(dynamic _change) {
+    final change = jsonDecode(_change as String);
+    ChangeListeners.stream<DocumentChange>().sink.add(
+          DocumentChange(
+            _liveDatabases[change['databaseId']],
+            change['docID'] as String,
+          ),
+        );
   }
 
   //? NOTIFICATION SCHEDULING
@@ -612,20 +558,70 @@ class Database {
       FLArray.fromPointer(cbl.CBLDatabase_IndexNames(_db).cast<cbl.FLArray>());
 }
 
+enum ConcurrencyControl { lastWriteWins, failOnConflict }
+
+/// Flags for how to open a database.
+class DatabaseFlags {
+  /// Create the database if it doesn't exist
+  static const create = 1;
+
+  /// Open file read-only
+  static const readOnly = 2;
+
+  /// Disable upgrading an older-version database
+  static const noUpgrade = 4;
+}
+
+class DatabaseConfiguration {
+  /// The parent directory of the database
+  String directory;
+
+  // Options for opening the database
+  int flags;
+
+  cbl.CBLDatabaseConfiguration _cbl_config;
+  cbl.CBLDatabaseConfiguration get ref => _cbl_config;
+  ffi.Pointer<cbl.CBLDatabaseConfiguration> get addressOf =>
+      _cbl_config.addressOf;
+
+  DatabaseConfiguration(this.directory, this.flags) {
+    _cbl_config = pffi.allocate<cbl.CBLDatabaseConfiguration>().ref
+      ..directory = cbl.strToUtf8(directory ?? '')
+      ..flags = flags
+      ..encryptionKey = cbl.CBLEncryptionKey().addressOf;
+  }
+}
+
+class DocumentChange {
+  DocumentChange(this.database, this.documentID);
+
+  /// The database
+  final Database database;
+
+  /// The ID of the document that changed
+  final String documentID;
+}
+
+class DatabaseChange {
+  DatabaseChange(this.database, this.documentIDs);
+
+  /// The database
+  final Database database;
+
+  /// The IDs of the documents that changed.
+  final List<String> documentIDs;
+}
+
+/// A callback that can decide whether a [documentBeingSaved] should be saved in
+/// case of conflict.
+///
+/// It should not take a long time to return.
+///
+/// Return `true` if the document should be saved, `false` to skip it.
+typedef SaveConflictHandler = bool Function(
+    Document documentBeingSaved, Document conflictingDocument);
+
 typedef _dart_NotificationsReadyCallback = ffi.Void Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<cbl.CBLDatabase>,
-);
-
-typedef _dart_DatabaseChangeListener = ffi.Void Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Pointer<cbl.CBLDatabase>,
-  ffi.Uint32,
-  ffi.Pointer<ffi.Pointer<ffi.Int8>>,
-);
-
-typedef _dart_DocumentChangeListener = ffi.Void Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Pointer<cbl.CBLDatabase>,
-  ffi.Pointer<ffi.Int8>,
 );
