@@ -72,11 +72,7 @@ class FLArray extends IterableBase<FLValue> {
   }
 
   @override
-  String toString() {
-    final cstr = cbl.FLValue_ToString(_value.cast<cbl.FLValue>());
-    final result = cbl.utf8ToStr(cstr);
-    return result;
-  }
+  String toString() => json;
 
   @override
   int get length => cbl.FLArray_Count(_value);
