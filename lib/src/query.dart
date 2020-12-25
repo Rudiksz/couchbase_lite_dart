@@ -181,7 +181,7 @@ class Query {
 /// rs.dispose();
 /// ```
 class ResultSet {
-  final ffi.Pointer<cbl.CBLResultSet> _results;
+  ffi.Pointer<cbl.CBLResultSet> _results;
   bool _hasRow = false;
   ResultSet(this._results);
 
@@ -221,7 +221,7 @@ class ResultSet {
   void dispose() {
     if (_results != ffi.nullptr) {
       cbl.CBL_Release(_results);
-      _results == ffi.nullptr;
+      _results = ffi.nullptr;
     }
   }
 }
