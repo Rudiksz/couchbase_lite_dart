@@ -6,7 +6,7 @@ part of couchbase_lite_c_bindings;
 
 // -- Data types
 
-class CBLReplicator extends ffi.Struct {}
+class CBLReplicator extends ffi.Opaque {}
 
 class CBLReplicatedDocument extends ffi.Struct {
   ffi.Pointer<ffi.Int8> docId;
@@ -17,10 +17,10 @@ class CBLReplicatedDocument extends ffi.Struct {
   ffi.Pointer<CBLError> error;
 }
 
-class CBLAuthenticator extends ffi.Struct {}
+class CBLAuthenticator extends ffi.Opaque {}
 
 /// Used for C<->Dart async callbacks
-class Work extends ffi.Struct {}
+class Work extends ffi.Opaque {}
 
 /// Proxy settings for the replicator.
 class CBLProxySettings extends ffi.Struct {

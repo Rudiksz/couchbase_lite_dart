@@ -20,7 +20,7 @@ class Query {
 
   String queryString;
 
-  ffi.Pointer<ffi.Int32> outErrorPos = pffi.allocate<ffi.Int32>();
+  ffi.Pointer<ffi.Int32> outErrorPos = pffi.calloc<ffi.Int32>();
 
   /// Queries that are being listened to. Used to retrieve new results
   /// when a query change event comes in the stream.
@@ -43,9 +43,9 @@ class Query {
     _query = cbl.CBLQuery_New(
       db._db,
       language.index,
-      cbl.strToUtf8(queryString.replaceAll('\n', '')),
+      queryString.replaceAll('\n', '').toNativeUtf8().cast(),
       outErrorPos,
-      error.addressOf,
+      error,
     );
 
     validateError(error);
@@ -62,7 +62,7 @@ class Query {
         'The query was either not compiled yet or was already disposed.');
     // error.reset();
     final error = cbl.CBLError.allocate();
-    final result = cbl.CBLQuery_Execute(_query, error.addressOf);
+    final result = cbl.CBLQuery_Execute(_query, error);
 
     validateError(error, cleanup: () => cbl.CBL_Release(result));
 
@@ -75,7 +75,7 @@ class Query {
   /// The strategy will also show which index(es), if any, are used.
   String explain() {
     final result = cbl.CBLQuery_Explain_c(_query);
-    return pffi.Utf8.fromUtf8(result.cast());
+    return result.cast<pffi.Utf8>().toDartString();
   }
 
   /// Returns the query's current parameter bindings, if any.
@@ -83,7 +83,7 @@ class Query {
     final result = cbl.CBLQuery_ParametersAsJSON(_query);
     if (result == ffi.nullptr) return {};
 
-    return jsonDecode(cbl.utf8ToStr(result));
+    return jsonDecode(result.cast<pffi.Utf8>().toDartString());
   }
 
   /// Assigns values to the query's parameters.
@@ -96,7 +96,7 @@ class Query {
   /// the value of the parameter.
   set parameters(Map parameters) {
     final json = jsonEncode(parameters);
-    cbl.CBLQuery_SetParametersAsJSON(_query, cbl.strToUtf8(json)) != 0;
+    cbl.CBLQuery_SetParametersAsJSON(_query, json.toNativeUtf8().cast()) != 0;
   }
 
   // ++ Query change listener
@@ -111,8 +111,8 @@ class Query {
   /// the listener.
   String addChangeListener(Function(ResultSet) callback) =>
       ChangeListeners.addChangeListener<QueryChange>(
-        addListener: (String token) =>
-            cbl.CBLQuery_AddChangeListener_d(_query, cbl.strToUtf8(token)),
+        addListener: (String token) => cbl.CBLQuery_AddChangeListener_d(
+            _query, token.toNativeUtf8().cast()),
         onListenerAdded: (Stream<QueryChange> stream, String token) {
           _liveQueries[token] = _query;
           _listenerTokens.add(token);
@@ -144,7 +144,7 @@ class Query {
     final results = cbl.CBLQuery_CopyCurrentResults(
       liveQuery,
       listener,
-      error.addressOf,
+      error,
     );
 
     validateError(error);

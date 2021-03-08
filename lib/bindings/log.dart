@@ -21,21 +21,23 @@ class CBLLogFileConfiguration extends ffi.Struct {
   @ffi.Int8()
   int logLevel;
 
-  factory CBLLogFileConfiguration.allocate({
+  static ffi.Pointer<CBLLogFileConfiguration> allocate({
     String directory = '',
     int maxRotateCount = 2,
     int maxSize = 10485760,
     bool usePlainText,
     CBLLogLevel logLevel,
-  }) =>
-      pffi.allocate<CBLLogFileConfiguration>().ref
-        ..directory = strToUtf8(directory)
-        ..maxRotateCount = maxRotateCount
-        ..maxSize = maxSize
-        ..usePlaintext = usePlainText ? 1 : 0
-        ..logLevel = logLevel.index;
+  }) {
+    final p = pffi.calloc<CBLLogFileConfiguration>();
 
-  void free() => addressOf != ffi.nullptr ? pffi.free(addressOf) : null;
+    p.ref
+      ..directory = directory.toNativeUtf8().cast()
+      ..maxRotateCount = maxRotateCount
+      ..maxSize = maxSize
+      ..usePlaintext = usePlainText ? 1 : 0
+      ..logLevel = logLevel.index;
+    return p;
+  }
 }
 
 final CBL_Log = _dylib.lookupFunction<_c_CBLLog, _dart_CBLLog>('CBL_Log');

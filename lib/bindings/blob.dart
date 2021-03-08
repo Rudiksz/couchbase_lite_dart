@@ -6,11 +6,11 @@ part of couchbase_lite_c_bindings;
 
 // -- Data types
 
-class CBLBlob extends ffi.Struct {}
+class CBLBlob extends ffi.Opaque {}
 
-class CBLBlobReadStream extends ffi.Struct {}
+class CBLBlobReadStream extends ffi.Opaque {}
 
-class CBLBlobWriteStream extends ffi.Struct {}
+class CBLBlobWriteStream extends ffi.Opaque {}
 
 // -- Functions
 

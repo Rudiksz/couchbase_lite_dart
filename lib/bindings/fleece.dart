@@ -837,31 +837,31 @@ typedef _dart_FLSlot_SetValue = void Function(
 //   }
 // }
 
-class FLDoc extends ffi.Struct {}
+class FLDoc extends ffi.Opaque {}
 
-class FLValue extends ffi.Struct {}
-
-// ignore: unused_element
-class FLArray extends ffi.Struct {}
-
-class FLDict extends ffi.Struct {}
+class FLValue extends ffi.Opaque {}
 
 // ignore: unused_element
-class FLSlot extends ffi.Struct {}
+class FLArray extends ffi.Opaque {}
+
+class FLDict extends ffi.Opaque {}
 
 // ignore: unused_element
-class FLMutableArray extends ffi.Struct {}
+class FLSlot extends ffi.Opaque {}
 
 // ignore: unused_element
-class FLMutableDict extends ffi.Struct {}
+class FLMutableArray extends ffi.Opaque {}
 
-class FLKeyPath extends ffi.Struct {}
+// ignore: unused_element
+class FLMutableDict extends ffi.Opaque {}
 
-class FLSharedKeys extends ffi.Struct {}
+class FLKeyPath extends ffi.Opaque {}
 
-class FLArrayIterator extends ffi.Struct {}
+class FLSharedKeys extends ffi.Opaque {}
 
-class FLDictIterator extends ffi.Struct {}
+class FLArrayIterator extends ffi.Opaque {}
+
+class FLDictIterator extends ffi.Opaque {}
 
 class FLString extends ffi.Struct {
   ffi.Pointer<ffi.Uint8> buf;
@@ -870,8 +870,8 @@ class FLString extends ffi.Struct {
   int size;
 
   factory FLString.allocate(String string) {
-    return pffi.allocate<FLString>().ref
-      ..buf = pffi.Utf8.toUtf8(string).cast<ffi.Uint8>()
+    return pffi.calloc<FLString>().ref
+      ..buf = string.toNativeUtf8().cast()
       ..size = string.length;
   }
 }

@@ -52,15 +52,17 @@ class Blob {
   Blob.createWithData(String contentType, Uint8List data) {
     final error = cbl.CBLError.allocate();
 
-    var buf = pffi.allocate<ffi.Uint8>(count: data.length);
+    //  final error = pffi.calloc<cbl.CBLError>();
+
+    var buf = pffi.calloc<ffi.Uint8>(data.length);
     var list = buf.asTypedList(data.length);
     list.setAll(0, data);
 
     pointer = cbl.CBLBlob_CreateWithData_c(
-      cbl.strToUtf8(contentType),
+      contentType.toNativeUtf8().cast(),
       buf,
       list.length,
-      error.addressOf,
+      error,
     );
 
     validateError(error);
@@ -76,7 +78,7 @@ class Blob {
     final error = cbl.CBLError.allocate();
     ffi.Pointer<cbl.CBLBlobWriteStream> _blobStream;
     try {
-      _blobStream = cbl.CBLBlobWriter_New(db._db, error.addressOf);
+      _blobStream = cbl.CBLBlobWriter_New(db._db, error);
       validateError(error);
     } on CouchbaseLiteException catch (e) {
       result.completeError(e);
@@ -85,20 +87,20 @@ class Blob {
 
     stream.listen(
       (data) {
-        error.reset();
+        error.ref.reset();
 
-        var buf = pffi.allocate<ffi.Uint8>(count: data.length);
+        var buf = pffi.calloc<ffi.Uint8>(data.length);
         var list = buf.asTypedList(data.length);
         list.setAll(0, data);
 
-        cbl.CBLBlobWriter_Write(_blobStream, buf, list.length, error.addressOf);
-        pffi.free(buf);
+        cbl.CBLBlobWriter_Write(_blobStream, buf, list.length, error);
+        pffi.calloc.free(buf);
       },
       onDone: () {
         return result.complete(
           Blob._internal(
             cbl.CBLBlob_CreateWithStream(
-                cbl.strToUtf8(contentType), _blobStream),
+                contentType.toNativeUtf8().cast(), _blobStream),
             _blobStream,
           ),
         );
@@ -130,10 +132,12 @@ class Blob {
   Uint8List _content;
 
   /// A blob's MIME type, if its metadata has a `content_type` property.
-  String get contentType => cbl.utf8ToStr(cbl.CBLBlob_ContentType(pointer));
+  String get contentType =>
+      cbl.CBLBlob_ContentType(pointer).cast<pffi.Utf8>().toDartString();
 
   /// Returns the cryptographic digest of a blob's content (from its `digest` property).
-  String get digest => cbl.utf8ToStr(cbl.CBLBlob_Digest(pointer));
+  String get digest =>
+      cbl.CBLBlob_Digest(pointer).cast<pffi.Utf8>().toDartString();
 
   /// Returns the length in bytes of a blob's content (from its `length` property).
   int get length => cbl.CBLBlob_Length(pointer);
@@ -150,10 +154,10 @@ class Blob {
   /// Read a blob's content as a stream.
   Stream<Uint8List> getContentStream({int chunk = 10240}) async* {
     final error = cbl.CBLError.allocate();
-    final blobStream = cbl.CBLBlob_OpenContentStream(pointer, error.addressOf);
+    final blobStream = cbl.CBLBlob_OpenContentStream(pointer, error);
 
-    if (error.domain != 0) {
-      pffi.free(error.addressOf);
+    if (error.ref.domain != 0) {
+      pffi.calloc.free(error);
       return;
     }
 
@@ -162,19 +166,19 @@ class Blob {
 
     var count = 0;
     do {
-      error.reset();
-      final data = pffi.allocate<ffi.Uint8>(count: chunk);
-      count = cbl.CBLBlobReader_Read(blobStream, data, chunk, error.addressOf);
+      error.ref.reset();
+      final data = pffi.calloc<ffi.Uint8>(chunk);
+      count = cbl.CBLBlobReader_Read(blobStream, data, chunk, error);
 
       if (count > 0) {
         yield data.asTypedList(count);
       }
-      pffi.free(data);
+      pffi.calloc.free(data);
     } while (count > 0);
 
     cbl.CBLBlobReader_Close(blobStream);
     // pffi.free(data);
-    pffi.free(error.addressOf);
+    pffi.calloc.free(error);
   }
 
   void closeStream() => cbl.CBLBlobWriter_Close(_blobStream);

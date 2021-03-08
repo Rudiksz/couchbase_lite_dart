@@ -69,7 +69,7 @@ class FLDict extends IterableBase<FLValue> {
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
     final cstr = cbl.FLDump(_value.cast<cbl.FLValue>());
-    final str = cbl.utf8ToStr(cstr);
+    final str = cstr.cast<pffi.Utf8>().toDartString();
     return str;
   }
 
@@ -88,23 +88,23 @@ class FLDict extends IterableBase<FLValue> {
   FLValue call(String keyPath) {
     // Some values are not supported
     if (keyPath.isEmpty || keyPath.contains('[]')) return null;
-    final outError = pffi.allocate<ffi.Uint8>();
+    final outError = pffi.calloc<ffi.Uint8>();
     outError.value = 0;
     final val = cbl.FLKeyPath_EvalOnce(
-      cbl.strToUtf8(keyPath),
+      keyPath.toNativeUtf8().cast(),
       _value.cast(),
       outError,
     );
     error = outError.value < FLError.values.length
         ? FLError.values[outError.value]
         : FLError.unsupported;
-    pffi.free(outError);
+    pffi.calloc.free(outError);
 
     return error == FLError.noError ? FLValue.fromPointer(val) : null;
   }
 
-  FLValue operator [](String key) =>
-      FLValue.fromPointer(cbl.FLDict_Get(_value.cast(), cbl.strToUtf8(key)));
+  FLValue operator [](String key) => FLValue.fromPointer(
+      cbl.FLDict_Get(_value.cast(), key.toNativeUtf8().cast()));
 
   /// Set the value of a key
   ///
@@ -120,10 +120,10 @@ class FLDict extends IterableBase<FLValue> {
     }
 
     // !fix for: https://forums.couchbase.com/t/27825
-    cbl.FLDict_Get(_value, cbl.strToUtf8(index));
+    cbl.FLDict_Get(_value, (index as String).toNativeUtf8().cast());
 
-    final slot = cbl.FLMutableDict_Set(
-        _value.cast<cbl.FLMutableDict>(), cbl.strToUtf8(index));
+    final slot = cbl.FLMutableDict_Set(_value.cast<cbl.FLMutableDict>(),
+        (index as String).toNativeUtf8().cast());
 
     if (value == null) return cbl.FLSlot_SetNull(slot);
 
@@ -143,7 +143,7 @@ class FLDict extends IterableBase<FLValue> {
         cbl.FLSlot_SetDouble(slot, value as double);
         break;
       case String:
-        cbl.FLSlot_SetString(slot, cbl.strToUtf8(value));
+        cbl.FLSlot_SetString(slot, (value as String).toNativeUtf8().cast());
         break;
       default:
         // Create a value from the input
@@ -306,7 +306,7 @@ class FLDictEntryIterator implements Iterator<MapEntry<String, FLValue>> {
   @override
   MapEntry<String, FLValue> get current {
     final keyPointer = cbl.FLDictIterator_GetKeyString(_dict._c_iter);
-    final key = cbl.utf8ToStr(keyPointer);
+    final key = keyPointer.cast<pffi.Utf8>().toDartString();
     cbl.Dart_Free(keyPointer);
 
     return MapEntry<String, FLValue>(

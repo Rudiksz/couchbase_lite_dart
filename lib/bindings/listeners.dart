@@ -6,7 +6,7 @@ part of couchbase_lite_c_bindings;
 
 // -- Data types
 
-class CBLListenerToken extends ffi.Struct {}
+class CBLListenerToken extends ffi.Opaque {}
 
 // -- Functions
 

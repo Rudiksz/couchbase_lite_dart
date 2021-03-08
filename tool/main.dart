@@ -315,7 +315,7 @@ testBlob() async {
   try {
     // // Reading a blob
     var doc = db.getDocument('testdoc2');
-    print(doc.jsonProperties);
+    print(doc.json);
 
     print(doc.properties['logo'].json);
     var bl1 = Blob.fromValue(doc.properties['logo'].asMap);
@@ -384,19 +384,49 @@ void testQuery() {
   print('Document count >' + db.count.toString());
 
   // await pause(1);
-  // db.saveDocument(Document('test1', data: {'dt': 'P', 'name': 'Rudolf1'}));
-  // db.saveDocument(Document('test2', data: {'dt': 'P', 'name': 'Rudolf2'}));
+  db.saveDocument(Document('12',
+      data: {'id': '12', 'name': 'richizo', 'docId': '13', 'table': 'a'}));
+  db.saveDocument(Document('13',
+      data: {'id': '13', 'name': 'richie', 'docId': '13', 'table': 'b'}));
 
-  final q = Query(db, 'SELECT * WHERE name LIKE \$NAME');
+  final q = Query(db, 'SELECT * WHERE docId = "13"');
 
-  q.parameters = {'NAME': 'Rudolf'};
+  final results = q.execute();
 
-  var result = q.execute();
-
-  print(result);
-  print('here');
-
+  while (results.next()) {
+    // final rowAsArray = results.rowArray;
+    final rowAsDict = results.rowDict['*'].asMap;
+    // log.d(rowAsArray);
+    print(results.rowDict.json);
+    // print(rowAsArray[0]);
+  }
+  results.dispose();
+  print('----');
   return;
+
+  // final q = Query(db, 'SELECT * WHERE table=\$VALUE AND id=\$ID');
+
+  // q.parameters = {'VALUE': 'users', 'ID': 'rudolf'};
+
+  // final results = q.execute(); //or a listner Query
+
+  // //print(results.allResults);
+  // while (results.next()) {
+  //   final row = results.rowArray;
+  //   final map = results.rowDict;
+
+  //   // Do whatever you need with the results: usually parse them into a Dart object
+  //   print(row);
+  //   print(map['*'].asMap);
+
+  //   print(map['*'].asMap['id'].asString);
+  //   print(map('*.id')?.asString);
+  // }
+  // results.dispose();
+
+  // print('here');
+
+  // return;
 
   // try {
   //   final q = Query(db, 'SELECT * WHERE name = \$NAME');
@@ -477,6 +507,20 @@ testReplicator() async {
       return true;
     },
   );
+
+  replicator.addChangeListener((status) => print(status));
+
+  replicator.start();
+  // var status = replicator.status;
+  // while (status.activityLevel != ActivityLevel.idle) {
+  //   status = replicator.status;
+
+  //   await Future.delayed(Duration(milliseconds: 500));
+  //   print('replicator still busy');
+  // }
+
+  print('Replicator now idle');
+  return;
 
   final replicator1 = Replicator(
     db,
@@ -788,7 +832,7 @@ testDocumentExpiration() async {
   print('Document revisionID > ' + doc1.revisionID.toString());
   print('Document sequence > ' + doc1.sequence.toString());
   print(doc1?.properties);
-  print(doc1?.jsonProperties);
+  print(doc1?.json);
 
   var ex = db.documentExpiration('testdoc');
   print('Document expiration time > ' + (ex?.toIso8601String() ?? 'never'));
@@ -815,7 +859,7 @@ testDocumentExpiration() async {
     print('Document revisionID > ' + doc2.revisionID.toString());
     print('Document sequence > ' + doc2.sequence.toString());
     print(doc2?.properties);
-    print(doc2?.jsonProperties);
+    print(doc2?.json);
   }
 }
 
@@ -904,7 +948,7 @@ testDocument() {
   print('Document revisionID > ' + doc1.revisionID.toString());
   print('Document sequence > ' + doc1.sequence.toString());
   print(doc1?.properties);
-  print(doc1?.jsonProperties);
+  print(doc1?.json);
 
   print('reading missing document');
   var doc2 = db.getDocument('missingdoc');

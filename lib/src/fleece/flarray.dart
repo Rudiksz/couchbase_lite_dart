@@ -67,7 +67,7 @@ class FLArray extends IterableBase<FLValue> {
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
     final cstr = cbl.FLDump(_value.cast());
-    final str = cbl.utf8ToStr(cstr);
+    final str = cstr.cast<pffi.Utf8>().toDartString();
     return str;
   }
 
@@ -86,17 +86,17 @@ class FLArray extends IterableBase<FLValue> {
   FLValue call(String keyPath) {
     // Some values are not supported
     if (keyPath.isEmpty || keyPath.contains('[]')) return null;
-    final outError = pffi.allocate<ffi.Uint8>();
+    final outError = pffi.calloc<ffi.Uint8>();
     outError.value = 0;
     final val = cbl.FLKeyPath_EvalOnce(
-      cbl.strToUtf8(keyPath),
+      keyPath.toNativeUtf8().cast(),
       _value.cast(),
       outError,
     );
     error = outError.value < FLError.values.length
         ? FLError.values[outError.value]
         : FLError.unsupported;
-    pffi.free(outError);
+    pffi.calloc.free(outError);
 
     return error == FLError.noError ? FLValue.fromPointer(val) : null;
   }
@@ -141,7 +141,7 @@ class FLArray extends IterableBase<FLValue> {
         cbl.FLSlot_SetDouble(slot, value as double);
         break;
       case String:
-        cbl.FLSlot_SetString(slot, cbl.strToUtf8(value));
+        cbl.FLSlot_SetString(slot, (value as String).toNativeUtf8().cast());
         break;
       default:
         // Create a value from the input

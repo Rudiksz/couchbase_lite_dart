@@ -55,10 +55,10 @@ class CblC {
   int instanceCount() => CBL_InstanceCount();
 }
 
-ffi.Pointer<ffi.Int8> strToUtf8(String str) =>
-    pffi.Utf8.toUtf8(str).cast<ffi.Int8>();
+//ffi.Pointer<ffi.Int8> strToUtf8(String str) =>
+//    pffi.Utf8.toUtf8(str).cast<ffi.Int8>();
 
-String utf8ToStr(ffi.Pointer<ffi.Int8> p) => pffi.Utf8.fromUtf8(p.cast());
+//String utf8ToStr(ffi.Pointer<ffi.Int8> p) => pffi.Utf8.fromUtf8(p.cast());
 
 final registerSendPort = _dylib?.lookupFunction<
     ffi.Void Function(ffi.Int64 sendPort),
@@ -107,7 +107,7 @@ final registerDart_CloseNativePort = _dylib?.lookupFunction<
             functionPointer)>('RegisterDart_CloseNativePort');
 
 void wrappedPrint(ffi.Pointer<pffi.Utf8> arg) {
-  print(pffi.Utf8.fromUtf8(arg));
+  print(arg.toDartString());
 }
 
 typedef _dart_Print = ffi.Void Function(ffi.Pointer<pffi.Utf8> a);
@@ -200,19 +200,24 @@ class CBLError extends ffi.Struct {
   @ffi.Int32()
   int internal_info;
 
-  factory CBLError.allocate([
+  static ffi.Pointer<CBLError> allocate([
     int domain = 0,
     int code = 0,
     int internal_info = 0,
-  ]) =>
-      pffi.allocate<CBLError>().ref
-        ..domain = domain
-        ..code = code
-        ..internal_info = internal_info;
+  ]) {
+    final err = pffi.calloc<CBLError>();
+
+    err.ref
+      ..domain = domain
+      ..code = code
+      ..internal_info = internal_info;
+
+    return err;
+  }
 
   void reset() => domain = code = internal_info = 0;
 
-  void free() => pffi.free(addressOf);
+  //void free() => pffi.free();
 }
 
 // --- Function types

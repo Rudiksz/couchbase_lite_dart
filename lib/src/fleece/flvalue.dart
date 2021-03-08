@@ -18,12 +18,8 @@ part of couchbase_lite_dart;
 /// or NULL, unless otherwise specified.
 class FLValue {
   /// The C pointer to the FLValue
-  ffi.Pointer<cbl.FLValue> _value;
+  final ffi.Pointer<cbl.FLValue> _value;
   ffi.Pointer<cbl.FLValue> get ref => _value;
-
-  FLValue() {
-    _value = pffi.allocate<cbl.FLValue>();
-  }
 
   int error;
 
@@ -33,7 +29,7 @@ class FLValue {
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
     final cstr = cbl.FLDump(_value.cast());
-    final str = cbl.utf8ToStr(cstr);
+    final str = cstr.cast<pffi.Utf8>().toDartString();
     return str;
   }
 
@@ -54,14 +50,14 @@ class FLValue {
     // Some values are not supported
     if (keyPath.isEmpty || keyPath.contains('[]')) return null;
 
-    final outError = pffi.allocate<ffi.Uint8>()..value = 0;
+    final outError = pffi.calloc<ffi.Uint8>()..value = 0;
     final val = cbl.FLKeyPath_EvalOnce(
-      cbl.strToUtf8(keyPath),
+      keyPath.toNativeUtf8().cast(),
       _value,
       outError,
     );
     error = outError.value;
-    pffi.free(outError);
+    pffi.calloc.free(outError);
 
     return error == FLError.noError.index ? FLValue.fromPointer(val) : null;
   }
@@ -115,7 +111,7 @@ class FLValue {
   /// Returns the exact contents of a string value, or null for all other types.
   String get asString {
     final cstr = cbl.FLValue_AsString(_value);
-    final result = cbl.utf8ToStr(cstr);
+    final result = cstr.cast<pffi.Utf8>().toDartString();
     return result;
   }
 
@@ -134,7 +130,7 @@ class FLValue {
   @override
   String toString() {
     final cstr = cbl.FLValue_ToString(_value);
-    final result = cbl.utf8ToStr(cstr);
+    final result = cstr.cast<pffi.Utf8>().toDartString();
     return result;
   }
 

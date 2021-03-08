@@ -351,7 +351,7 @@ void main() {
     await asyncSleep(5000);
 
     expect(replicator.pendingDocumentIds.length, 0);
-    expect(replicator.pendingDocumentIds.json, '');
+    expect(replicator.pendingDocumentIds.json, '{}');
 
     addTearDown(() {
       replicator.stop();

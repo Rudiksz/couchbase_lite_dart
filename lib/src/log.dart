@@ -9,7 +9,7 @@ class CBLLog {
   CBLLogDomain domain;
   CBLLogLevel level;
 
-  static cbl.CBLLogFileConfiguration _cblFileConfig;
+  static ffi.Pointer<cbl.CBLLogFileConfiguration> _cblFileConfig;
   static CBLLogFileConfiguration _fileConfig;
   static ReceivePort _cblLogPort;
   static CBLLogCallback _callback;
@@ -26,7 +26,7 @@ class CBLLog {
   /// If the [level] is lower than the current minimum level for the domain as
   /// set by [consoleLevel], nothing is logged.
   static void log(CBLLogDomain domain, CBLLogLevel level, String message) =>
-      cbl.CBL_Log(domain.index, level.index, cbl.strToUtf8(message));
+      cbl.CBL_Log(domain.index, level.index, message.toNativeUtf8().cast());
 
   /// Returns true if a message with the given domain and level would be logged to the console.
   bool get isLoggedToConsole =>
@@ -52,7 +52,7 @@ class CBLLog {
   /// Sets the file logging configuration.
   static set fileConfig(CBLLogFileConfiguration config) {
     // Free the previous value
-    _cblFileConfig?.free();
+    pffi.calloc.free(_cblFileConfig);
 
     _fileConfig = config;
     _cblFileConfig = cbl.CBLLogFileConfiguration.allocate(
@@ -63,7 +63,7 @@ class CBLLog {
       logLevel: config.logLevel,
     );
     final error = cbl.CBLError.allocate();
-    cbl.CBLLog_SetFileConfig(_cblFileConfig.addressOf, error.addressOf);
+    cbl.CBLLog_SetFileConfig(_cblFileConfig, error);
 
     validateError(error);
   }

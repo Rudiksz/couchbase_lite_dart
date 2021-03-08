@@ -6,9 +6,9 @@ part of couchbase_lite_c_bindings;
 
 // -- Data types
 
-class CBLQuery extends ffi.Struct {}
+class CBLQuery extends ffi.Opaque {}
 
-class CBLResultSet extends ffi.Struct {}
+class CBLResultSet extends ffi.Opaque {}
 
 // -- Functions
 

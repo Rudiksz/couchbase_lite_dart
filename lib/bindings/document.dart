@@ -6,7 +6,7 @@ part of couchbase_lite_c_bindings;
 
 // -- Data types
 
-class CBLDocument extends ffi.Struct {}
+class CBLDocument extends ffi.Opaque {}
 
 /// Returns a document's ID.
 final CBLDocument_ID = _dylib

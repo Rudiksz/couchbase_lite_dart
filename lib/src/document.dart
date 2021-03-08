@@ -36,10 +36,10 @@ class Document {
   Document.fromPointer(this._doc, {this.isMutable = false, this.db}) {
     if (_doc != ffi.nullptr) {
       final id = cbl.CBLDocument_ID(_doc);
-      ID = cbl.utf8ToStr(id);
+      ID = id.cast<pffi.Utf8>().toDartString();
 
       final rev = cbl.CBLDocument_RevisionID(_doc);
-      revisionID = cbl.utf8ToStr(rev);
+      revisionID = rev.cast<pffi.Utf8>().toDartString();
 
       sequence = cbl.CBLDocument_Sequence(_doc);
 
@@ -63,7 +63,7 @@ class Document {
     this.isMutable = true,
   }) {
     assert(ID?.isNotEmpty ?? true, 'Document ID cannot be empty.');
-    _doc = cbl.CBLDocument_New(cbl.strToUtf8(ID));
+    _doc = cbl.CBLDocument_New(ID.toNativeUtf8().cast());
     _new = true;
     if (data is FLDict) {
       properties = data;
@@ -96,8 +96,8 @@ class Document {
 
     cbl.CBLDocument_SetPropertiesAsJSON(
       _doc,
-      cbl.strToUtf8(json),
-      error.addressOf,
+      json.toNativeUtf8().cast(),
+      error,
     );
 
     validateError(error);
@@ -116,8 +116,8 @@ class Document {
 
     cbl.CBLDocument_SetPropertiesAsJSON(
       _doc,
-      cbl.strToUtf8(jsonEncode(data)),
-      error.addressOf,
+      jsonEncode(data).toNativeUtf8().cast(),
+      error,
     );
 
     validateError(error);
@@ -188,7 +188,7 @@ class Document {
     final result = cbl.CBLDocument_Delete(
       _doc,
       concurrency.index,
-      error.addressOf,
+      error,
     );
 
     validateError(error);
@@ -205,7 +205,7 @@ class Document {
   bool purge() {
     if (_doc == ffi.nullptr) return false;
     final error = cbl.CBLError.allocate();
-    final result = cbl.CBLDocument_Purge(_doc, error.addressOf);
+    final result = cbl.CBLDocument_Purge(_doc, error);
 
     validateError(error);
     return result != 0;

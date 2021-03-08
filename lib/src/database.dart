@@ -56,8 +56,8 @@ class Database {
   ///
   /// If [directory] is `null`, [name] must be an absolute or relative path to the database.
   static bool exists(String name, {String directory}) {
-    return cbl.CBL_DatabaseExists(
-            cbl.strToUtf8(name), cbl.strToUtf8(directory ?? '')) !=
+    return cbl.CBL_DatabaseExists(name.toNativeUtf8().cast(),
+            (directory ?? '').toNativeUtf8().cast()) !=
         0;
   }
 
@@ -68,15 +68,17 @@ class Database {
   /// * [directory]  The destination directory
   static bool Copy(String path, String toName, {String directory}) {
     final error = cbl.CBLError.allocate();
-    final config = pffi.allocate<cbl.CBLDatabaseConfiguration>().ref
-      ..directory = cbl.strToUtf8(directory ?? '')
-      ..encryptionKey = cbl.CBLEncryptionKey().addressOf;
+    final config = pffi.calloc<cbl.CBLDatabaseConfiguration>();
+
+    config.ref
+      ..directory = (directory ?? '').toNativeUtf8().cast()
+      ..encryptionKey = ffi.nullptr;
 
     final result = cbl.CBL_CopyDatabase(
-      cbl.strToUtf8(path ?? ''),
-      cbl.strToUtf8(toName),
-      config.addressOf,
-      error.addressOf,
+      (path ?? '').toNativeUtf8().cast(),
+      (toName).toNativeUtf8().cast(),
+      config,
+      error,
     );
 
     validateError(error);
@@ -105,9 +107,9 @@ class Database {
     final error = cbl.CBLError.allocate();
 
     final result = cbl.CBL_DeleteDatabase(
-      cbl.strToUtf8(name ?? ''),
-      cbl.strToUtf8(directory ?? ''),
-      error.addressOf,
+      (name ?? '').toNativeUtf8().cast(),
+      (directory ?? '').toNativeUtf8().cast(),
+      error,
     );
 
     validateError(error);
@@ -128,16 +130,16 @@ class Database {
     final error = cbl.CBLError.allocate();
 
     _db = cbl.CBLDatabase_Open(
-      cbl.strToUtf8(_name),
+      (_name).toNativeUtf8().cast(),
       _config.addressOf,
-      error.addressOf,
+      error,
     );
 
     validateError(error);
 
     if (isOpen) {
       final res = cbl.CBLDatabase_Path(_db);
-      _path = cbl.utf8ToStr(res);
+      _path = res.cast<pffi.Utf8>().toDartString();
     }
 
     return isOpen;
@@ -148,7 +150,7 @@ class Database {
     if (!isOpen) return true;
 
     final error = cbl.CBLError.allocate();
-    final result = cbl.CBLDatabase_Close(_db, error.addressOf);
+    final result = cbl.CBLDatabase_Close(_db, error);
 
     validateError(error);
 
@@ -162,7 +164,7 @@ class Database {
     if (_db == null) return true;
 
     final error = cbl.CBLError.allocate();
-    final result = cbl.CBLDatabase_Compact(_db, error.addressOf);
+    final result = cbl.CBLDatabase_Compact(_db, error);
 
     validateError(error);
 
@@ -176,7 +178,7 @@ class Database {
     if (_db == null) return true;
 
     final error = cbl.CBLError.allocate();
-    final result = cbl.CBLDatabase_Delete(_db, error.addressOf);
+    final result = cbl.CBLDatabase_Delete(_db, error);
 
     validateError(error);
     _db = null;
@@ -193,7 +195,7 @@ class Database {
     if (_db == null) return true;
 
     final error = cbl.CBLError.allocate();
-    final result = cbl.CBLDatabase_BeginBatch(_db, error.addressOf);
+    final result = cbl.CBLDatabase_BeginBatch(_db, error);
 
     validateError(error);
 
@@ -205,7 +207,7 @@ class Database {
     if (_db == null) return true;
 
     final error = cbl.CBLError.allocate();
-    final result = cbl.CBLDatabase_EndBatch(_db, error.addressOf);
+    final result = cbl.CBLDatabase_EndBatch(_db, error);
 
     validateError(error);
 
@@ -223,7 +225,7 @@ class Database {
   Document getDocument(String id) {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
-    final result = cbl.CBLDatabase_GetDocument(_db, cbl.strToUtf8(id));
+    final result = cbl.CBLDatabase_GetDocument(_db, id.toNativeUtf8().cast());
 
     return result.address != ffi.nullptr.address
         ? Document.fromPointer(result, db: this)
@@ -234,7 +236,8 @@ class Database {
   Document getMutableDocument(String id) {
     assert(id?.isNotEmpty ?? true, 'ID cannot be empty');
 
-    final result = cbl.CBLDatabase_GetMutableDocument(_db, cbl.strToUtf8(id));
+    final result =
+        cbl.CBLDatabase_GetMutableDocument(_db, id.toNativeUtf8().cast());
 
     return result.address != ffi.nullptr.address
         ? Document.fromPointer(result, db: this)
@@ -253,7 +256,7 @@ class Database {
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_SaveDocument(
-        _db, document.doc, concurrency.index, error.addressOf);
+        _db, document.doc, concurrency.index, error);
 
     validateError(error);
     return result.address != ffi.nullptr.address
@@ -290,8 +293,8 @@ class Database {
       _db,
       document.doc,
       conflictHandler_,
-      cbl.strToUtf8(token).cast(),
-      error.addressOf,
+      token.toNativeUtf8().cast(),
+      error,
     );
 
     validateError(error);
@@ -306,7 +309,8 @@ class Database {
     ffi.Pointer<cbl.CBLDocument> documentBeingSaved,
     ffi.Pointer<cbl.CBLDocument> conflictingDocument,
   ) {
-    final callback = _saveConflictHandlers[cbl.utf8ToStr(saveId.cast())];
+    final callback =
+        _saveConflictHandlers[saveId.cast<pffi.Utf8>().toDartString()];
 
     final result = callback(
       Document.fromPointer(documentBeingSaved),
@@ -327,8 +331,8 @@ class Database {
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_PurgeDocumentByID(
       _db,
-      cbl.strToUtf8(id),
-      error.addressOf,
+      id.toNativeUtf8().cast(),
+      error,
     );
 
     validateError(error);
@@ -345,8 +349,8 @@ class Database {
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_GetDocumentExpiration(
       _db,
-      cbl.strToUtf8(id),
-      error.addressOf,
+      id.toNativeUtf8().cast(),
+      error,
     );
 
     validateError(error);
@@ -362,9 +366,9 @@ class Database {
     final error = cbl.CBLError.allocate();
     final result = cbl.CBLDatabase_SetDocumentExpiration(
       _db,
-      cbl.strToUtf8(id),
+      id.toNativeUtf8().cast(),
       expiration?.millisecondsSinceEpoch ?? 0,
-      error.addressOf,
+      error,
     );
 
     validateError(error);
@@ -380,7 +384,7 @@ class Database {
   String addChangeListener(Function(DatabaseChange) callback) =>
       ChangeListeners.addChangeListener<DatabaseChange>(
         addListener: (String token) =>
-            cbl.CBLDatabase_AddChangeListener(_db, cbl.strToUtf8(token)),
+            cbl.CBLDatabase_AddChangeListener(_db, token.toNativeUtf8().cast()),
         onListenerAdded: (Stream<DatabaseChange> stream, String token) {
           _liveDatabases[token] = this;
           return stream
@@ -423,8 +427,8 @@ class Database {
         addListener: (String token) =>
             cbl.CBLDatabase_AddDocumentChangeListener(
           _db,
-          cbl.strToUtf8(id),
-          cbl.strToUtf8(token),
+          id.toNativeUtf8().cast(),
+          token.toNativeUtf8().cast(),
         ),
         onListenerAdded: (Stream<DocumentChange> stream, String token) {
           _liveDatabases[token] = this;
@@ -516,19 +520,22 @@ class Database {
     assert(keyExpressions.isNotEmpty,
         'You must specify at least one key to index by');
 
-    final indexSpec = pffi.allocate<cbl.CBLIndexSpec>().ref
+    final indexSpec = pffi.calloc<cbl.CBLIndexSpec>();
+
+    indexSpec.ref
       ..type = type.index
       ..ignoreAccents = ignoreAccents ? 1 : 0
-      ..language = language.isNotEmpty ? cbl.strToUtf8(language) : ffi.nullptr
-      ..keyExpressionsJSON = cbl.strToUtf8(jsonEncode(keyExpressions));
+      ..language =
+          language.isNotEmpty ? language.toNativeUtf8().cast() : ffi.nullptr
+      ..keyExpressionsJSON = jsonEncode(keyExpressions).toNativeUtf8().cast();
 
     final error = cbl.CBLError.allocate();
 
     final result = cbl.CBLDatabase_CreateIndex(
       _db,
-      cbl.strToUtf8(name),
-      indexSpec.addressOf,
-      error.addressOf,
+      name.toNativeUtf8().cast(),
+      indexSpec,
+      error,
     );
 
     validateError(error);
@@ -544,8 +551,8 @@ class Database {
 
     final result = cbl.CBLDatabase_DeleteIndex(
       _db,
-      cbl.strToUtf8(name),
-      error.addressOf,
+      name.toNativeUtf8().cast(),
+      error,
     );
 
     validateError(error);
@@ -579,16 +586,16 @@ class DatabaseConfiguration {
   // Options for opening the database
   int flags;
 
-  cbl.CBLDatabaseConfiguration _cbl_config;
-  cbl.CBLDatabaseConfiguration get ref => _cbl_config;
-  ffi.Pointer<cbl.CBLDatabaseConfiguration> get addressOf =>
-      _cbl_config.addressOf;
+  ffi.Pointer<cbl.CBLDatabaseConfiguration> _cbl_config;
+  ffi.Pointer<cbl.CBLDatabaseConfiguration> get addressOf => _cbl_config;
 
   DatabaseConfiguration(this.directory, this.flags) {
-    _cbl_config = pffi.allocate<cbl.CBLDatabaseConfiguration>().ref
-      ..directory = cbl.strToUtf8(directory ?? '')
+    _cbl_config = pffi.calloc<cbl.CBLDatabaseConfiguration>();
+
+    _cbl_config.ref
+      ..directory = (directory ?? '').toNativeUtf8().cast()
       ..flags = flags
-      ..encryptionKey = cbl.CBLEncryptionKey().addressOf;
+      ..encryptionKey = ffi.nullptr;
   }
 }
 

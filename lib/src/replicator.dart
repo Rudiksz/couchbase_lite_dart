@@ -114,31 +114,35 @@ class Replicator {
 
     final error = cbl.CBLError.allocate();
     repl = cbl.CBLReplicator_New_d(
-      cbl.strToUtf8(_id),
+      _id.toNativeUtf8().cast(),
       db._db,
-      cbl.strToUtf8(endpointUrl),
-      username.isNotEmpty ? cbl.strToUtf8(username) : ffi.nullptr,
-      password.isNotEmpty ? cbl.strToUtf8(password) : ffi.nullptr,
-      sessionId.isNotEmpty ? cbl.strToUtf8(sessionId) : ffi.nullptr,
-      cookieName.isNotEmpty ? cbl.strToUtf8(cookieName) : ffi.nullptr,
+      endpointUrl.toNativeUtf8().cast(),
+      username.isNotEmpty ? username.toNativeUtf8().cast() : ffi.nullptr,
+      password.isNotEmpty ? password.toNativeUtf8().cast() : ffi.nullptr,
+      sessionId.isNotEmpty ? sessionId.toNativeUtf8().cast() : ffi.nullptr,
+      cookieName.isNotEmpty ? cookieName.toNativeUtf8().cast() : ffi.nullptr,
       replicatorType.index,
       continuous ? 1 : 0,
-      channels.isNotEmpty ? cbl.strToUtf8(jsonEncode(channels)) : ffi.nullptr,
-      documentIDs.isNotEmpty
-          ? cbl.strToUtf8(jsonEncode(documentIDs))
+      channels.isNotEmpty
+          ? jsonEncode(channels).toNativeUtf8().cast()
           : ffi.nullptr,
-      headers.isNotEmpty ? cbl.strToUtf8(jsonEncode(headers)) : ffi.nullptr,
+      documentIDs.isNotEmpty
+          ? jsonEncode(documentIDs).toNativeUtf8().cast()
+          : ffi.nullptr,
+      headers.isNotEmpty
+          ? jsonEncode(headers).toNativeUtf8().cast()
+          : ffi.nullptr,
       ffi.nullptr, // todo(rudoka): implement proxy config
       pinnedServerCertificate.isNotEmpty
-          ? cbl.strToUtf8(pinnedServerCertificate)
+          ? pinnedServerCertificate.toNativeUtf8().cast()
           : ffi.nullptr,
       trustedRootCertificates.isNotEmpty
-          ? cbl.strToUtf8(trustedRootCertificates)
+          ? trustedRootCertificates.toNativeUtf8().cast()
           : ffi.nullptr,
       pushFilter != null ? 1 : 0,
       pullFilter != null ? 1 : 0,
       conflictResolver != null ? 1 : 0,
-      error.addressOf,
+      error,
     );
 
     validateError(error);
@@ -184,8 +188,8 @@ class Replicator {
   /// the listener.
   String addChangeListener(Function(ReplicatorStatus) callback) {
     final token = ChangeListeners.addChangeListener<ReplicatorStatus>(
-      addListener: (String token) =>
-          cbl.CBLReplicator_AddChangeListener_d(repl, cbl.strToUtf8(token)),
+      addListener: (String token) => cbl.CBLReplicator_AddChangeListener_d(
+          repl, token.toNativeUtf8().cast()),
       onListenerAdded: (Stream stream, String token) => stream
           .where((data) => data.id == token)
           .listen((data) => callback(data)),
@@ -217,7 +221,7 @@ class Replicator {
   ) {
     ChangeListeners.stream<ReplicatorStatus>().sink.add(
           ReplicatorStatus.fromData(
-            cbl.utf8ToStr(replicatorId),
+            replicatorId.cast<pffi.Utf8>().toDartString(),
             FLDict.fromPointer(status),
           ),
         );
@@ -244,7 +248,7 @@ class Replicator {
     final error = cbl.CBLError.allocate();
     final response = cbl.CBLReplicator_PendingDocumentIDs(
       repl,
-      error.addressOf,
+      error,
     );
     validateError(error);
     return FLDict.fromPointer(response);
@@ -259,9 +263,8 @@ class Replicator {
   /// Throws [CouchbaseLiteException] in case of an error.
   bool isDocumentPending(String id) {
     final error = cbl.CBLError.allocate();
-    final pid = cbl.strToUtf8(id);
-    final result =
-        cbl.CBLReplicator_IsDocumentPending(repl, pid, error.addressOf);
+    final pid = id.toNativeUtf8().cast<ffi.Int8>();
+    final result = cbl.CBLReplicator_IsDocumentPending(repl, pid, error);
     validateError(error);
     return result != 0;
   }
@@ -276,10 +279,10 @@ class Replicator {
     ffi.Pointer<cbl.CBLDocument> document,
     int isDeleted,
   ) {
-    final callback =
-        (ReplicatorFilterType.values[type] == ReplicatorFilterType.push)
-            ? _pushReplicatorFilters[cbl.utf8ToStr(replicatorId)]
-            : _pullReplicatorFilters[cbl.utf8ToStr(replicatorId)];
+    final callback = (ReplicatorFilterType.values[type] ==
+            ReplicatorFilterType.push)
+        ? _pushReplicatorFilters[replicatorId.cast<pffi.Utf8>().toDartString()]
+        : _pullReplicatorFilters[replicatorId.cast<pffi.Utf8>().toDartString()];
 
     final result = callback(Document.fromPointer(document), isDeleted != 0);
 
@@ -296,14 +299,15 @@ class Replicator {
     ffi.Pointer<cbl.CBLDocument> localDocument,
     ffi.Pointer<cbl.CBLDocument> remoteDocument,
   ) {
-    final callback = _conflictResolvers[cbl.utf8ToStr(replicatorId)];
+    final callback =
+        _conflictResolvers[replicatorId.cast<pffi.Utf8>().toDartString()];
 
     if (callback == null) {
       return ffi.nullptr;
     }
 
     final result = callback(
-      cbl.utf8ToStr(documentId),
+      documentId.cast<pffi.Utf8>().toDartString(),
       Document.fromPointer(localDocument),
       Document.fromPointer(remoteDocument),
     );

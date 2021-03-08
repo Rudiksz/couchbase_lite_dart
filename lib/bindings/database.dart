@@ -6,10 +6,10 @@ part of couchbase_lite_c_bindings;
 
 // --- Data types
 
-class CBLDatabase extends ffi.Struct {}
+class CBLDatabase extends ffi.Opaque {}
 
 /// Encryption key specified in a \ref CBLDatabaseConfiguration.
-class CBLEncryptionKey extends ffi.Struct {}
+class CBLEncryptionKey extends ffi.Opaque {}
 
 /// Database configuration options.
 class CBLDatabaseConfiguration extends ffi.Struct {
