@@ -298,7 +298,7 @@ testFleece() async {
   print(props['logo.length'].type);
 
   // DocumentProperties_Benchmark().report();
-  // DocumentJsonProperties_Benchmark().report();
+  // Documentjson_Benchmark().report();
 }
 
 testBlob() async {
@@ -629,7 +629,7 @@ testReplicator1() async {
 
     var doc = db.getMutableDocument('testcenter1');
     print(doc.properties.json);
-    // doc.jsonProperties = doc.properties.json.replaceAll('qdffd', 'RRR');
+    // doc.json = doc.properties.json.replaceAll('qdffd', 'RRR');
     db.saveDocument(doc);
     print('here');
     await pause(1);

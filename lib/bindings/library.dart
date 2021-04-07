@@ -41,6 +41,7 @@ class CblC {
 
   static bool isPlatformSupported() => _dylib != null;
   void init() {
+    // FIXME: the test is failing at this line
     assert(isPlatformSupported());
 
     // Windows static linking workaround
