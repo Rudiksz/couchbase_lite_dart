@@ -17,20 +17,23 @@ part of couchbase_lite_dart;
 /// as well as FLValue. The result will be a default value of that type, e.g. false or 0
 /// or NULL, unless otherwise specified.
 class FLValue {
-  /// The C pointer to the FLValue
-  final ffi.Pointer<cbl.FLValue> _value;
-  ffi.Pointer<cbl.FLValue> get ref => _value;
+  FLValue.empty() : _value = nullptr;
 
-  int error;
+  /// The C pointer to the FLValue
+  final Pointer<cbl.FLValue> _value;
+  Pointer<cbl.FLValue> get ref => _value;
+
+  int error = 0;
 
   FLValue.fromPointer(this._value);
 
   /// Encodes a Fleece value as JSON (or a JSON fragment.)
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
-    final cstr = cbl.FLDump(_value.cast());
-    final str = cstr.cast<pffi.Utf8>().toDartString();
-    return str;
+    final slice = FLSlice.fromSliceResult(CBLC.FLValue_ToJSON(_value.cast()));
+    final result = slice.toString();
+    slice.free();
+    return result;
   }
 
   /// Evaluates a key-path from a specifier string, for a Fleece value.
@@ -48,57 +51,62 @@ class FLValue {
   ///   property name (but not yet in the middle of a name.)
   FLValue operator [](String keyPath) {
     // Some values are not supported
-    if (keyPath.isEmpty || keyPath.contains('[]')) return null;
+    if (keyPath.isEmpty || keyPath.contains('[]')) return FLValue.empty();
 
-    final outError = pffi.calloc<ffi.Uint8>()..value = 0;
-    final val = cbl.FLKeyPath_EvalOnce(
-      keyPath.toNativeUtf8().cast(),
+    final outError = calloc<Int32>()..value = 0;
+    final _keyPath = FLSlice.fromString(keyPath);
+
+    final val = CBLC.FLKeyPath_EvalOnce(
+      _keyPath.slice,
       _value,
       outError,
     );
     error = outError.value;
-    pffi.calloc.free(outError);
+    calloc.free(outError);
+    _keyPath.free();
 
-    return error == FLError.noError.index ? FLValue.fromPointer(val) : null;
+    return error == FLError.noError.index
+        ? FLValue.fromPointer(val)
+        : FLValue.empty();
   }
 
   /// Returns the data type of an arbitrary Value.
   /// (If the value is null, returns `FLValueType.Undefined`.)
   FLValueType get type {
     // The C enum values start at -1
-    final t = cbl.FLValue_GetType(_value) + 1;
+    final t = CBLC.FLValue_GetType(_value) + 1;
     return t < FLValueType.values.length
         ? FLValueType.values[t]
         : FLValueType.Undefined;
   }
 
   /// Returns true if the value is non-NULL and represents an integer.
-  bool get isInterger => cbl.FLValue_IsInteger(_value) != 0;
+  bool get isInterger => CBLC.FLValue_IsInteger(_value);
 
   /// Returns true if the value is non-NULL and represents an integer >= 2^63. Such a value can't
   /// be represented in C as an `int64_t`, only a `uint64_t`, so you should access it by calling
   /// `asUnsigned`, _not_asInt, which would return  an incorrect (negative) value.
-  bool get isUnsigned => cbl.FLValue_IsUnsigned(_value) != 0;
+  bool get isUnsigned => CBLC.FLValue_IsUnsigned(_value);
 
   /// Returns true if the value is non-NULL and represents a 64-bit floating-point number.
-  bool get isDouble => cbl.FLValue_IsDouble(_value) != 0;
+  bool get isDouble => CBLC.FLValue_IsDouble(_value);
 
   /// Returns a value coerced to boolean. This will be true unless the value
   /// is NULL (undefined), null, false, or zero.
-  bool get asBool => cbl.FLValue_AsBool(_value) != 0;
+  bool get asBool => CBLC.FLValue_AsBool(_value);
 
   /// Returns a value coerced to an integer. True and false are returned as 1 and 0, and
   /// floating-point numbers are rounded. All other types are returned as 0.
   ///
   /// **Warning**  Large 64-bit unsigned integers (2^63 and above) will come out wrong. You can
   /// check for these by calling `isUnsigned`.
-  int get asInt => cbl.FLValue_AsInt(_value);
+  int get asInt => CBLC.FLValue_AsInt(_value);
 
   /// Returns a value coerced to an unsigned integer.
   ///
   /// This is the same as `asInt` except that it _can't_ handle negative numbers, but
   /// does correctly return large `uint64_t` values of 2^63 and up.
-  int get asUnsigned => cbl.FLValue_AsUnsigned(_value);
+  int get asUnsigned => CBLC.FLValue_AsUnsigned(_value);
 
   /// Returns a value coerced to a 32-bit floating point number.
   /// True and false are returned as 1.0 and 0.0, and integers are converted to float. All other
@@ -106,38 +114,44 @@ class FLValue {
   ///
   /// **Warning**  Large integers (outside approximately +/- 2^23) will lose precision due to the
   /// limitations of IEEE 32-bit float format.
-  double get asDouble => cbl.FLValue_AsDouble(_value);
+  double get asDouble => CBLC.FLValue_AsDouble(_value);
 
   /// Returns the exact contents of a string value, or null for all other types.
   String get asString {
-    final cstr = cbl.FLValue_AsString(_value);
-    final result = cstr.cast<pffi.Utf8>().toDartString();
+    final cstr = CBLC.FLValue_AsString(_value);
+    final slice = FLSlice.fromSlice(cstr);
+    final result = slice.toString();
+    slice.free();
+    // TODO - free cstr?
     return result;
   }
 
   /// If a FLValue represents an FLArray, returns it cast to FLArray, else NULL.
   FLArray get asList => type == FLValueType.Array
-      ? FLArray.fromPointer(cbl.FLValue_AsArray(_value))
-      : null;
+      ? FLArray.fromPointer(CBLC.FLValue_AsArray(_value))
+      : FLArray();
 
   /// If a FLValue represents an map, returns it cast to FLDict, else NULL.
   FLDict get asMap => type == FLValueType.Dict
-      ? FLDict.fromPointer(cbl.FLValue_AsDict(_value))
-      : null;
+      ? FLDict.fromPointer(CBLC.FLValue_AsDict(_value))
+      : FLDict();
 
   /// Returns a string representation of any scalar value. Data values are returned in raw form.
   /// Arrays and dictionaries don't have a representation and will return NULL.
   @override
   String toString() {
-    final cstr = cbl.FLValue_ToString(_value);
-    final result = cstr.cast<pffi.Utf8>().toDartString();
+    final cstr = CBLC.FLValue_ToString(_value);
+    final slice = FLSlice.fromSliceResult(cstr);
+    final result = slice.toString();
+    slice.free();
+    // TODO - free cstr?
     return result;
   }
 
   /// Compares two values for equality. This is a deep recursive comparison.
   @override
   bool operator ==(other) =>
-      other is FLValue && cbl.FLValue_IsEqual(_value, other._value) != 0;
+      other is FLValue && CBLC.FLValue_IsEqual(_value, other._value);
 }
 
 enum FLCopyFlags {

@@ -5,26 +5,28 @@
 part of couchbase_lite_dart;
 
 class FLDoc {
-  ffi.Pointer<cbl.FLDoc> _doc = ffi.nullptr;
+  Pointer<cbl.FLDoc> _doc = nullptr;
 
-  FLValue _root;
+  FLValue? _root;
 
-  FLError error;
+  FLError error = FLError.noError;
 
   FLDoc.fromPointer(this._doc);
 
   FLDoc.fromJson(String json) {
-    final error = pffi.calloc<ffi.Uint8>();
-    error.value = 0;
-    _doc = cbl.FLDoc_FromJSON(json.toNativeUtf8().cast(), error);
+    final error = calloc<Int32>()..value = 0;
+
+    _doc = CBLC.FLDoc_FromJSON(FLSlice.fromString(json).slice, error);
     this.error = error.value < FLError.values.length
         ? FLError.values[error.value]
         : FLError.unsupported;
+    calloc.free(error);
+    //_json.free();
   }
 
-  FLValue get root => _root ??= FLValue.fromPointer(cbl.FLDoc_GetRoot(_doc));
+  FLValue get root => _root ??= FLValue.fromPointer(CBLC.FLDoc_GetRoot(_doc));
 
   set root(FLValue value) => _root = value;
 
-  void dispose() => cbl.FLDoc_Release(_doc);
+  void dispose() => CBLC.FLDoc_Release(_doc);
 }

@@ -6,50 +6,29 @@ part of couchbase_lite_dart;
 
 class Replicator {
   /// Pointer to the C replicator object
-  ffi.Pointer<cbl.CBLReplicator> repl;
+  Pointer<cbl.CBLReplicator> repl = nullptr;
 
   final String _id = Uuid().v1();
 
+  Replicator.empty();
+  bool get isEmpty => repl == nullptr;
+
   /// The database to replicate
-  Database db;
-
-  ///  The endpoint representing a server-based database at the given URL.
-  ///  The URL's scheme must be `ws` or `wss`, it must of course have a valid hostname,
-  ///  and its path must be the name of the database on that server.
-  ///  The port can be omitted; it defaults to 80 for `ws` and 443 for `wss`.
-  ///  For example: `wss://example.org/dbname`
-  String endpointUrl;
-
-  /// Push, pull, or both
-  ReplicatorType replicatorType;
-
-  bool continuous;
-
-  /// Optional set of channels to pull from.
-  List<String> channels = [];
-
-  /// Optional set of document IDs to replicate.
-  List<String> documentIDs = [];
-
-  /// Extra HTTP headers to add to the WebSocket request.
-  Map<String, String> headers = {};
-
-  String pinnedServerCertificate;
-  String trustedRootCertificates;
+  Database db = Database.empty();
 
   /// A callback that can decide whether a particular [document] should be pushed.
   ///
   /// It should not take a long time to return, or it will slow down the replicator.
   ///
   /// Return `true` if the document should be replicated, `false` to skip it.
-  ReplicatorFilter pushFilter;
+  ReplicatorFilter? pushFilter;
 
   /// A callback that can decide whether a particular [document] should be pulled.
   ///
   /// It should not take a long time to return, or it will slow down the replicator.
   ///
   /// Return `true` if the document should be replicated, `false` to skip it.
-  ReplicatorFilter pullFilter;
+  ReplicatorFilter? pullFilter;
 
   /// Conflict-resolution callback for use in replications. This callback will be invoked
   /// when the replicator finds a newer server-side revision of a document that also has local
@@ -69,7 +48,7 @@ class Replicator {
   /// This can be the same as [localDocument] or [remoteDocument], or you can create
   /// a mutable copy of either one and modify it appropriately.
   /// Or return NULL if the resolution is to delete the document.
-  ConflictResolver conflictResolver;
+  ConflictResolver? conflictResolver;
 
   //-- Internal
 
@@ -78,92 +57,214 @@ class Replicator {
 
   static final Map<String, ConflictResolver> _conflictResolvers = {};
 
+  //-- Replicator config structs. These need to be garbage collected
+
+  FLSlice _c_url = FLSlice.fromString('');
+  FLSlice _c_username = FLSlice.fromString('');
+  FLSlice _c_password = FLSlice.fromString('');
+  FLSlice _c_sessionId = FLSlice.fromString('');
+  FLSlice _c_cookieName = FLSlice.fromString('');
+  Pointer<cbl.CBLEndpoint> _c_endpoint = nullptr;
+  Pointer<cbl.CBLAuthenticator> _c_authenticator = nullptr;
+
+  FLArray _c_channels = FLArray.empty();
+  FLArray _c_documentIDs = FLArray.empty();
+  FLDict _c_headers = FLDict.empty();
+
+  FLSlice _c_pinnedServerCertificate = FLSlice.fromString('');
+  FLSlice _c_trustedRootCertificates = FLSlice.fromString('');
+
+  ///  The endpoint representing a server-based database at the given URL.
+  ///  The URL's scheme must be `ws` or `wss`, it must of course have a valid hostname,
+  ///  and its path must be the name of the database on that server.
+  ///  The port can be omitted; it defaults to 80 for `ws` and 443 for `wss`.
+  ///  For example: `wss://example.org/dbname`
+  String get endpointUrl => _c_url.toString();
+  set endpointUrl(String url) {
+    _c_url.free();
+    _c_url = FLSlice.fromString(url);
+  }
+
+  String get username => _c_username.toString();
+  set username(String username) {
+    _c_username.free();
+    _c_username =
+        username.isNotEmpty ? FLSlice.fromString(username) : FLSlice.empty();
+  }
+
+  String get password => _c_password.toString();
+  set password(String password) {
+    _c_password.free();
+    _c_password =
+        password.isNotEmpty ? FLSlice.fromString(password) : FLSlice.empty();
+  }
+
+  String get sessionId => _c_sessionId.toString();
+  set sessionId(String id) {
+    _c_sessionId.free();
+    _c_sessionId = id.isNotEmpty ? FLSlice.fromString(id) : FLSlice.empty();
+  }
+
+  String get cookieName => _c_cookieName.toString();
+  set cookieName(String name) {
+    _c_cookieName.free();
+    _c_cookieName =
+        name.isNotEmpty ? FLSlice.fromString(name) : FLSlice.empty();
+  }
+
+  /// Optional set of channels to pull from.
+  List<String> get channels =>
+      <String>[for (final c in _c_channels) c.asString];
+  set channels(List<String> channels) {
+    _c_channels.dispose();
+    _c_channels = FLArray.fromList(channels);
+  }
+
+  /// Optional set of document IDs to replicate.
+  List<String> get documentIDs =>
+      <String>[for (final c in _c_documentIDs) c.asString];
+  set documentIDs(List<String> ids) {
+    _c_documentIDs.dispose();
+    _c_documentIDs = FLArray.fromList(ids);
+  }
+
+  /// Optional set of document IDs to replicate.
+  Map<String, String> get headers => <String, String>{
+        for (final c in _c_headers.entries) c.key: c.value.asString
+      };
+  set headers(Map<String, String> headers) {
+    _c_headers.dispose();
+    _c_headers = FLDict.fromMap(headers);
+  }
+
+  String get pinnedServerCertificate => _c_pinnedServerCertificate.toString();
+  set pinnedServerCertificate(String cert) {
+    _c_pinnedServerCertificate.free();
+    _c_pinnedServerCertificate =
+        cert.isNotEmpty ? FLSlice.fromString(cert) : FLSlice.empty();
+  }
+
+  String get trustedRootCertificates => _c_trustedRootCertificates.toString();
+  set trustedRootCertificates(String certs) {
+    _c_trustedRootCertificates.free();
+    _c_trustedRootCertificates =
+        certs.isNotEmpty ? FLSlice.fromString(certs) : FLSlice.empty();
+  }
+
+  final config = calloc<cbl.CBLReplicatorConfiguration>();
+
   /// A replicator is a background task that synchronizes changes between a local database and
   /// another database on a remote server (or on a peer device, or even another local database.)
   Replicator(
     this.db, {
-    @required this.endpointUrl,
+    required String endpointUrl,
     String username = '',
     String password = '',
     String sessionId = '',
     String cookieName = '',
-    this.replicatorType = ReplicatorType.pushAndPull,
-    this.continuous = true,
-    this.channels = const [],
-    this.documentIDs = const [],
-    this.headers = const {},
-    this.pinnedServerCertificate = '',
-    this.trustedRootCertificates = '',
+    replicatorType = ReplicatorType.pushAndPull,
+    continuous = true,
+    channels = const <String>[],
+    documentIDs = const <String>[],
+    headers = const <String, String>{},
+    pinnedServerCertificate = '',
+    trustedRootCertificates = '',
     this.pushFilter,
     this.pullFilter,
     this.conflictResolver,
   }) {
-    assert(db != null && db._db != ffi.nullptr);
-    assert(endpointUrl != null && endpointUrl.isNotEmpty);
+    assert(db._db != nullptr);
+    assert(endpointUrl.isNotEmpty);
 
-    // Set up comunication protocol between Dart and C for pull/push filters
-    if (pullFilter != null || pushFilter != null) {
-      _pushReplicatorFilters[_id] = pushFilter;
-      _pullReplicatorFilters[_id] = pullFilter;
+    this.endpointUrl = endpointUrl;
+    this.username = username;
+    this.password = password;
+    this.sessionId = sessionId;
+    this.cookieName = cookieName;
+
+    _c_endpoint = CBLC.CBLEndpoint_NewWithURL_s(_c_url.slice);
+
+    if (username.isNotEmpty) {
+      _c_authenticator = CBLC.CBLAuth_NewBasic_s(
+        _c_username.slice,
+        _c_password.slice,
+      );
+    } else {
+      _c_authenticator = CBLC.CBLAuth_NewSession_s(
+        _c_sessionId.slice,
+        _c_cookieName.slice,
+      );
     }
 
-    // Set up comunication protocol between Dart and C for the conflict handler
+    config.ref
+      ..context = _id.toNativeUtf8().cast()
+      ..database = db._db
+      ..endpoint = _c_endpoint
+      ..authenticator = _c_authenticator
+      ..continuous = continuous ? 1 : 0
+      ..endpoint = _c_endpoint;
+
+    if (channels.isNotEmpty) {
+      this.channels = channels;
+      config.ref.channels = _c_channels.ref;
+    }
+
+    if (documentIDs.isNotEmpty) {
+      this.documentIDs = documentIDs;
+      config.ref.documentIDs = _c_documentIDs.ref;
+    }
+
+    if (headers.isNotEmpty) {
+      this.headers = headers;
+      config.ref.headers = _c_headers.ref;
+    }
+
+    if (pinnedServerCertificate.isNotEmpty) {
+      this.pinnedServerCertificate = pinnedServerCertificate;
+      config.ref.pinnedServerCertificate = _c_pinnedServerCertificate.slice;
+    }
+
+    if (trustedRootCertificates.isNotEmpty) {
+      this.trustedRootCertificates = trustedRootCertificates;
+      config.ref.trustedRootCertificates = _c_trustedRootCertificates.slice;
+    }
+
+    if (pullFilter != null) {
+      _pullReplicatorFilters[_id] = pullFilter!;
+      config.ref.pullFilter = _CBLDart_PullReplicationFilter_ptr;
+    }
+    if (pushFilter != null) {
+      _pushReplicatorFilters[_id] = pushFilter!;
+      config.ref.pushFilter = _CBLDart_PushReplicationFilter_ptr;
+    }
+
     if (conflictResolver != null) {
-      _conflictResolvers[_id] = conflictResolver;
+      _conflictResolvers[_id] = conflictResolver!;
+      config.ref.conflictResolver = _CBLDart_conflictReplicationResolver_ptr;
     }
 
-    final error = cbl.CBLError.allocate();
-    repl = cbl.CBLReplicator_New_d(
-      _id.toNativeUtf8().cast(),
-      db._db,
-      endpointUrl.toNativeUtf8().cast(),
-      username.isNotEmpty ? username.toNativeUtf8().cast() : ffi.nullptr,
-      password.isNotEmpty ? password.toNativeUtf8().cast() : ffi.nullptr,
-      sessionId.isNotEmpty ? sessionId.toNativeUtf8().cast() : ffi.nullptr,
-      cookieName.isNotEmpty ? cookieName.toNativeUtf8().cast() : ffi.nullptr,
-      replicatorType.index,
-      continuous ? 1 : 0,
-      channels.isNotEmpty
-          ? jsonEncode(channels).toNativeUtf8().cast()
-          : ffi.nullptr,
-      documentIDs.isNotEmpty
-          ? jsonEncode(documentIDs).toNativeUtf8().cast()
-          : ffi.nullptr,
-      headers.isNotEmpty
-          ? jsonEncode(headers).toNativeUtf8().cast()
-          : ffi.nullptr,
-      ffi.nullptr, // todo(rudoka): implement proxy config
-      pinnedServerCertificate.isNotEmpty
-          ? pinnedServerCertificate.toNativeUtf8().cast()
-          : ffi.nullptr,
-      trustedRootCertificates.isNotEmpty
-          ? trustedRootCertificates.toNativeUtf8().cast()
-          : ffi.nullptr,
-      pushFilter != null ? 1 : 0,
-      pullFilter != null ? 1 : 0,
-      conflictResolver != null ? 1 : 0,
-      error,
-    );
+    final error = calloc<cbl.CBLError>();
+    repl = CBLC.CBLReplicator_New(config, error);
 
     validateError(error);
   }
 
   /// Starts a replicator, asynchronously. Does nothing if it's already started.
-  void start() => cbl.CBLReplicator_Start(repl);
+  void start() => CBLC.CBLReplicator_Start(repl);
 
   /// Stops a running replicator, asynchronously. Does nothing if it's not already stopped.
   ///
   /// The replicator will call your [ReplicatorChangeListener] with an activity level of
   ///  [ReplicatorStopped] after it stops. Until then, consider it still active.
-  void stop() => cbl.CBLReplicator_Stop(repl);
+  void stop() => CBLC.CBLReplicator_Stop(repl);
 
   /// Puts the replicator in "suspended" state. Causes the replicator to disconnect
   /// and enter Offline state; it will not attempt to reconnect while it's suspended
-  void suspend() => cbl.CBLReplicator_SetSuspended(repl, 1);
+  void suspend() => CBLC.CBLReplicator_SetSuspended(repl, true);
 
   /// Puts the replicator out of "suspended" state. Causes the replicator to attempt
   /// to reconnect, _if_ it was   connected when suspended, and is still in Offline state
-  void resume() => cbl.CBLReplicator_SetSuspended(repl, 0);
+  void resume() => CBLC.CBLReplicator_SetSuspended(repl, false);
 
   /// Informs the replicator whether it's considered possible to reach the remote host with
   /// the current network configuration. The default value is true. This only affects the
@@ -171,14 +272,14 @@ class Replicator {
   ///    * Setting it to false will cancel any pending retry and prevent future automatic retries.
   ///    * Setting it back to true will initiate an immediate retry.*/
   void setHostReachable(bool reachable) =>
-      cbl.CBLReplicator_SetHostReachable(repl, reachable ? 1 : 0);
+      CBLC.CBLReplicator_SetHostReachable(repl, reachable);
 
   /// Instructs the replicator to ignore existing checkpoints the next time it runs.
   ///
   /// This will cause it to scan through all the documents on the remote database, which takes
   /// a lot longer, but it can resolve problems with missing documents if the client and
   /// server have gotten out of sync somehow.
-  void resetCheckpoint() => cbl.CBLReplicator_ResetCheckpoint(repl);
+  void resetCheckpoint() => CBLC.CBLReplicator_ResetCheckpoint(repl);
 
   // ++ Status and progress
 
@@ -188,8 +289,11 @@ class Replicator {
   /// the listener.
   String addChangeListener(Function(ReplicatorStatus) callback) {
     final token = ChangeListeners.addChangeListener<ReplicatorStatus>(
-      addListener: (String token) => cbl.CBLReplicator_AddChangeListener_d(
-          repl, token.toNativeUtf8().cast()),
+      addListener: (String token) => CBLC.CBLReplicator_AddChangeListener(
+        repl,
+        _CBLDart_ReplicatorChangeListener_ptr,
+        token.toNativeUtf8().cast(),
+      ),
       onListenerAdded: (Stream stream, String token) => stream
           .where((data) => data.id == token)
           .listen((data) => callback(data)),
@@ -204,26 +308,16 @@ class Replicator {
 
   /// Returns the replicator's current status.
   ReplicatorStatus get status {
-    final result = cbl.CBLReplicator_Status(repl);
-    final status = ReplicatorStatus.fromData(
-      _id,
-      FLDict.fromPointer(result),
-    );
-    cbl.FLValue_Release(result.cast());
-    return status;
+    final result = CBLC.CBLReplicator_Status(repl);
+    final _status = ReplicatorStatus.fromStatus(_id, result);
+
+    return _status;
   }
 
-  /// The actual pull and push filter handler. Calls the registered Dart listeners
-  /// and returns the value they produce.
-  static void _cblReplicatorStatusCallback(
-    ffi.Pointer<ffi.Int8> replicatorId,
-    ffi.Pointer<cbl.FLDict> status,
-  ) {
-    ChangeListeners.stream<ReplicatorStatus>().sink.add(
-          ReplicatorStatus.fromData(
-            replicatorId.cast<pffi.Utf8>().toDartString(),
-            FLDict.fromPointer(status),
-          ),
+  /// Internal listener to handle events from C
+  static dynamic _changeListener(dynamic _change) {
+    ChangeListeners.stream<ReplicatorStatus>()?.sink.add(
+          ReplicatorStatus.fromJson(_change as String),
         );
   }
 
@@ -245,8 +339,8 @@ class Replicator {
   ///
   /// **Note: you must call dispose on the dictionary once you are done with it.**
   FLDict get pendingDocumentIds {
-    final error = cbl.CBLError.allocate();
-    final response = cbl.CBLReplicator_PendingDocumentIDs(
+    final error = calloc<cbl.CBLError>();
+    final response = CBLC.CBLReplicator_PendingDocumentIDs(
       repl,
       error,
     );
@@ -262,11 +356,13 @@ class Replicator {
   ///
   /// Throws [CouchbaseLiteException] in case of an error.
   bool isDocumentPending(String id) {
-    final error = cbl.CBLError.allocate();
-    final pid = id.toNativeUtf8().cast<ffi.Int8>();
-    final result = cbl.CBLReplicator_IsDocumentPending(repl, pid, error);
+    final error = calloc<cbl.CBLError>();
+    final pid = FLSlice.fromString(id);
+
+    final result = CBLC.CBLReplicator_IsDocumentPending(repl, pid.slice, error);
+    pid.free();
     validateError(error);
-    return result != 0;
+    return result;
   }
 
   // ++ Push&pull filters
@@ -275,58 +371,92 @@ class Replicator {
   /// and returns the value they produce.
   static int _cblReplicatorFilterCallback(
     int type,
-    ffi.Pointer<ffi.Int8> replicatorId,
-    ffi.Pointer<cbl.CBLDocument> document,
+    Pointer<Int8> replicatorId,
+    Pointer<cbl.CBLDocument> document,
     int isDeleted,
   ) {
-    final callback = (ReplicatorFilterType.values[type] ==
-            ReplicatorFilterType.push)
-        ? _pushReplicatorFilters[replicatorId.cast<pffi.Utf8>().toDartString()]
-        : _pullReplicatorFilters[replicatorId.cast<pffi.Utf8>().toDartString()];
+    final callback =
+        (ReplicatorFilterType.values[type] == ReplicatorFilterType.push)
+            ? _pushReplicatorFilters[replicatorId.cast<Utf8>().toDartString()]
+            : _pullReplicatorFilters[replicatorId.cast<Utf8>().toDartString()];
 
-    final result = callback(Document.fromPointer(document), isDeleted != 0);
+    final result =
+        callback?.call(Document.fromPointer(document), isDeleted != 0);
 
-    return result ? 1 : 0;
+    return (result ?? false) ? 1 : 0;
   }
 
   // ++ Conflict Resolvers
 
   /// The actual pull and push filter handler. Calls the registered Dart listeners
   /// and returns the value they produce.
-  static ffi.Pointer<cbl.CBLDocument> _cblReplicatorConflictCallback(
-    ffi.Pointer<ffi.Int8> replicatorId,
-    ffi.Pointer<ffi.Int8> documentId,
-    ffi.Pointer<cbl.CBLDocument> localDocument,
-    ffi.Pointer<cbl.CBLDocument> remoteDocument,
+  static Pointer<cbl.CBLDocument> _cblReplicatorConflictCallback(
+    Pointer<Int8> replicatorId,
+    Pointer<Int8> documentId,
+    Pointer<cbl.CBLDocument> localDocument,
+    Pointer<cbl.CBLDocument> remoteDocument,
   ) {
     final callback =
-        _conflictResolvers[replicatorId.cast<pffi.Utf8>().toDartString()];
+        _conflictResolvers[replicatorId.cast<Utf8>().toDartString()];
 
     if (callback == null) {
-      return ffi.nullptr;
+      return nullptr;
     }
 
     final result = callback(
-      documentId.cast<pffi.Utf8>().toDartString(),
+      documentId.cast<Utf8>().toDartString(),
       Document.fromPointer(localDocument),
       Document.fromPointer(remoteDocument),
     );
 
-    return result._doc ?? ffi.nullptr;
+    return result._doc;
   }
 
   void dispose() {
-    cbl.CBL_Release(repl);
-    repl = ffi.nullptr;
+    CBLC.CBL_Release(repl.cast());
+    repl = nullptr;
   }
 }
 
 class ReplicatorStatus {
   ReplicatorStatus(this.id);
   String id;
-  ActivityLevel activityLevel;
-  ReplicatorProgress progress;
-  CouchbaseLiteException error;
+  ActivityLevel activityLevel = ActivityLevel.offline;
+  ReplicatorProgress progress = ReplicatorProgress(0, 0);
+  CouchbaseLiteException? error;
+
+  ReplicatorStatus.fromStatus(this.id, cbl.CBLReplicatorStatus status) {
+    activityLevel = status.activity < ActivityLevel.values.length - 1
+        ? ActivityLevel.values[status.activity]
+        : ActivityLevel.offline;
+
+    progress = ReplicatorProgress(
+      status.progress.fractionComplete,
+      status.progress.documentCount,
+    );
+
+    // Get the error message
+    var errorMessage = '';
+    if (status.error.domain > 0 &&
+        status.error.domain < cbl.CBLMaxErrorDomainPlus1) {
+      final error = calloc<cbl.CBLError>();
+      error.ref
+        ..code = status.error.code
+        ..domain = status.error.domain
+        ..internal_info = status.error.internal_info;
+      final res = CBLC.CBLError_Message(error);
+
+      errorMessage = res.cast<Utf8>().toDartString();
+      calloc.free(error);
+      calloc.free(res);
+    }
+
+    error = CouchbaseLiteException(
+      status.error.code,
+      status.error.domain,
+      errorMessage,
+    );
+  }
 
   ReplicatorStatus.fromData(this.id, FLDict data) {
     activityLevel = data['activity'].asInt < ActivityLevel.values.length - 1
@@ -351,9 +481,16 @@ class ReplicatorStatus {
   String toString() {
     return '''ID: $id,
     Activity: $activityLevel,
-    Progress: (${progress?.fractionComplete}, ${progress?.documentCount})
+    Progress: (${progress.fractionComplete}, ${progress.documentCount})
     Error: (${error?.code}, ${error?.message})
     ''';
+  }
+
+  factory ReplicatorStatus.fromJson(String json) {
+    var data = FLDict.fromJson(json);
+    var status = ReplicatorStatus.fromData(data['id'].asString, data);
+    data.dispose();
+    return status;
   }
 }
 
@@ -406,3 +543,47 @@ enum ActivityLevel {
 
   suspended,
 }
+
+// -- C bindings for async callbacks
+
+late final _CBLDart_ReplicatorChangeListener_ptr = Cbl.dylib
+    .lookup<NativeFunction<_c_CBLDart_ReplicatorChangeListener>>(
+        'CBLDart_ReplicatorChangeListener');
+
+typedef _c_CBLDart_ReplicatorChangeListener = Void Function(
+  Pointer<Void> id,
+  Pointer<cbl.CBLReplicator> repl,
+  Pointer<cbl.CBLReplicatorStatus> status,
+);
+
+late final _CBLDart_PushReplicationFilter_ptr = Cbl.dylib
+    .lookup<NativeFunction<_c_CBLDart_PushReplicationFilter>>(
+        'CBLDart_PushReplicationFilter');
+
+typedef _c_CBLDart_PushReplicationFilter = Uint8 Function(
+  Pointer<Void> context,
+  Pointer<cbl.CBLDocument> document,
+  Uint8 isDeleted,
+);
+
+late final _CBLDart_PullReplicationFilter_ptr = Cbl.dylib
+    .lookup<NativeFunction<_c_CBLDart_PullReplicationFilter>>(
+        'CBLDart_PullReplicationFilter');
+
+typedef _c_CBLDart_PullReplicationFilter = Uint8 Function(
+  Pointer<Void> context,
+  Pointer<cbl.CBLDocument> document,
+  Uint8 isDeleted,
+);
+
+late final _CBLDart_conflictReplicationResolver_ptr = Cbl.dylib
+    .lookup<NativeFunction<_c_CBLDart_conflictReplicationResolver>>(
+        'CBLDart_conflictReplicationResolver');
+
+typedef _c_CBLDart_conflictReplicationResolver = Pointer<cbl.CBLDocument>
+    Function(
+  Pointer<Void> id,
+  Pointer<Int8> documentID,
+  Pointer<cbl.CBLDocument> localDocument,
+  Pointer<cbl.CBLDocument> remoteDocument,
+);

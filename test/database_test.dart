@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:couchbase_lite_dart/bindings/library.dart' as cbl;
+import 'package:couchbase_lite_dart/src/native/bindings.dart' as cbl;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 
 import 'package:test/test.dart';
@@ -12,8 +12,9 @@ import 'package:test/test.dart';
 import '_test_utils.dart';
 
 void main() {
+  initializeCblC();
+
   setUpAll(() {
-    Cbl.init();
     if (!Directory('_tmp').existsSync()) {
       Directory('_tmp').createSync();
     }
@@ -64,8 +65,8 @@ void main() {
       () => Database.Delete('delete1_test', directory: '_tmp'),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-          e.code == cbl.CBLErrorCode.CBLErrorBusy.index)),
+          e.domain == cbl.CBLDomain &&
+          e.code == cbl.CBLErrorBusy)),
     );
 
     db.close();
@@ -124,8 +125,8 @@ void main() {
       () => db.delete(),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-          e.code == cbl.CBLErrorCode.CBLErrorBusy.index)),
+          e.domain == cbl.CBLDomain &&
+          e.code == cbl.CBLErrorBusy)),
     );
 
     db1.close();
@@ -154,8 +155,8 @@ void main() {
       () => db.endBatch(),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-          e.code == cbl.CBLErrorCode.CBLErrorNotInTransaction.index)),
+          e.domain == cbl.CBLDomain &&
+          e.code == cbl.CBLErrorNotInTransaction)),
     );
 
     db.beginBatch();
@@ -188,8 +189,8 @@ void main() {
       () => db.saveDocumentResolving(Document('newdoc'), (_, __) => false),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-          e.code == cbl.CBLErrorCode.CBLErrorConflict.index)),
+          e.domain == cbl.CBLDomain &&
+          e.code == cbl.CBLErrorConflict)),
     );
 
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
@@ -221,8 +222,8 @@ void main() {
         }),
         throwsA(predicate((e) =>
             e is CouchbaseLiteException &&
-            e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-            e.code == cbl.CBLErrorCode.CBLErrorConflict.index)),
+            e.domain == cbl.CBLDomain &&
+            e.code == cbl.CBLErrorConflict)),
       );
       expect(db.getDocument('testdoc').properties['foo'].asString, 'bar1');
     }
@@ -232,7 +233,7 @@ void main() {
 
   test('getDocument', () {
     var db = Database('getdoc', directory: '_tmp');
-    expect(db.getDocument('testdoc'), null);
+    expect(db.getDocument('testdoc').isEmpty, true);
 
     expect(
       db.saveDocument(Document('testdoc', data: {'foo': 'bar'})),
@@ -248,7 +249,7 @@ void main() {
 
   test('getMutableDocument', () {
     var db = Database('getmutabledoc', directory: '_tmp');
-    expect(db.getDocument('testdoc'), null);
+    expect(db.getDocument('testdoc').isEmpty, true);
 
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
 
@@ -265,14 +266,14 @@ void main() {
 
     expect(db.purgeDocument('testdoc'), true);
 
-    expect(db.getDocument('testdoc'), null);
+    expect(db.getDocument('testdoc').isEmpty, true);
 
     expect(
       () => db.purgeDocument('testdoc'),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-          e.code == cbl.CBLErrorCode.CBLErrorNotFound.index)),
+          e.domain == cbl.CBLDomain &&
+          e.code == cbl.CBLErrorNotFound)),
     );
     addTearDown(() => db.close());
   });
@@ -304,7 +305,7 @@ void main() {
     );
 
     await Future.delayed(Duration(seconds: 5));
-    expect(db.getDocument('testdoc'), null);
+    expect(db.getDocument('testdoc').isEmpty, true);
 
     // Setting the expiration date to the past should delete the document
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
@@ -317,7 +318,7 @@ void main() {
       true,
     );
     await Future.delayed(Duration(seconds: 5));
-    expect(db.getDocument('testdoc'), null);
+    expect(db.getDocument('testdoc').isEmpty, true);
 
     // Setting the expiration date to null should stop the document from expiring
     // even if there was a previous expiration set
@@ -332,7 +333,10 @@ void main() {
     );
 
     expect(
-      db.setDocumentExpiration('testdoc', null),
+      db.setDocumentExpiration(
+        'testdoc',
+        DateTime.fromMicrosecondsSinceEpoch(0),
+      ),
       true,
     );
 
@@ -349,7 +353,7 @@ void main() {
     var db = Database('getdocexp', directory: '_tmp');
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
 
-    expect(db.documentExpiration('testdoc'), null);
+    expect(db.documentExpiration('testdoc').microsecondsSinceEpoch, 0);
 
     var expiration = DateTime.now().add(Duration(minutes: 10));
     db.setDocumentExpiration('testdoc', expiration);
@@ -369,6 +373,7 @@ void main() {
     var change_received = false;
 
     var token = db.addChangeListener((change) {
+      print('change received');
       change_received = true;
       changed_docs = change.documentIDs;
     });
@@ -461,6 +466,20 @@ void main() {
 
     expect(change_received, false);
     expect(changed_doc, '');
+
+    addTearDown(() => db.close());
+  });
+
+  test('index', () async {
+    var db = Database('dbindex', directory: '_tmp');
+
+    expect(db.createIndex('index1', ['foo']), true);
+
+    expect(db.indexNames().json, '["index1"]');
+
+    expect(db.deleteIndex('index1'), true);
+
+    expect(db.indexNames().json, '[]');
 
     addTearDown(() => db.close());
   });

@@ -43,26 +43,30 @@ part of couchbase_lite_dart;
 /// db.saveDocument(doc);
 /// ```
 class Blob {
-  ffi.Pointer<cbl.CBLBlob> pointer;
-  ffi.Pointer<cbl.CBLBlobWriteStream> _blobStream;
+  Pointer<cbl.CBLBlob> pointer = nullptr;
+  Pointer<cbl.CBLBlobWriteStream>? _blobStream;
+
+  Blob.empty();
+  bool get isEmpty => pointer == nullptr;
 
   Blob._internal(this.pointer, [this._blobStream]);
 
   /// Creates a new blob given its contents as a single block of data.
   Blob.createWithData(String contentType, Uint8List data) {
-    final error = cbl.CBLError.allocate();
+    final error = calloc<cbl.CBLError>();
 
-    //  final error = pffi.calloc<cbl.CBLError>();
-
-    var buf = pffi.calloc<ffi.Uint8>(data.length);
+    var buf = calloc<Uint8>(data.length);
     var list = buf.asTypedList(data.length);
     list.setAll(0, data);
 
-    pointer = cbl.CBLBlob_CreateWithData_c(
+    var slice = calloc<cbl.FLSlice>();
+
+    slice.ref.buf = buf.cast();
+    slice.ref.size = data.length;
+
+    pointer = CBLC.CBLBlob_CreateWithData(
       contentType.toNativeUtf8().cast(),
-      buf,
-      list.length,
-      error,
+      slice.ref,
     );
 
     validateError(error);
@@ -75,10 +79,10 @@ class Blob {
       Database db, String contentType, Stream<Uint8List> stream) async {
     final result = Completer<Blob>();
 
-    final error = cbl.CBLError.allocate();
-    ffi.Pointer<cbl.CBLBlobWriteStream> _blobStream;
+    final error = calloc<cbl.CBLError>();
+    Pointer<cbl.CBLBlobWriteStream> _blobStream;
     try {
-      _blobStream = cbl.CBLBlobWriter_New(db._db, error);
+      _blobStream = CBLC.CBLBlobWriter_New(db._db, error);
       validateError(error);
     } on CouchbaseLiteException catch (e) {
       result.completeError(e);
@@ -87,29 +91,32 @@ class Blob {
 
     stream.listen(
       (data) {
-        error.ref.reset();
+        error.ref
+          ..code = 0
+          ..domain = 0;
+        ;
 
-        var buf = pffi.calloc<ffi.Uint8>(data.length);
+        var buf = calloc<Uint8>(data.length);
         var list = buf.asTypedList(data.length);
         list.setAll(0, data);
 
-        cbl.CBLBlobWriter_Write(_blobStream, buf, list.length, error);
-        pffi.calloc.free(buf);
+        CBLC.CBLBlobWriter_Write(_blobStream, buf.cast(), list.length, error);
+        calloc.free(buf);
       },
       onDone: () {
         return result.complete(
           Blob._internal(
-            cbl.CBLBlob_CreateWithStream(
+            CBLC.CBLBlob_CreateWithStream(
                 contentType.toNativeUtf8().cast(), _blobStream),
             _blobStream,
           ),
         );
       },
       onError: (error) {
-        cbl.CBLBlobWriter_Close(_blobStream);
+        CBLC.CBLBlobWriter_Close(_blobStream);
         result.completeError(CouchbaseLiteException(
-          cbl.CBLErrorDomain.CBLDomain.index,
-          cbl.CBLErrorCode.CBLErrorNotFound.index,
+          cbl.CBLDomain,
+          cbl.CBLErrorNotFound,
           'Error writing blob from stream',
         ));
       },
@@ -121,43 +128,41 @@ class Blob {
 
   /// Create a [Blob] object corresponding to a blob dictionary in a document.
   factory Blob.fromValue(FLDict dict) {
-    if (dict == null ||
-        dict.ref == ffi.nullptr ||
-        dict['@type'] == null ||
-        dict['@type'].asString != 'blob') return null;
+    if (dict.ref == nullptr ||
+        dict['@type'].asString.isEmpty ||
+        dict['@type'].asString != 'blob') return Blob.empty();
 
-    return Blob._internal(cbl.CBLBlob_Get(dict.ref));
+    return Blob._internal(CBLC.CBLBlob_Get(dict.ref));
   }
 
-  Uint8List _content;
+  Uint8List? _content;
 
   /// A blob's MIME type, if its metadata has a `content_type` property.
   String get contentType =>
-      cbl.CBLBlob_ContentType(pointer).cast<pffi.Utf8>().toDartString();
+      CBLC.CBLBlob_ContentType(pointer).cast<Utf8>().toDartString();
 
   /// Returns the cryptographic digest of a blob's content (from its `digest` property).
-  String get digest =>
-      cbl.CBLBlob_Digest(pointer).cast<pffi.Utf8>().toDartString();
+  String get digest => CBLC.CBLBlob_Digest(pointer).cast<Utf8>().toDartString();
 
   /// Returns the length in bytes of a blob's content (from its `length` property).
-  int get length => cbl.CBLBlob_Length(pointer);
+  int get length => CBLC.CBLBlob_Length(pointer);
 
   /// Convenience method to return the properties as a Dart map
   Map<String, dynamic> get asMap => jsonDecode(properties.json);
 
   /// Returns a blob's metadata. This includes the `digest`, `length` and `content_type`
   /// properties, as well as any custom ones that may have been added.
-  FLDict get properties => pointer != null
-      ? FLDict.fromPointer(cbl.CBLBlob_Properties(pointer))
-      : null;
+  FLDict get properties => pointer != nullptr
+      ? FLDict.fromPointer(CBLC.CBLBlob_Properties(pointer))
+      : FLDict.empty();
 
   /// Read a blob's content as a stream.
   Stream<Uint8List> getContentStream({int chunk = 10240}) async* {
-    final error = cbl.CBLError.allocate();
-    final blobStream = cbl.CBLBlob_OpenContentStream(pointer, error);
+    final error = calloc<cbl.CBLError>();
+    final blobStream = CBLC.CBLBlob_OpenContentStream(pointer, error);
 
     if (error.ref.domain != 0) {
-      pffi.calloc.free(error);
+      calloc.free(error);
       return;
     }
 
@@ -166,36 +171,38 @@ class Blob {
 
     var count = 0;
     do {
-      error.ref.reset();
-      final data = pffi.calloc<ffi.Uint8>(chunk);
-      count = cbl.CBLBlobReader_Read(blobStream, data, chunk, error);
+      error.ref
+        ..code = 0
+        ..domain = 0;
+      final data = calloc<Uint8>(chunk);
+      count = CBLC.CBLBlobReader_Read(blobStream, data.cast(), chunk, error);
 
       if (count > 0) {
         yield data.asTypedList(count);
       }
-      pffi.calloc.free(data);
+      calloc.free(data);
     } while (count > 0);
 
-    cbl.CBLBlobReader_Close(blobStream);
-    // pffi.free(data);
-    pffi.calloc.free(error);
+    CBLC.CBLBlobReader_Close(blobStream);
+    // pfree(data);
+    calloc.free(error);
   }
 
-  void closeStream() => cbl.CBLBlobWriter_Close(_blobStream);
+  void closeStream() => CBLC.CBLBlobWriter_Close(_blobStream!);
 
   /// Reads the blob's contents into memory and returns them.
   Future<Uint8List> getContent() async {
-    if (_content != null) return _content;
+    if (_content != null) return _content!;
 
     _content = Uint8List(0);
 
     await for (var value in getContentStream()) {
-      final _tmp = Uint8List(_content.length + value.length);
+      final _tmp = Uint8List(_content!.length + value.length);
 
-      _tmp.setAll(0, _content);
-      _tmp.setAll(_content.length, value);
+      _tmp.setAll(0, _content!);
+      _tmp.setAll(_content!.length, value);
       _content = _tmp;
     }
-    return _content;
+    return _content!;
   }
 }

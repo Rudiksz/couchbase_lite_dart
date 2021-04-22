@@ -9,22 +9,21 @@ part of couchbase_lite_dart;
 /// In case of an error calls the [cleanup] closure, if provided
 ///
 /// Frees the [error] object
-void validateError(ffi.Pointer<cbl.CBLError> error, {Function cleanup}) {
-  if (error == null) return;
-  if (error.ref.domain > 0 &&
-      error.ref.domain < cbl.CBLErrorDomain.CBLMaxErrorDomainPlus1.index) {
-    final res = cbl.CBLError_Message(error);
+void validateError(Pointer<cbl.CBLError> error, {Function? cleanup}) {
+  if (error == nullptr) return;
+  if (error.ref.domain > 0 && error.ref.domain < cbl.CBLMaxErrorDomainPlus1) {
+    final res = CBLC.CBLError_Message(error);
 
     final domain = error.ref.domain;
     final code = error.ref.code;
-    final message = res.cast<pffi.Utf8>().toDartString();
+    final message = res.cast<Utf8>().toDartString();
 
     if (cleanup != null) cleanup();
-    pffi.calloc.free(error);
+    calloc.free(error);
 
     throw CouchbaseLiteException(domain, code, message);
   }
-  pffi.calloc.free(error);
+  calloc.free(error);
 }
 
 class CouchbaseLiteException implements Exception {

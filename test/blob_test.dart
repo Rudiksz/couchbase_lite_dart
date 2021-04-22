@@ -13,8 +13,9 @@ const TESTDB = 'testdb';
 const TESTDIR = '_tmp3';
 
 void main() {
+  initializeCblC();
+
   setUpAll(() {
-    Cbl.init();
     if (!Directory(TESTDIR).existsSync()) {
       Directory(TESTDIR).createSync();
     }
@@ -29,7 +30,6 @@ void main() {
 
   test('createWithData', () async {
     var db = Database('blob1', directory: TESTDIR);
-
     var f = File('test/blob_test.png');
     var data = f.readAsBytesSync();
     var blob = Blob.createWithData('image/png', data);

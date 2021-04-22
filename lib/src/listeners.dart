@@ -6,7 +6,7 @@ part of couchbase_lite_dart;
 
 class ChangeListeners {
   static final List<String> _tokens = [];
-  static final Map<String, ffi.Pointer<cbl.CBLListenerToken>> _cblTokens = {};
+  static final Map<String, Pointer<cbl.CBLListenerToken>> _cblTokens = {};
 
   static final Map<dynamic, StreamController> _streams = {};
   static final Map<String, StreamSubscription> _subscriptions = {};
@@ -16,15 +16,16 @@ class ChangeListeners {
     DatabaseChange: Database._changeListener,
     DocumentChange: Database._documentChangeListener,
     QueryChange: Query._cblQueryChangelistener,
-    ReplicatorStatus: _callbackListener,
+    ReplicatorStatus: Replicator._changeListener,
     'replicatorfilter': _callbackListener,
     'replicatorconflict': _callbackListener,
   };
 
-  static ffi.Pointer<cbl.CBLListenerToken> cblToken(String token) =>
+  static Pointer<cbl.CBLListenerToken>? cblToken(String token) =>
       _cblTokens[token];
 
-  static StreamController<T> stream<T>() => _streams[T];
+  static StreamController<T>? stream<T>() =>
+      _streams[T] as StreamController<T>?;
 
   /// Set up the comunications channel between C and Dart
   /// Registers the various ReceivePorts and Dart callback functions with the C code
@@ -42,24 +43,23 @@ class ChangeListeners {
       ..listen(_portListeners[ReplicatorStatus]);
 
     _receivePorts['replicatorfilter'] ??= ReceivePort()
-      ..listen(_portListeners[ReplicatorStatus]);
+      ..listen(_portListeners['replicatorfilter']);
 
     _receivePorts['replicatorconflict'] ??= ReceivePort()
-      ..listen(_portListeners[ReplicatorStatus]);
+      ..listen(_portListeners['replicatorconflict']);
 
     // Register all the ports and callbacks with C
-    cbl.RegisterDartPorts(
-      _receivePorts[DatabaseChange].sendPort.nativePort,
-      _receivePorts[DocumentChange].sendPort.nativePort,
-      _receivePorts[QueryChange].sendPort.nativePort,
-      _receivePorts[ReplicatorStatus].sendPort.nativePort,
-      _receivePorts['replicatorfilter'].sendPort.nativePort,
-      _receivePorts['replicatorconflict'].sendPort.nativePort,
-      ffi.Pointer.fromFunction<cbl.StatusCallback>(
-          Replicator._cblReplicatorStatusCallback),
-      ffi.Pointer.fromFunction<cbl.FilterCallback>(
+    CBLC.CBLDart_RegisterPorts(
+      _receivePorts[DatabaseChange]?.sendPort.nativePort ?? 0,
+      _receivePorts[DocumentChange]?.sendPort.nativePort ?? 0,
+      _receivePorts[QueryChange]?.sendPort.nativePort ?? 0,
+      _receivePorts[ReplicatorStatus]?.sendPort.nativePort ?? 0,
+      _receivePorts['replicatorfilter']?.sendPort.nativePort ?? 0,
+      _receivePorts['replicatorconflict']?.sendPort.nativePort ?? 0,
+      nullptr, // remove this
+      Pointer.fromFunction<cbl.CBLDart_ReplicatorFilterCallback>(
           Replicator._cblReplicatorFilterCallback, 1),
-      ffi.Pointer.fromFunction<cbl.ConflictCallback>(
+      Pointer.fromFunction<cbl.CBLDart_ConflictResolverCallback>(
           Replicator._cblReplicatorConflictCallback),
     );
   }
@@ -69,8 +69,8 @@ class ChangeListeners {
   /// execute the Dart callback inside the closure. Done this way
   /// to make sure the callback is executed on the same isolate.
   static void _callbackListener(dynamic message) async {
-    final work = ffi.Pointer<cbl.Work>.fromAddress(message as int);
-    cbl.Dart_ExecuteCallback(work);
+    final work = Pointer<CBLDart_Work>.fromAddress(message as int);
+    CBLC.CBLDart_ExecuteCallback(work.cast());
   }
 
   /// Registers a change listener of a given type.
@@ -79,8 +79,8 @@ class ChangeListeners {
   /// if the listener was succesfully added (like subscribing to the stream,
   /// or storing your listener object instances)
   static String addChangeListener<T>({
-    ffi.Pointer<cbl.CBLListenerToken> Function(String) addListener,
-    StreamSubscription Function(Stream<T>, String) onListenerAdded,
+    required Pointer<cbl.CBLListenerToken> Function(String) addListener,
+    StreamSubscription Function(Stream<T>, String)? onListenerAdded,
   }) {
     _streams[T] ??= StreamController<T>.broadcast();
 
@@ -91,9 +91,9 @@ class ChangeListeners {
 
     if (onListenerAdded != null &&
         _cblTokens[token] != null &&
-        _cblTokens[token] != ffi.nullptr) {
+        _cblTokens[token] != nullptr) {
       _subscriptions[token] = onListenerAdded(
-        _streams[T].stream.cast<T>(),
+        _streams[T]!.stream.cast<T>(),
         token,
       );
     }
@@ -102,17 +102,21 @@ class ChangeListeners {
 
   /// Remove a change listener using a token that was returned when it was added.
   /// You can use the [onListenerRemoved] callback to do cleanup work, if needed.
-  static void removeChangeListener<T>(String token,
-      {Function(String) onListenerRemoved}) async {
-    if (token?.isEmpty ?? true) return;
+  static void removeChangeListener<T>(
+    String token, {
+    Function(String)? onListenerRemoved,
+  }) async {
+    if (token.isEmpty) return;
     final listener = _subscriptions.remove(token);
     await listener?.cancel();
 
     // Remove cbl listener
-    if (_cblTokens[token] != null && _cblTokens[token] != ffi.nullptr) {
-      cbl.CBLListener_Remove(_cblTokens[token]);
+    if (_cblTokens[token] != null && _cblTokens[token] != nullptr) {
+      CBLC.CBLListener_Remove(_cblTokens[token]!);
       _cblTokens.remove(token);
       if (onListenerRemoved != null) onListenerRemoved(token);
     }
   }
 }
+
+class CBLDart_Work extends Opaque {}

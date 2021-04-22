@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 import 'dart:io';
 
-import 'package:couchbase_lite_dart/bindings/library.dart' as cbl;
+import 'package:couchbase_lite_dart/src/native/bindings.dart' as cbl;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:test/test.dart';
 
@@ -12,8 +12,9 @@ import '_test_utils.dart';
 const TESTDIR = '_tmp2';
 
 void main() {
+  initializeCblC();
+
   setUpAll(() {
-    Cbl.init();
     if (!Directory(TESTDIR).existsSync()) {
       Directory(TESTDIR).createSync();
     }
@@ -30,9 +31,10 @@ void main() {
 
     expect(
       () => Query(db, ''),
-      throwsA(predicate((p) =>
-          p is CouchbaseLiteException &&
-          p.code == cbl.CBLErrorCode.CBLErrorInvalidQuery.index)),
+      throwsA(predicate(
+        (p) =>
+            p is CouchbaseLiteException && p.code == cbl.CBLErrorInvalidQuery,
+      )),
     );
 
     addTearDown(() => db.close());
@@ -90,9 +92,11 @@ void main() {
     query.parameters = {'BA': 'bar'};
     expect(
       () => query.execute(),
-      throwsA(predicate((e) =>
-          e is CouchbaseLiteException &&
-          e.code == cbl.CBLErrorCode.CBLErrorInvalidQueryParam.index)),
+      throwsA(predicate(
+        (e) =>
+            e is CouchbaseLiteException &&
+            e.code == cbl.CBLErrorInvalidQueryParam,
+      )),
     );
 
     addTearDown(() => db.close());
@@ -135,7 +139,7 @@ void main() {
 
     final query = Query(db, 'SELECT * WHERE foo LIKE "%ba%"');
     var changes_received = false;
-    List rows;
+    var rows = [];
 
     var token = query.addChangeListener((results) {
       changes_received = true;

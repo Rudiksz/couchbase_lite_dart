@@ -1,7 +1,6 @@
 import 'dart:io';
 
-Future asyncSleep(int millis) =>
-    Future.delayed(Duration(milliseconds: millis ?? 500));
+Future asyncSleep(int millis) => Future.delayed(Duration(milliseconds: millis));
 
 void deleteDBFile(String path) {
   if (Directory('$path.cblite2').existsSync()) {

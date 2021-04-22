@@ -1,0 +1,33 @@
+name: CblCBindings
+description: 'Bindings for CouchbaseLiteC'
+output: 'lib/src/native/bindings.dart'
+headers:
+  entry-points:
+    - 'include/cbl/CouchbaseLite.h'
+    - 'include/cbl/Dart.h'
+
+array-workaround: true
+
+functions:
+  include:
+    - CBL.*
+    - FL.*
+    - CBLDart.*
+  rename:
+    '_(.*)': '$1'
+
+structs:
+  include:
+    - CBL.*
+    - FL.*
+  rename:
+    '_(.*)': '$1'
+
+enums:
+  include:
+    - CBL.*
+    - FL.*
+
+globals:
+  include:
+    - kCBL.*

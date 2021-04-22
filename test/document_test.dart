@@ -3,15 +3,16 @@
 // found in the LICENSE file.
 import 'dart:io';
 
-import 'package:couchbase_lite_dart/bindings/library.dart' as cbl;
+import 'package:couchbase_lite_dart/src/native/bindings.dart' as cbl;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:test/test.dart';
 
 const TESTDIR = '_tmp';
 
 void main() {
+  initializeCblC();
+
   setUpAll(() {
-    Cbl.init();
     if (!Directory(TESTDIR).existsSync()) {
       Directory(TESTDIR).createSync();
     }
@@ -168,8 +169,8 @@ void main() {
       () => Document('newdoc', db: db).saveResolving((_, __) => false),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-          e.code == cbl.CBLErrorCode.CBLErrorConflict.index)),
+          e.domain == cbl.CBLDomain &&
+          e.code == cbl.CBLErrorConflict)),
     );
 
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
@@ -201,8 +202,8 @@ void main() {
         }),
         throwsA(predicate((e) =>
             e is CouchbaseLiteException &&
-            e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-            e.code == cbl.CBLErrorCode.CBLErrorConflict.index)),
+            e.domain == cbl.CBLDomain &&
+            e.code == cbl.CBLErrorConflict)),
       );
       expect(db.getDocument('testdoc').properties['foo'].asString, 'bar1');
     }
@@ -220,13 +221,13 @@ void main() {
         () => doc.delete(),
         throwsA((e) =>
             e is CouchbaseLiteException &&
-            e.domain == cbl.CBLErrorDomain.CBLDomain.index &&
-            e.code == cbl.CBLErrorCode.CBLErrorNotFound.index));
+            e.domain == cbl.CBLDomain &&
+            e.code == cbl.CBLErrorNotFound));
 
     final doc1 = db.saveDocument(doc);
 
     expect(doc1.delete(), true);
-    expect(db.getDocument('testdoc3'), null);
+    expect(db.getDocument('testdoc3').isEmpty, true);
 
     addTearDown(() => db.close());
   });
@@ -246,8 +247,8 @@ void main() {
         () => doc1.properties['test'] = 'test',
         throwsA((e) =>
             e is CouchbaseLiteException &&
-            e.domain == cbl.CBLErrorDomain.CBLFleeceDomain.index &&
-            e.code == cbl.CBLErrorCode.CBLErrorNotWriteable.index));
+            e.domain == cbl.CBLFleeceDomain &&
+            e.code == cbl.CBLErrorNotWriteable));
 
     final mutDoc = doc1.mutableCopy;
     expect(doc1.json, mutDoc.json);

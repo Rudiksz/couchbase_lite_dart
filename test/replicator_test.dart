@@ -18,7 +18,8 @@ void main() {
   setUp(() => ChangeListeners.initalize());
 
   setUpAll(() {
-    Cbl.init();
+    initializeCblC();
+
     if (!Directory(TESTDIR).existsSync()) {
       Directory(TESTDIR).createSync();
     }
@@ -222,7 +223,7 @@ void main() {
     );
 
     var status_received = false;
-    ReplicatorStatus status;
+    var status = ReplicatorStatus('');
 
     final token = replicator.addChangeListener((newStatus) {
       status_received = true;
@@ -230,9 +231,10 @@ void main() {
     });
 
     replicator.start();
-    await asyncSleep(1000);
+    await asyncSleep(5000);
 
     expect(status_received, true);
+
     expect(status.activityLevel, isNot(ActivityLevel.stopped));
 
     await asyncSleep(5000);
@@ -264,7 +266,7 @@ void main() {
     var db = Database('replpushfilter', directory: TESTDIR);
 
     var doc_received = false;
-    Document doc_filtered;
+    var doc_filtered = Document.empty();
     await asyncSleep(1000);
     var replicator = Replicator(
       db,
@@ -282,7 +284,7 @@ void main() {
     await asyncSleep(1000);
 
     expect(doc_received, false);
-    expect(doc_filtered, isNull);
+    expect(doc_filtered.isEmpty, true);
     await asyncSleep(1000);
     db.saveDocument(Document(
       'testdoc',

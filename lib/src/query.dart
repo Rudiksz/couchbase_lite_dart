@@ -9,22 +9,25 @@ part of couchbase_lite_dart;
 /// you can think of as "SQL for JSON" or "SQL++".
 class Query {
   /// Internal pointer to the C object
-  ffi.Pointer<cbl.CBLQuery> _query;
+  Pointer<cbl.CBLQuery> _query = nullptr;
 
   /// Internal pointer to the C object
-  ffi.Pointer<cbl.CBLQuery> get ref => _query;
+  Pointer<cbl.CBLQuery> get ref => _query;
 
-  Database db;
+  Query.empty();
+  bool get isEmpty => _query == nullptr || queryString.isEmpty;
 
-  QueryLanguage language;
+  Database db = Database.empty();
 
-  String queryString;
+  QueryLanguage language = QueryLanguage.n1ql;
 
-  ffi.Pointer<ffi.Int32> outErrorPos = pffi.calloc<ffi.Int32>();
+  String queryString = '';
+
+  Pointer<Int32> outErrorPos = calloc<Int32>();
 
   /// Queries that are being listened to. Used to retrieve new results
   /// when a query change event comes in the stream.
-  static final Map<String, ffi.Pointer<cbl.CBLQuery>> _liveQueries = {};
+  static final Map<String, Pointer<cbl.CBLQuery>> _liveQueries = {};
 
   // Tokens belonging to this specific query. Used to remove listeners when disposing a query.
   final List<String> _listenerTokens = [];
@@ -38,9 +41,9 @@ class Query {
   ///
   /// You must [dispose] the [Query] when you're finished with it.
   Query(this.db, this.queryString, {this.language = QueryLanguage.n1ql}) {
-    final error = cbl.CBLError.allocate();
+    final error = calloc<cbl.CBLError>();
 
-    _query = cbl.CBLQuery_New(
+    _query = CBLC.CBLQuery_New(
       db._db,
       language.index,
       queryString.replaceAll('\n', '').toNativeUtf8().cast(),
@@ -58,13 +61,12 @@ class Query {
   ///
   /// You must release the result set when you're finished with it.
   ResultSet execute() {
-    assert(_query != ffi.nullptr,
+    assert(_query != nullptr,
         'The query was either not compiled yet or was already disposed.');
-    // error.reset();
-    final error = cbl.CBLError.allocate();
-    final result = cbl.CBLQuery_Execute(_query, error);
+    final error = calloc<cbl.CBLError>();
+    final result = CBLC.CBLQuery_Execute(_query, error);
 
-    validateError(error, cleanup: () => cbl.CBL_Release(result));
+    validateError(error, cleanup: () => CBLC.CBL_Release(result.cast()));
 
     return ResultSet(result);
   }
@@ -74,16 +76,21 @@ class Query {
   /// indicates a linear scan of the entire database, which should be avoided by adding an index.
   /// The strategy will also show which index(es), if any, are used.
   String explain() {
-    final result = cbl.CBLQuery_Explain_c(_query);
-    return result.cast<pffi.Utf8>().toDartString();
+    final result = CBLC.CBLQuery_Explain(_query);
+    final slice = FLSlice.fromSliceResult(result);
+    final str = slice.toString();
+    slice.free();
+    return str;
   }
 
   /// Returns the query's current parameter bindings, if any.
   Map get parameters {
-    final result = cbl.CBLQuery_ParametersAsJSON(_query);
-    if (result == ffi.nullptr) return {};
-
-    return jsonDecode(result.cast<pffi.Utf8>().toDartString());
+    final result = CBLC.CBLQuery_Parameters(_query);
+    if (result == nullptr) return {};
+    final dict = FLDict.fromPointer(result);
+    final json = dict.json;
+    dict.dispose();
+    return jsonDecode(json);
   }
 
   /// Assigns values to the query's parameters.
@@ -96,7 +103,9 @@ class Query {
   /// the value of the parameter.
   set parameters(Map parameters) {
     final json = jsonEncode(parameters);
-    cbl.CBLQuery_SetParametersAsJSON(_query, json.toNativeUtf8().cast()) != 0;
+    final cstr = json.toNativeUtf8();
+    CBLC.CBLQuery_SetParametersAsJSON(_query, cstr.cast());
+    calloc.free(cstr);
   }
 
   // ++ Query change listener
@@ -111,8 +120,11 @@ class Query {
   /// the listener.
   String addChangeListener(Function(ResultSet) callback) =>
       ChangeListeners.addChangeListener<QueryChange>(
-        addListener: (String token) => cbl.CBLQuery_AddChangeListener_d(
-            _query, token.toNativeUtf8().cast()),
+        addListener: (String token) => CBLC.CBLQuery_AddChangeListener(
+          _query,
+          _CBLDart_QueryChangeListener_ptr,
+          token.toNativeUtf8().cast(),
+        ),
         onListenerAdded: (Stream<QueryChange> stream, String token) {
           _liveQueries[token] = _query;
           _listenerTokens.add(token);
@@ -140,8 +152,8 @@ class Query {
 
     if (liveQuery == null || listener == null) return;
 
-    final error = cbl.CBLError.allocate();
-    final results = cbl.CBLQuery_CopyCurrentResults(
+    final error = calloc<cbl.CBLError>();
+    final results = CBLC.CBLQuery_CopyCurrentResults(
       liveQuery,
       listener,
       error,
@@ -151,16 +163,16 @@ class Query {
 
     //Emit an event on the stream
     ChangeListeners.stream<QueryChange>()
-        .sink
+        ?.sink
         .add(QueryChange(queryId, ResultSet(results)));
   }
 
   /// Disposes the query by freeing up the memory. You can't execute the
   /// query once it's disposed.
   void dispose() {
-    _listenerTokens.toList().forEach(removeChangeListener);
-    cbl.CBL_Release(_query);
-    _query = ffi.nullptr;
+    //_listenerTokens.toList().forEach(removeChangeListener);
+    CBLC.CBL_Release(_query.cast());
+    _query = nullptr;
   }
 }
 
@@ -181,7 +193,7 @@ class Query {
 /// rs.dispose();
 /// ```
 class ResultSet {
-  ffi.Pointer<cbl.CBLResultSet> _results;
+  Pointer<cbl.CBLResultSet> _results;
   bool _hasRow = false;
   ResultSet(this._results);
 
@@ -189,21 +201,23 @@ class ResultSet {
   /// Returns false if there are no more results.
   /// This must be called _before_ examining the first result.
   bool next() =>
-      _hasRow = _results != ffi.nullptr && cbl.CBLResultSet_Next(_results) != 0;
+      _hasRow = _results != nullptr && CBLC.CBLResultSet_Next(_results);
 
   ///Returns the current result as a dictionary mapping column names to values.
   ///
   /// **Note**: The dictionary reference is only valid until the result-set is advanced or disposed.
   /// If you want to keep it for longer, call `FLDict.retain()`, and `FLDict.dispose()` when done.
-  FLDict get rowDict =>
-      _hasRow ? FLDict.fromPointer(cbl.CBLResultSet_RowDict(_results)) : null;
+  FLDict get rowDict => _hasRow
+      ? FLDict.fromPointer(CBLC.CBLResultSet_RowDict(_results))
+      : FLDict.empty();
 
   /// Returns the current result as an array of column values.
   ///
   /// **Note**: The array reference is only valid until the result-set is advanced or disposed.
   /// If you want to keep it for longer, call `FLArray.retain()`, and `FLArray.dispose()` when done.
-  FLArray get rowArray =>
-      _hasRow ? FLArray.fromPointer(cbl.CBLResultSet_RowArray(_results)) : null;
+  FLArray get rowArray => _hasRow
+      ? FLArray.fromPointer(CBLC.CBLResultSet_RowArray(_results))
+      : FLArray();
 
   /// Returns the results as a List.
   ///
@@ -219,9 +233,9 @@ class ResultSet {
 
   /// Releases the result set, freeing up memory
   void dispose() {
-    if (_results != ffi.nullptr) {
-      cbl.CBL_Release(_results);
-      _results = ffi.nullptr;
+    if (_results != nullptr) {
+      CBLC.CBL_Release(_results.cast());
+      _results = nullptr;
     }
   }
 }
@@ -241,3 +255,12 @@ enum QueryLanguage {
   /// [N1QL syntax](https://docs.couchbase.com/server/6.0/n1ql/n1ql-language-reference/index.html)
   n1ql
 }
+
+late final _CBLDart_QueryChangeListener_ptr = Cbl.dylib
+    .lookup<NativeFunction<_c_CBLDart_QueryChangeListener>>(
+        'CBLDart_QueryChangeListener');
+
+typedef _c_CBLDart_QueryChangeListener = Void Function(
+  Pointer<Void> queryId,
+  Pointer<cbl.CBLQuery> query,
+);

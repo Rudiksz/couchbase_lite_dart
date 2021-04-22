@@ -7,22 +7,21 @@ part of couchbase_lite_dart;
 /// FLArray is a "subclass" of FLValue, representing values that are arrays.
 class FLArray extends IterableBase<FLValue> {
   /// The C pointer to the FLArray
-  ffi.Pointer<cbl.FLArray> _value;
-  ffi.Pointer<cbl.FLArray> get ref => _value;
+  Pointer<cbl.FLArray> _value = nullptr;
+  Pointer<cbl.FLArray> get ref => _value;
 
-  bool _mutable;
+  bool? _mutable;
 
   /// True if the current value was retained beyond it's scope
   bool _retained = false;
 
   // final error = pffi.allocate<ffi.Uint8>();
-  FLError error;
+  FLError error = FLError.noError;
 
-  FLArrayIterator _iter;
+  FLArrayIterator? _iter;
 
-  FLArray() {
-    _value = cbl.FLMutableArray_New().cast<cbl.FLArray>();
-  }
+  FLArray.empty();
+  FLArray() : _value = CBLC.FLMutableArray_New().cast<cbl.FLArray>();
 
   FLArray.fromPointer(this._value);
 
@@ -36,74 +35,79 @@ class FLArray extends IterableBase<FLValue> {
 
   void _fromData(String data) {
     final fldoc = FLDoc.fromJson(data);
-    _value = fldoc.root?.asList?.ref ?? ffi.nullptr;
+    _value = fldoc.root.asList.ref;
     error = fldoc.error;
     retain();
-    cbl.FLDoc_Release(fldoc._doc);
+    CBLC.FLDoc_Release(fldoc._doc);
   }
 
   /// Cast the FLArray as a FLValue
   FLValue get value => FLValue.fromPointer(_value.cast());
 
-  bool get isMutable =>
-      _mutable ??= cbl.FLArray_AsMutable(_value) != ffi.nullptr;
+  bool get isMutable => _mutable ??= CBLC.FLArray_AsMutable(_value) != nullptr;
 
   /// Creates a shallow mutable copy of this dictionary
-  FLArray get mutable => FLArray.fromPointer(cbl.FLArray_MutableCopy(
+  FLArray get mutable => FLArray.fromPointer(CBLC.FLArray_MutableCopy(
         _value,
-        cbl.FLCopyFlags.defaultCopy.index,
+        cbl.FLCopyFlags.kFLDefaultCopy,
       ).cast<cbl.FLArray>());
 
   /// Creates a deep (recursive) mutable copy of this dictionary
-  FLArray get mutableCopy => FLArray.fromPointer(cbl.FLArray_MutableCopy(
+  FLArray get mutableCopy => FLArray.fromPointer(CBLC.FLArray_MutableCopy(
         _value,
-        cbl.FLCopyFlags.deepCopy.index | cbl.FLCopyFlags.copyImmutables.index,
+        cbl.FLCopyFlags.kFLDeepCopyImmutables,
       ).cast<cbl.FLArray>());
 
-  bool get changed =>
-      isMutable && cbl.FLMutableDict_IsChanged(_value.cast()) != 0;
+  bool get changed => isMutable && CBLC.FLMutableDict_IsChanged(_value.cast());
 
   /// Encodes the array value as JSON (or a JSON fragment.)
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
-    final cstr = cbl.FLDump(_value.cast());
-    final str = cstr.cast<pffi.Utf8>().toDartString();
-    return str;
+    final slice = FLSlice.fromSliceResult(CBLC.FLValue_ToJSON(_value.cast()));
+    final result = slice.toString();
+    slice.free();
+    return result;
   }
 
   @override
   String toString() => json;
 
   @override
-  int get length => cbl.FLArray_Count(_value);
+  int get length => CBLC.FLArray_Count(_value);
 
   @override
-  bool get isEmpty => cbl.FLArray_IsEmpty(_value) != 0;
+  bool get isEmpty => CBLC.FLArray_IsEmpty(_value);
 
   @override
   bool get isNotEmpty => !isEmpty;
 
   FLValue call(String keyPath) {
     // Some values are not supported
-    if (keyPath.isEmpty || keyPath.contains('[]')) return null;
-    final outError = pffi.calloc<ffi.Uint8>();
-    outError.value = 0;
-    final val = cbl.FLKeyPath_EvalOnce(
-      keyPath.toNativeUtf8().cast(),
+    if (keyPath.isEmpty || keyPath.contains('[]')) {
+      return FLValue.empty();
+    }
+    final outError = calloc<Int32>()..value = 0;
+    final _keyPath = FLSlice.fromString(keyPath);
+
+    final val = CBLC.FLKeyPath_EvalOnce(
+      _keyPath.slice,
       _value.cast(),
       outError,
     );
     error = outError.value < FLError.values.length
         ? FLError.values[outError.value]
         : FLError.unsupported;
-    pffi.calloc.free(outError);
+    calloc.free(outError);
+    _keyPath.free();
 
-    return error == FLError.noError ? FLValue.fromPointer(val) : null;
+    return error == FLError.noError
+        ? FLValue.fromPointer(val)
+        : FLValue.empty();
   }
 
   /// Returns an value at an array index, or NULL if the index is out of range.
   FLValue operator [](int index) =>
-      FLValue.fromPointer(cbl.FLArray_Get(_value, index));
+      FLValue.fromPointer(CBLC.FLArray_Get(_value, index));
 
   /// Set the value at an array index
   ///
@@ -113,57 +117,59 @@ class FLArray extends IterableBase<FLValue> {
   void operator []=(int index, dynamic value) {
     if (!isMutable) {
       throw CouchbaseLiteException(
-        cbl.CBLErrorDomain.CBLFleeceDomain.index,
-        cbl.CBLErrorCode.CBLErrorNotWriteable.index,
+        cbl.CBLFleeceDomain,
+        cbl.CBLErrorNotWriteable,
         'List is not mutable',
       );
     }
 
     final slot = index > length - 1
-        ? cbl.FLMutableArray_Append(_value.cast())
-        : cbl.FLMutableArray_Set(_value.cast(), index);
+        ? CBLC.FLMutableArray_Append(_value.cast())
+        : CBLC.FLMutableArray_Set(_value.cast(), index);
 
-    if (value == null) return cbl.FLSlot_SetNull(slot);
+    if (value == null) return CBLC.FLSlot_SetNull(slot);
 
     switch (value.runtimeType) {
       case FLValue:
       case FLDict:
       case FLArray:
-        cbl.FLSlot_SetValue(slot, value.ref.cast<cbl.FLValue>());
+        CBLC.FLSlot_SetValue(slot, value.ref.cast<cbl.FLValue>());
         break;
       case bool:
-        cbl.FLSlot_SetBool(slot, (value as bool) ? 1 : 0);
+        CBLC.FLSlot_SetBool(slot, value as bool);
         break;
       case int:
-        cbl.FLSlot_SetInt(slot, value as int);
+        CBLC.FLSlot_SetInt(slot, value as int);
         break;
       case double:
-        cbl.FLSlot_SetDouble(slot, value as double);
+        CBLC.FLSlot_SetDouble(slot, value as double);
         break;
       case String:
-        cbl.FLSlot_SetString(slot, (value as String).toNativeUtf8().cast());
+        final _value = FLSlice.fromString(value);
+        CBLC.FLSlot_SetString(slot, _value.slice);
+        _value.free();
         break;
       default:
         // Create a value from the input
         final valueDoc = FLDoc.fromJson(jsonEncode(value));
         if (valueDoc.error != FLError.noError) return;
-        cbl.FLSlot_SetValue(slot, valueDoc.root.ref);
+        CBLC.FLSlot_SetValue(slot, valueDoc.root.ref);
     }
   }
 
   FLArray retain() {
-    if (_value != null && _value != ffi.nullptr && !_retained) {
-      cbl.FLValue_Retain(_value.cast());
+    if (_value != nullptr && !_retained) {
+      CBLC.FLValue_Retain(_value.cast());
       _retained = true;
     }
     return this;
   }
 
   void dispose() {
-    if (_value != null && _value != ffi.nullptr && _retained) {
-      cbl.FLValue_Release(_value.cast());
+    if (_value != nullptr && _retained) {
+      CBLC.FLValue_Release(_value.cast());
     }
-    _value = ffi.nullptr;
+    _value = nullptr;
     _retained = false;
     _iter?.end();
     _iter = null;
@@ -174,13 +180,16 @@ class FLArray extends IterableBase<FLValue> {
 }
 
 class FLArrayIterator implements Iterator<FLValue> {
-  ffi.Pointer<cbl.FLArrayIterator> _iter = ffi.nullptr;
+  Pointer<cbl.FLArrayIterator> _iter = nullptr;
   final FLArray _array;
   bool first = true;
   int count = 0;
 
   FLArrayIterator(this._array) {
-    if (_iter == ffi.nullptr) _iter = cbl.FLArrayIterator_New(_array._value);
+    if (_iter == nullptr) {
+      _iter = calloc<cbl.FLArrayIterator>();
+      CBLC.FLArrayIterator_Begin(_array._value, _iter);
+    }
   }
 
   // Note: The FLArrayIterator_Begin method positions the iterator at the first element,
@@ -189,20 +198,20 @@ class FLArrayIterator implements Iterator<FLValue> {
   // FLArrayIterator
   @override
   FLValue get current {
-    if (_array.isEmpty || _iter == ffi.nullptr) return null;
+    if (_array.isEmpty || _iter == nullptr) return FLValue.empty();
 
-    return FLValue.fromPointer(cbl.FLArrayIterator_GetValue(_iter));
+    return FLValue.fromPointer(CBLC.FLArrayIterator_GetValue(_iter));
   }
 
   @override
   bool moveNext() {
-    if (_array.isEmpty || _iter == ffi.nullptr) return false;
+    if (_array.isEmpty || _iter == nullptr) return false;
     if (first) {
       first = false;
       return true;
     }
 
-    final next = cbl.FLArrayIterator_Next(_iter) != 0;
+    final next = CBLC.FLArrayIterator_Next(_iter);
 
     // Release the C iterator
     if (!next) end();
@@ -212,7 +221,7 @@ class FLArrayIterator implements Iterator<FLValue> {
 
   /// Releases the C iterator
   void end() {
-    cbl.Dart_Free(_iter);
-    _iter = ffi.nullptr;
+    //CBLC.FLArrayIterator_End(_iter); // TODO bindings
+    _iter = nullptr;
   }
 }

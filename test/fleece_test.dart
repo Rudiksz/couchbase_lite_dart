@@ -2,14 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import 'dart:collection';
+import 'dart:ffi';
 
-import 'package:couchbase_lite_dart/bindings/library.dart' as cbl;
 import 'package:couchbase_lite_dart/couchbase_lite_dart.dart';
 import 'package:test/test.dart';
 
 const TESTDIR = '_tmp';
 
 void main() {
+  initializeCblC();
+
   group('FLDoc', () {
     test('fromJson', () {
       expect(FLDoc.fromJson('{"foo"}').error, FLError.jsonError);
@@ -128,22 +130,22 @@ void main() {
       expect(doc['list'].asList.runtimeType, FLArray);
       expect(doc['list'].asList.json, '[1,2]');
 
-      expect(doc['int'].asList, null);
-      expect(doc['double'].asList, null);
-      expect(doc['string'].asList, null);
-      expect(doc['boolean'].asList, null);
-      expect(doc['map'].asList, null);
+      expect(doc['int'].asList, FLArray());
+      expect(doc['double'].asList, FLArray());
+      expect(doc['string'].asList, FLArray());
+      expect(doc['boolean'].asList, FLArray());
+      expect(doc['map'].asList, FLArray());
     });
 
     test('asMap', () {
       expect(doc['map'].asMap.runtimeType, FLDict);
       expect(doc['map'].asMap.json, '{"one":"two"}');
 
-      expect(doc['int'].asMap, null);
-      expect(doc['double'].asMap, null);
-      expect(doc['string'].asMap, null);
-      expect(doc['boolean'].asMap, null);
-      expect(doc['list'].asMap, null);
+      expect(doc['int'].asMap, FLDict());
+      expect(doc['double'].asMap, FLDict());
+      expect(doc['string'].asMap, FLDict());
+      expect(doc['boolean'].asMap, FLDict());
+      expect(doc['list'].asMap, FLDict());
     });
 
     test('toString', () {
@@ -227,7 +229,17 @@ void main() {
     test('fromJson', () {
       expect(FLDict.fromJson('{"foo":"bar"').error, FLError.jsonError);
       expect(FLDict.fromJson('{"foo":"bar"}').json, '{"foo":"bar"}');
-      expect(FLDict.fromJson('[1,2]').value.type, FLValueType.Undefined);
+      expect(FLDict.fromJson('[1,2]').value.type, FLValueType.Dict);
+      expect(FLDict.fromJson('[1,2]').value.json, '{}');
+    });
+
+    test('dispose', () {
+      final dict = FLDict.fromJson('{"foo":"bar"}');
+      expect(dict.ref, isNot(nullptr));
+      expect(dict.retained, true);
+      dict.dispose();
+      expect(dict.ref, nullptr);
+      expect(dict.retained, false);
     });
 
     test('length', () {
@@ -267,8 +279,8 @@ void main() {
         () => dict['value'] = 2,
         throwsA(predicate((e) =>
             e is CouchbaseLiteException &&
-            e.domain == cbl.CBLErrorDomain.CBLFleeceDomain.index &&
-            e.code == cbl.CBLErrorCode.CBLErrorNotWriteable.index)),
+            e.domain == 4 && // TODO FIX
+            e.code == 14)),
       );
 
       final mutDict = dict.mutableCopy;
@@ -359,7 +371,8 @@ void main() {
     test('fromJson', () {
       expect(FLArray.fromJson('[1, 2').error, FLError.jsonError);
       expect(FLArray.fromJson('[1,2]').json, '[1,2]');
-      expect(FLArray.fromJson('{"1": 2}').value.type, FLValueType.Undefined);
+      expect(FLArray.fromJson('{"1": 2}').value.type, FLValueType.Array);
+      expect(FLArray.fromJson('{"1": 2}').value.json, '[]');
     });
 
     test('length', () {
@@ -399,8 +412,8 @@ void main() {
         () => list[0] = 2,
         throwsA(predicate((e) =>
             e is CouchbaseLiteException &&
-            e.domain == cbl.CBLErrorDomain.CBLFleeceDomain.index &&
-            e.code == cbl.CBLErrorCode.CBLErrorNotWriteable.index)),
+            e.domain == 4 && // TODO FIX
+            e.code == 14)),
       );
 
       final mutList = list.mutableCopy;
