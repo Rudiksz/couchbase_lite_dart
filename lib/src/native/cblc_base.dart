@@ -17,21 +17,22 @@ void initializeCblC({Map<String, String> dylibs = const {}}) {
     return;
   }
 
-  print(File('lib/dynlib/CouchbaseLiteC.dll').absolute.path);
-
   late String dylibPath;
   late var dylib;
   if (Platform.isAndroid) {
-    dylibPath = dylibs['android'] ?? 'CouchbaseLiteC.so';
+    throw Exception('Android support is still work in progress');
+    //dylibPath = dylibs['android'] ?? 'CouchbaseLiteC.so';
   } else if (Platform.isMacOS) {
-    dylibPath = dylibs['macos'] ?? 'dynlib/CouchbaseLiteC.dylib';
+    dylibPath = dylibs['macos'] ?? 'dynlib/libCouchbaseLiteC.dylib';
   } else if (Platform.isWindows) {
-    dylibPath = dylibs['windows'] ?? 'lib/dynlib/CouchbaseLiteC.dll';
+    dylibPath = dylibs['windows'] ?? 'dynlib/CouchbaseLiteC.dll';
   } else if (Platform.isLinux) {
+    throw Exception('Linux support is still work in progress');
     dylibPath = dylibs['linux'] ?? 'CouchbaseLiteC.so';
   }
   try {
     if (Platform.isIOS) {
+      throw Exception('iOS support is still work in progress');
       dylib = DynamicLibrary.process();
     } else {
       dylib = DynamicLibrary.open(dylibPath);
@@ -41,57 +42,9 @@ void initializeCblC({Map<String, String> dylibs = const {}}) {
     Cbl.dylib = dylib;
 
     _CBLC?.CBLDart_PostCObject(NativeApi.postCObject.cast());
-    /*registerDart_NewNativePort(NativeApi.newNativePort);
-  registerDart_CloseNativePort(NativeApi.closeNativePort);*/
-
   } catch (e) {
-    print(e.toString());
     throw Exception('Could not initialize CouchbaseLiteC library.');
   }
-
-  // final registerSendPort =
-  //     dylib.lookup<Void Function(Int64 sendPort), void Function(int sendPort)>(
-  //         'RegisterSendPort');
-/*
-  final registerDart_PostCObject_ptr = dylib.lookup<
-      Void Function(
-          NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>
-              functionPointer)>('RegisterDart_PostCObject');
-
-  final registerDart_PostCObject = registerDart_PostCObject_ptr.asFunction<
-      void Function(
-          Pointer<NativeFunction<Int8 Function(Int64, Pointer<Dart_CObject>)>>
-              functionPointer)>();
-
-  final registerDart_NewNativePort = dylib.lookupFunction<
-      Void Function(
-          Pointer<
-                  NativeFunction<
-                      Int64 Function(
-                          Pointer<Uint8>,
-                          Pointer<NativeFunction<Dart_NativeMessageHandler>>,
-                          Int8)>>
-              functionPointer),
-      void Function(
-          Pointer<
-                  NativeFunction<
-                      Int64 Function(
-                          Pointer<Uint8>,
-                          Pointer<NativeFunction<Dart_NativeMessageHandler>>,
-                          Int8)>>
-              functionPointer)>('RegisterDart_NewNativePort');
-
-  final registerDart_CloseNativePort = dylib?.lookupFunction<
-          Void Function(
-              Pointer<NativeFunction<Int8 Function(Int64)>> functionPointer),
-          void Function(
-              Pointer<NativeFunction<Int8 Function(Int64)>> functionPointer)>(
-      'RegisterDart_CloseNativePort');
-
-  // Windows static linking workaround
-  registerDart_PostCObject(NativeApi.postCObject);
-  registerDart_NewNativePort(NativeApi.newNativePort);
-  registerDart_CloseNativePort(NativeApi.closeNativePort);*/
 
   ChangeListeners.initalize();
 }
