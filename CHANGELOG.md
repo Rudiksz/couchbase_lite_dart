@@ -1,3 +1,8 @@
+## 0.5.0-nullsafety.2
+* Support for nullsafety and FFI 1.0.0
+* Added macOS support
+* **Minimum requirements** are Dart SDK 2.12+ and/or Flutter 2+. This release is not backwards compatible and it will likely crash on SDK < 2.12
+
 ## 0.4.0
 * **(!!)** Queries now return a ResultSet object instead of a Dart list. Use `ResultSet.allResults` to get the previous behaviour.
 * **(!!)** Renamed Document `jsonProperties` setter/getter to `json`

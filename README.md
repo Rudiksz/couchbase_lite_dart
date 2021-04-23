@@ -50,25 +50,25 @@ Help with testing, documentation and development is welcome. Here's how you can 
     * [x] Stream based API
 
 # Platform support
+Platform libraries are not bundled in  the package, so some assembly is required. You can either 
 
-* **Windows:** Bundled with the package. Beta status.
-* **Android:** 
-    Some assembly is required. You can either 
+* build the shared libraries yourself from the repository:
+https://github.com/Rudiksz/couchbase-lite-C.git using the `dart-ffi1` branch or the tag with the matching version
     
-    * build the shared libraries yourself from the repository:
-    https://github.com/Rudiksz/couchbase-lite-C.git using the `feature/dart` branch or the tag with the matching version
-    
-    * download the prebuilt libraries from [BUILDS]
+* download the prebuilt binaries from the [Releases] page on GitHub
 
-    Once you have the shared libraries place them in your project's
-    `\android\app\src\main\jniLibs\` folder
+Once you have the shared libraries, place them in the following folders in your project:
 
-* **iOS, macOS:** N/A
-
+* **Windows:** `dynlib/`
+* **MacOS:** `dynlib/`
+* **Linux:** N/A
+* **Android:** `android/app/src/main/jniLibs/`
+* **iOS:** N/A
 
 # Examples and how to use
 Important in your main.dart call to initialize Dart<->C callbacks.
 ```
+WidgetsFlutterBinding.ensureInitialized();
 Cbl.init();
 ```
 
@@ -167,4 +167,4 @@ There are couple of ways in which you can contribute:
 [CBL_C]: https://github.com/couchbaselabs/couchbase-lite-C
 [N1QL]: https://www.couchbase.com/n1ql
 [FLEECE]: https://github.com/couchbaselabs/fleece
-[BUILDS]: https://drive.google.com/drive/folders/1qiLdB64kq-IEsp6hFgvSqG80bzaI33Jf
+[Releases]: https://github.com/Rudiksz/couchbase_lite_dart/releases
