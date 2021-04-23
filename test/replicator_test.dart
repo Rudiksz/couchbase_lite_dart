@@ -11,7 +11,7 @@ import '_test_utils.dart';
 const TESTDIR = '_tmp1';
 
 void main() {
-  var endpointUrl = 'ws://localhost:4984/cbltest/';
+  var endpointUrl = 'ws://192.168.0.240:4984/cbltest/';
   var username = 'cbltest';
   var password = 'cbltest';
 
@@ -254,12 +254,6 @@ void main() {
     replicator.start();
 
     expect(status_received, false);
-
-    addTearDown(() async {
-      replicator.stop();
-      await asyncSleep(500);
-      db.close();
-    });
   });
 
   test('pushFilter', () async {
