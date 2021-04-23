@@ -9,4 +9,5 @@
 
 build/
 plugintest.cblite2/
+dynlib/
 *.so
