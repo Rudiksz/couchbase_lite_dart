@@ -17,25 +17,39 @@ void initializeCblC({Map<String, String> dylibs = const {}}) {
     return;
   }
 
-  late String dylibPath;
-  late var dylib;
+  String dylibPath = 'vendor/cblite/';
+  String libName = '';
+  late DynamicLibrary dylib;
+
   if (Platform.isAndroid) {
-    throw Exception('Android support is still work in progress');
-    //dylibPath = dylibs['android'] ?? 'CouchbaseLiteC.so';
+    dylibPath = '';
+    libName = 'CouchbaseLiteC.so';
   } else if (Platform.isMacOS) {
-    dylibPath = dylibs['macos'] ?? 'dynlib/libCouchbaseLiteC.dylib';
+    libName = 'libCouchbaseLiteC.dylib';
   } else if (Platform.isWindows) {
-    dylibPath = dylibs['windows'] ?? 'dynlib/CouchbaseLiteC.dll';
+    libName = 'CouchbaseLiteC.dll';
   } else if (Platform.isLinux) {
     throw Exception('Linux support is still work in progress');
-    dylibPath = dylibs['linux'] ?? 'CouchbaseLiteC.so';
+    libName = 'CouchbaseLiteC.so';
   }
+
+  print(dylibPath);
+
   try {
-    if (Platform.isIOS) {
-      throw Exception('iOS support is still work in progress');
-      dylib = DynamicLibrary.process();
-    } else {
-      dylib = DynamicLibrary.open(dylibPath);
+    try {
+      if (Platform.isIOS) {
+        throw Exception('iOS support is still work in progress');
+        dylib = DynamicLibrary.process();
+      } else {
+        dylib = DynamicLibrary.open(dylibPath + libName);
+      }
+    } catch (e) {
+      if (Platform.isIOS) {
+        throw Exception('iOS support is still work in progress');
+        dylib = DynamicLibrary.process();
+      } else {
+        dylib = DynamicLibrary.open(libName);
+      }
     }
 
     _CBLC = CblCBindings(dylib);

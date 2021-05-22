@@ -59,8 +59,8 @@ https://github.com/Rudiksz/couchbase-lite-C.git using the `dart-ffi1` branch or 
 
 Once you have the shared libraries, place them in the following folders in your project:
 
-* **Windows:** `dynlib/`
-* **MacOS:** `dynlib/`
+* **Windows:** `vendor/cblite`
+* **MacOS:** `vendor/cblite`
 * **Linux:** N/A
 * **Android:** `android/app/src/main/jniLibs/`
 * **iOS:** N/A

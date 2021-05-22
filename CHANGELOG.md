@@ -1,3 +1,8 @@
+## 0.5.0-nullsafety.3
+* **(!)** Moved dynamic libraries to `vendor/cblite` folder
+* Added Android support
+* Fix Windows exe builds. The dll should be in the same folder as the exe file, or the `vendor/cblite/` subfolder.
+
 ## 0.5.0-nullsafety.2
 * Support for nullsafety and FFI 1.0.0
 * Added macOS support
