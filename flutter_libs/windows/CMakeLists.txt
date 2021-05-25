@@ -31,11 +31,11 @@ set(couchbase_lite_dart_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 if (${couchbase_lite_dart_ARCH} MATCHES "AMD64")
     set(couchbase_lite_dart_ARCH x64)
 endif ()
-
+# TODO: change the url from yegobox ->
 include(FetchContent)
 FetchContent_Declare(
     couchbase_lite_dart-download
-    URL https://github.com/couchbase_lite_dart/couchbase_lite_dart-c/releases/download/v${couchbase_lite_dart_VERSION}/couchbase_lite_dart-windows-${couchbase_lite_dart_ARCH}.zip
+    URL https://github.com/yegobox/couchbase_lite_dart/releases/download/v${couchbase_lite_dart_VERSION}/couchbaselitedart-windows-${couchbase_lite_dart_ARCH}.zip
 )
 
 FetchContent_GetProperties(couchbase_lite_dart-download)
@@ -44,7 +44,7 @@ if(NOT couchbase_lite_dart-download_POPULATED)
 endif()
 
 set(couchbase_lite_dart_flutter_libs_bundled_libraries
-    "${couchbase_lite_dart-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}couchbase_lite_dart${CMAKE_SHARED_LIBRARY_SUFFIX}"
+    "${couchbaselitedart-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}couchbaselitedart${CMAKE_SHARED_LIBRARY_SUFFIX}"
     PARENT_SCOPE
 )
 
