@@ -1,0 +1,19 @@
+apply plugin: 'com.android.library'
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 24
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+   implementation "com.couchbase.lite:couchbase-lite-android:2.8"
+}
