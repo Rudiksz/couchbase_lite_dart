@@ -12,7 +12,7 @@ dependencies:
   # This is here just to ensure compatibility between couchbaselitedart-dart code and the libraries used
   # You should still depend on couchbaselitedart directly in your Flutter application.
   couchbase_lite_dart: 
-    path: '../..'
+    path: '..'
 
 flutter:
   plugin:
