@@ -64,6 +64,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
+  couchbaselite_dart_flutter_libs:
+    dependency: "direct main"
+    description:
+      path: flutter_libs
+      relative: true
+    source: path
+    version: "1.0.0"
   coverage:
     dependency: transitive
     description:
@@ -360,3 +367,4 @@ packages:
     version: "3.1.0"
 sdks:
   dart: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"

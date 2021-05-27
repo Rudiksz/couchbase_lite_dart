@@ -11,7 +11,8 @@ environment:
 dependencies:
   # This is here just to ensure compatibility between couchbaselitedart-dart code and the libraries used
   # You should still depend on couchbaselitedart directly in your Flutter application.
-  couchbaselitedart: 1.0.0
+  couchbase_lite_dart: 
+    path: '../..'
 
 flutter:
   plugin:

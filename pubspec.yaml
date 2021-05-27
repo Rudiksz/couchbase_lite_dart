@@ -10,7 +10,8 @@ dependencies:
   uuid: ^3.0.1
   meta: ^1.2.3
   path: ^1.7.0
-
+  couchbaselite_dart_flutter_libs:
+    path: './flutter_libs'
 dev_dependencies:
   test: ^1.5.3
   pedantic: ^1.0.0
