@@ -4,11 +4,9 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 
 # This value is used when generating builds using this plugin, so it must
 # not be changed
-# set(PLUGIN_NAME "couchbaselite_dart_flutter_libs_plugin")
+set(PLUGIN_NAME "couchbaselite_dart_flutter_libs")
 
-# add_library(${PLUGIN_NAME} SHARED
-#   "couchbaselite_dart_flutter_libs_plugin.cpp"
-# )
+
 apply_standard_settings(${PLUGIN_NAME})
 set_target_properties(${PLUGIN_NAME} PROPERTIES
   CXX_VISIBILITY_PRESET hidden)
@@ -25,7 +23,7 @@ set(couchbaselite_dart_flutter_libs_bundled_libraries
 
 # ----------------------------------------------------------------------
 
-set(couchbase_lite_dart_VERSION 0.14.0)
+set(couchbase_lite_dart_VERSION 1.0.0)
 
 set(couchbase_lite_dart_ARCH ${CMAKE_SYSTEM_PROCESSOR})
 if (${couchbase_lite_dart_ARCH} MATCHES "AMD64")
