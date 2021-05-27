@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
-set(PROJECT_NAME "couchbase_lite_dart_flutter_libs")
+set(PROJECT_NAME "couchbaselite_dart_flutter_libs")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
 # This value is used when generating builds using this plugin, so it must
 # not be changed
-set(PLUGIN_NAME "couchbase_lite_dart_flutter_libs_plugin")
+# set(PLUGIN_NAME "couchbaselite_dart_flutter_libs_plugin")
 
-add_library(${PLUGIN_NAME} SHARED
-  "couchbase_lite_dart_flutter_libs_plugin.cpp"
-)
+# add_library(${PLUGIN_NAME} SHARED
+#   "couchbaselite_dart_flutter_libs_plugin.cpp"
+# )
 apply_standard_settings(${PLUGIN_NAME})
 set_target_properties(${PLUGIN_NAME} PROPERTIES
   CXX_VISIBILITY_PRESET hidden)
@@ -18,7 +18,7 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
 
 # List of absolute paths to libraries that should be bundled with the plugin
-set(couchbase_lite_dart_flutter_libs_bundled_libraries
+set(couchbaselite_dart_flutter_libs_bundled_libraries
   ""
   PARENT_SCOPE
 )
@@ -43,7 +43,7 @@ if(NOT couchbase_lite_dart-download_POPULATED)
   FetchContent_Populate(couchbase_lite_dart-download)
 endif()
 
-set(couchbase_lite_dart_flutter_libs_bundled_libraries
+set(couchbaselite_dart_flutter_libs_bundled_libraries
     "${couchbaselitedart-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}couchbaselitedart${CMAKE_SHARED_LIBRARY_SUFFIX}"
     PARENT_SCOPE
 )

@@ -18,13 +18,14 @@ flutter:
   plugin:
     platforms:
       android:
-        package: io.couchbaselitedart.couchbaselite_dart_flutter_libs
-        pluginClass: couchbaselitedartFlutterLibsPlugin
+        package: io.couchbase_lite_dart.couchbase_lite_dart_flutter_libs
+        pluginClass: CouchbaseLiteDartFlutterLibsPlugin
+        # ObjectboxFlutterLibsPlugin
       ios:
-        pluginClass: couchbaselitedartFlutterLibsPlugin
+        pluginClass: CouchbaselitedartFlutterLibsPlugin
       linux:
-        pluginClass: couchbaselitedartFlutterLibsPlugin
+        pluginClass: CouchbaselitedartFlutterLibsPlugin
       macos:
-        pluginClass: couchbaselitedartFlutterLibsPlugin
+        pluginClass: CouchbaselitedartFlutterLibsPlugin
       windows:
-        pluginClass: couchbaselitedartFlutterLibsPlugin
+        pluginClass: CouchbaselitedartFlutterLibsPlugin
