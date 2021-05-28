@@ -1,4 +1,5 @@
-name: couchbaselite_dart_flutter_libs
+name: cblite_libs
+# cblite_libs_plugin
 version: 1.0.0
 repository: https://github.com/Rudiksz/couchbase_lite_dart
 homepage: 
@@ -18,7 +19,7 @@ flutter:
   plugin:
     platforms:
       android:
-        package: io.couchbase_lite_dart.couchbase_lite_dart_flutter_libs
+        package: io.couchbase_lite_dart.cblite_libs
         pluginClass: CouchbaseLiteDartFlutterLibsPlugin
         # ObjectboxFlutterLibsPlugin
       ios:

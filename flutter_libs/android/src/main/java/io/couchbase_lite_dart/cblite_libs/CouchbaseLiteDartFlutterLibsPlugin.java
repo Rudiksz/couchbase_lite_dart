@@ -1,4 +1,4 @@
-package io.couchbaselitedart.objectbox_flutter_libs;
+package io.couchbase_lite_dart.cblite_libs;
 
 import androidx.annotation.NonNull;
 
