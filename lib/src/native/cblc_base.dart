@@ -9,56 +9,40 @@ CblCBindings get CBLC => _CBLC!;
 
 class Cbl {
   static late DynamicLibrary dylib;
-  static void init() => initializeCblC();
+  static void init() {
+    initializeCblC();
+  }
 }
 
+DynamicLibrary? _lib;
 void initializeCblC({Map<String, String> dylibs = const {}}) {
   if (_CBLC != null) {
     return;
   }
-
-  String dylibPath = 'vendor/cblite/';
-  String libName = '';
-  late DynamicLibrary dylib;
-
-  if (Platform.isAndroid) {
-    dylibPath = '';
-    libName = 'CouchbaseLiteC.so';
-  } else if (Platform.isMacOS) {
-    libName = 'libCouchbaseLiteC.dylib';
-  } else if (Platform.isWindows) {
-    libName = 'CouchbaseLiteC.dll';
-  } else if (Platform.isLinux) {
-    throw Exception('Linux support is still work in progress');
-    libName = 'CouchbaseLiteC.so';
-  }
-
-  print(dylibPath);
-
-  try {
+  _lib = null;
+  var libName = 'CouchbaseLiteC';
+  if (Platform.isWindows) {
+    libName += '.dll';
     try {
-      if (Platform.isIOS) {
-        throw Exception('iOS support is still work in progress');
-        dylib = DynamicLibrary.process();
-      } else {
-        dylib = DynamicLibrary.open(dylibPath + libName);
-      }
-    } catch (e) {
-      if (Platform.isIOS) {
-        throw Exception('iOS support is still work in progress');
-        dylib = DynamicLibrary.process();
-      } else {
-        dylib = DynamicLibrary.open(libName);
-      }
+      _lib = DynamicLibrary.open(libName);
+    } on ArgumentError {
+      libName = 'lib/' + libName;
     }
-
-    _CBLC = CblCBindings(dylib);
-    Cbl.dylib = dylib;
-
-    _CBLC?.CBLDart_PostCObject(NativeApi.postCObject.cast());
-  } catch (e) {
-    throw Exception('Could not initialize CouchbaseLiteC library.');
+  } else if (Platform.isMacOS) {
+    libName = 'lib' + libName + '.dylib';
+    try {
+      _lib = DynamicLibrary.open(libName);
+    } on ArgumentError {
+      libName = '/usr/local/lib/' + libName;
+    }
+  } else if (Platform.isAndroid) {
+    libName = 'lib' + libName + '-jni.so';
+  } else if (Platform.isLinux) {
+    libName = 'lib' + libName + '.so';
+  } else {
+    return null;
   }
+  _lib ??= DynamicLibrary.open(libName);
 
   ChangeListeners.initalize();
 }

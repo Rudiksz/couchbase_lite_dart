@@ -11,3 +11,7 @@ build/
 plugintest.cblite2/
 dynlib/
 *.so
+example_null/web
+example_null/windows
+example_null/android
+example_null/ios

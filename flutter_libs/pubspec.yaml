@@ -1,0 +1,32 @@
+name: cblite_flutter_libs
+# cblite_libs_plugin
+version: 1.0.0
+repository: https://github.com/Rudiksz/couchbase_lite_dart
+homepage: 
+description: couchbaselitedart is a super-fast NoSQL ACID compliant object database. This package contains flutter runtime libraries for couchbaselitedart.
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+  flutter: ">=2.0.0"
+
+dependencies:
+  # This is here just to ensure compatibility between couchbaselitedart-dart code and the libraries used
+  # You should still depend on couchbaselitedart directly in your Flutter application.
+  couchbase_lite_dart: 
+    path: '..'
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: io.couchbase_lite_dart.cblite_libs
+        pluginClass: CouchbaseLiteDartFlutterLibsPlugin
+        # ObjectboxFlutterLibsPlugin
+      ios:
+        pluginClass: CouchbaselitedartFlutterLibsPlugin
+      linux:
+        pluginClass: CouchbaselitedartFlutterLibsPlugin
+      macos:
+        pluginClass: CouchbaselitedartFlutterLibsPlugin
+      windows:
+        pluginClass: CbliteFlutterLibsPlugin
