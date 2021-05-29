@@ -1,4 +1,4 @@
-name: cblite_libs
+name: cblite_flutter_libs
 # cblite_libs_plugin
 version: 1.0.0
 repository: https://github.com/Rudiksz/couchbase_lite_dart
@@ -29,4 +29,4 @@ flutter:
       macos:
         pluginClass: CouchbaselitedartFlutterLibsPlugin
       windows:
-        pluginClass: CouchbaselitedartFlutterLibsPlugin
+        pluginClass: CbliteFlutterLibsPlugin

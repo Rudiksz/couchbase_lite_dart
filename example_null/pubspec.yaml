@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cblite_libs:
+  cblite_flutter_libs:
     path: '../flutter_libs'
   couchbase_lite_dart:
     path: '..'

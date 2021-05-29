@@ -1,4 +1,4 @@
-#include "include/cblite_flutter_libs/cblite_libs_plugin.h"
+#include "include/cblite_flutter_libs/cblite_flutter_libs_plugin.h"
 
 // This must be included before many other Windows headers.
 #include <windows.h>
@@ -45,7 +45,8 @@ namespace
     auto plugin = std::make_unique<CbliteFlutterLibsPlugin>();
 
     channel->SetMethodCallHandler(
-        [plugin_pointer = plugin.get()](const auto &call, auto result) {
+        [plugin_pointer = plugin.get()](const auto &call, auto result)
+        {
           plugin_pointer->HandleMethodCall(call, std::move(result));
         });
 

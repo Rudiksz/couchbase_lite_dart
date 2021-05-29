@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
-set(PROJECT_NAME "cblite_libs")
+set(PROJECT_NAME "cblite_flutter_libs")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
 # This value is used when generating builds using this plugin, so it must
 # not be changed
-set(PLUGIN_NAME "cblite_libs_plugin")
-# cblite_libs_plugin
+set(PLUGIN_NAME "cblite_flutter_libs_plugin")
+
 add_library(${PLUGIN_NAME} SHARED
-  "cblite_libs_plugin.cpp"
+  "cblite_flutter_libs_plugin.cpp"
 )
 apply_standard_settings(${PLUGIN_NAME})
 set_target_properties(${PLUGIN_NAME} PROPERTIES
@@ -18,7 +18,7 @@ target_include_directories(${PLUGIN_NAME} INTERFACE
 target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
 
 # List of absolute paths to libraries that should be bundled with the plugin
-set(cblite_libs_bundled_libraries
+set(cblite_flutter_libs_bundled_libraries
   ""
   PARENT_SCOPE
 )
@@ -43,7 +43,7 @@ if(NOT cblite-download_POPULATED)
   FetchContent_Populate(cblite-download)
 endif()
 
-set(cblite_libs_bundled_libraries
+set(cblite_flutter_libs_bundled_libraries
     "${cblite-download_SOURCE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}cblite${CMAKE_SHARED_LIBRARY_SUFFIX}"
     PARENT_SCOPE
 )
@@ -54,4 +54,4 @@ set_target_properties(cblite PROPERTIES
     IMPORTED_IMPLIB ${cblite-download_SOURCE_DIR}/lib/${CMAKE_IMPORT_LIBRARY_PREFIX}cblite${CMAKE_IMPORT_LIBRARY_SUFFIX}
 )
 
-target_link_libraries(${PLUGIN_NAME} PRIVATE cblite)
+# target_link_libraries(${PLUGIN_NAME} PRIVATE cblite)
