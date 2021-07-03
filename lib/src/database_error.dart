@@ -11,12 +11,13 @@ part of couchbase_lite_dart;
 /// Frees the [error] object
 void validateError(Pointer<cbl.CBLError> error, {Function? cleanup}) {
   if (error == nullptr) return;
-  if (error.ref.domain > 0 && error.ref.domain < cbl.CBLMaxErrorDomainPlus1) {
-    final res = CBLC.CBLError_Message(error);
+  if (error.ref.domain > 0) {
+    final _c_message = FLSlice.fromSliceResult(CBLC.CBLError_Message(error));
 
     final domain = error.ref.domain;
     final code = error.ref.code;
-    final message = res.cast<Utf8>().toDartString();
+    final message = _c_message.toString();
+    _c_message.free();
 
     if (cleanup != null) cleanup();
     calloc.free(error);

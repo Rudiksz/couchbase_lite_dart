@@ -25,19 +25,19 @@ class FLArray extends IterableBase<FLValue> {
 
   FLArray.fromPointer(this._value);
 
-  FLArray.fromList(List<dynamic> list) {
-    _fromData(jsonEncode(list));
+  FLArray.fromList(List<dynamic> list, {bool retain = true}) {
+    _fromData(jsonEncode(list), retain: retain);
   }
 
-  FLArray.fromJson(String json) {
-    _fromData(json);
+  FLArray.fromJson(String json, {bool retain = true}) {
+    _fromData(json, retain: retain);
   }
 
-  void _fromData(String data) {
+  void _fromData(String data, {bool retain = true}) {
     final fldoc = FLDoc.fromJson(data);
     _value = fldoc.root.asList.ref;
     error = fldoc.error;
-    retain();
+    if (retain) this.retain();
     CBLC.FLDoc_Release(fldoc._doc);
   }
 

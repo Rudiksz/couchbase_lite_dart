@@ -70,7 +70,7 @@ class ChangeListeners {
   /// to make sure the callback is executed on the same isolate.
   static void _callbackListener(dynamic message) async {
     final work = Pointer<CBLDart_Work>.fromAddress(message as int);
-    CBLC.CBLDart_ExecuteCallback(work.cast());
+    CBLDart_ExecuteCallback(work.cast());
   }
 
   /// Registers a change listener of a given type.
@@ -118,5 +118,3 @@ class ChangeListeners {
     }
   }
 }
-
-class CBLDart_Work extends Opaque {}

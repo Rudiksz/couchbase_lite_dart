@@ -42,11 +42,7 @@ void main() {
       password: password,
     );
 
-    expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel == ActivityLevel.stopped),
-    );
+    expect(replicator.status.activityLevel, ActivityLevel.stopped);
 
     addTearDown(() => db.close());
   });
@@ -61,19 +57,14 @@ void main() {
       password: password,
     );
 
-    expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel == ActivityLevel.stopped),
-    );
+    expect(replicator.status.activityLevel, ActivityLevel.stopped);
 
     replicator.start();
     await asyncSleep(1000);
 
     expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel != ActivityLevel.stopped),
+      replicator.status.activityLevel,
+      ActivityLevel.stopped,
     );
 
     addTearDown(() {
@@ -95,20 +86,12 @@ void main() {
     replicator.start();
     await asyncSleep(1000);
 
-    expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel != ActivityLevel.stopped),
-    );
+    expect(replicator.status.activityLevel, isNot(ActivityLevel.stopped));
 
     replicator.stop();
     await asyncSleep(1000);
 
-    expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel == ActivityLevel.stopped),
-    );
+    expect(replicator.status.activityLevel, ActivityLevel.stopped);
 
     addTearDown(() {
       replicator.stop();
@@ -129,29 +112,17 @@ void main() {
     replicator.start();
     await asyncSleep(1000);
 
-    expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel != ActivityLevel.stopped),
-    );
+    expect(replicator.status.activityLevel, isNot(ActivityLevel.stopped));
 
     replicator.suspend();
     await asyncSleep(1000);
 
-    expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel == ActivityLevel.offline),
-    );
+    expect(replicator.status.activityLevel, ActivityLevel.offline);
 
     replicator.resume();
     await asyncSleep(1000);
 
-    expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel != ActivityLevel.offline),
-    );
+    expect(replicator.status.activityLevel, isNot(ActivityLevel.offline));
 
     addTearDown(() async {
       replicator.stop();
@@ -177,11 +148,7 @@ void main() {
 
     replicator.setHostReachable(false);
 
-    expect(
-      replicator.status,
-      predicate<ReplicatorStatus>(
-          (e) => e.activityLevel == ActivityLevel.offline),
-    );
+    expect(replicator.status.activityLevel, ActivityLevel.offline);
 
     addTearDown(() {
       replicator.stop();
@@ -201,8 +168,9 @@ void main() {
 
     replicator.start();
     await asyncSleep(5000);
-    replicator.resetCheckpoint();
-
+    replicator.stop();
+    await asyncSleep(5000);
+    replicator.start(resetCheckPoint: true);
     await asyncSleep(5000);
 
     addTearDown(() {

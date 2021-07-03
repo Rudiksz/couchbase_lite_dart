@@ -17,36 +17,32 @@ void initializeCblC({Map<String, String> dylibs = const {}}) {
     return;
   }
 
-  String dylibPath = 'vendor/cblite/';
-  String libName = '';
+  var dylibPath = 'vendor/cblite/';
+  var libName = '';
   late DynamicLibrary dylib;
 
   if (Platform.isAndroid) {
-    dylibPath = '';
-    libName = 'CouchbaseLiteC.so';
+    dylibPath = 'libCouchbaseLiteC.so';
   } else if (Platform.isMacOS) {
     libName = 'libCouchbaseLiteC.dylib';
   } else if (Platform.isWindows) {
     libName = 'CouchbaseLiteC.dll';
   } else if (Platform.isLinux) {
     throw Exception('Linux support is still work in progress');
-    libName = 'CouchbaseLiteC.so';
   }
-
-  print(dylibPath);
 
   try {
     try {
       if (Platform.isIOS) {
         throw Exception('iOS support is still work in progress');
-        dylib = DynamicLibrary.process();
+        // dylib = DynamicLibrary.process();
       } else {
         dylib = DynamicLibrary.open(dylibPath + libName);
       }
     } catch (e) {
       if (Platform.isIOS) {
         throw Exception('iOS support is still work in progress');
-        dylib = DynamicLibrary.process();
+        // dylib = DynamicLibrary.process();
       } else {
         dylib = DynamicLibrary.open(libName);
       }
@@ -57,6 +53,7 @@ void initializeCblC({Map<String, String> dylibs = const {}}) {
 
     _CBLC?.CBLDart_PostCObject(NativeApi.postCObject.cast());
   } catch (e) {
+    print(e);
     throw Exception('Could not initialize CouchbaseLiteC library.');
   }
 

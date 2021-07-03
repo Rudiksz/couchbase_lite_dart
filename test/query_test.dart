@@ -63,10 +63,10 @@ void main() {
       query.execute().allResults,
       [
         {
-          '*': {'foo': 'bar'}
+          '_doc': {'foo': 'bar'}
         },
         {
-          '*': {'foo': 'baz'}
+          '_doc': {'foo': 'baz'}
         }
       ],
     );
@@ -152,7 +152,7 @@ void main() {
 
     expect(rows, [
       {
-        '*': {'foo': 'bar'}
+        '_doc': {'foo': 'bar'}
       }
     ]);
 
@@ -163,10 +163,10 @@ void main() {
     expect(changes_received, true);
     expect(rows, [
       {
-        '*': {'foo': 'bar'}
+        '_doc': {'foo': 'bar'}
       },
       {
-        '*': {'foo': 'baz'}
+        '_doc': {'foo': 'baz'}
       }
     ]);
 
@@ -180,10 +180,10 @@ void main() {
     expect(changes_received, false);
     expect(rows, [
       {
-        '*': {'foo': 'bar'}
+        '_doc': {'foo': 'bar'}
       },
       {
-        '*': {'foo': 'baz'}
+        '_doc': {'foo': 'baz'}
       }
     ]);
 

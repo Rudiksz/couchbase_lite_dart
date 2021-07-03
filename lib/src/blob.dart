@@ -64,11 +64,14 @@ class Blob {
     slice.ref.buf = buf.cast();
     slice.ref.size = data.length;
 
+    final _c_contentType = FLSlice.fromString(contentType);
+
     pointer = CBLC.CBLBlob_CreateWithData(
-      contentType.toNativeUtf8().cast(),
+      _c_contentType.slice,
       slice.ref,
     );
 
+    _c_contentType.free();
     validateError(error);
   }
 
@@ -82,7 +85,7 @@ class Blob {
     final error = calloc<cbl.CBLError>();
     Pointer<cbl.CBLBlobWriteStream> _blobStream;
     try {
-      _blobStream = CBLC.CBLBlobWriter_New(db._db, error);
+      _blobStream = CBLC.CBLBlobWriter_Create(db._db, error);
       validateError(error);
     } on CouchbaseLiteException catch (e) {
       result.completeError(e);
@@ -104,13 +107,15 @@ class Blob {
         calloc.free(buf);
       },
       onDone: () {
-        return result.complete(
+        final _c_contentType = FLSlice.fromString(contentType);
+        final blob = result.complete(
           Blob._internal(
-            CBLC.CBLBlob_CreateWithStream(
-                contentType.toNativeUtf8().cast(), _blobStream),
+            CBLC.CBLBlob_CreateWithStream(_c_contentType.slice, _blobStream),
             _blobStream,
           ),
         );
+        _c_contentType.free();
+        return blob;
       },
       onError: (error) {
         CBLC.CBLBlobWriter_Close(_blobStream);
@@ -132,17 +137,33 @@ class Blob {
         dict['@type'].asString.isEmpty ||
         dict['@type'].asString != 'blob') return Blob.empty();
 
-    return Blob._internal(CBLC.CBLBlob_Get(dict.ref));
+    print(dict.ref);
+    print(dict.json);
+    print(CBLC.FLDict_GetBlob(dict.ref));
+    print(CBLC.FLDict_IsBlob(dict.ref));
+
+    return Blob._internal(CBLC.FLDict_GetBlob(dict.ref));
   }
 
   Uint8List? _content;
 
   /// A blob's MIME type, if its metadata has a `content_type` property.
-  String get contentType =>
-      CBLC.CBLBlob_ContentType(pointer).cast<Utf8>().toDartString();
+  String get contentType {
+    final _c_contentType = FLSlice.fromSlice(CBLC.CBLBlob_ContentType(pointer));
+    final contentType = _c_contentType
+        .toString(); // todo(rudiksz): should we cache this in the dart object?
+    _c_contentType.free();
+    return contentType;
+  }
 
   /// Returns the cryptographic digest of a blob's content (from its `digest` property).
-  String get digest => CBLC.CBLBlob_Digest(pointer).cast<Utf8>().toDartString();
+  String get digest {
+    final _c_digest = FLSlice.fromSlice(CBLC.CBLBlob_Digest(pointer));
+    final digest = _c_digest
+        .toString(); // todo(rudiksz): should we cache this in the dart object?
+    _c_digest.free();
+    return digest;
+  }
 
   /// Returns the length in bytes of a blob's content (from its `length` property).
   int get length => CBLC.CBLBlob_Length(pointer);
@@ -158,8 +179,11 @@ class Blob {
 
   /// Read a blob's content as a stream.
   Stream<Uint8List> getContentStream({int chunk = 10240}) async* {
+    print(pointer);
     final error = calloc<cbl.CBLError>();
     final blobStream = CBLC.CBLBlob_OpenContentStream(pointer, error);
+
+    print(pointer);
 
     if (error.ref.domain != 0) {
       calloc.free(error);

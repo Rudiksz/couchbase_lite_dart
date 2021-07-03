@@ -11,6 +11,7 @@ import 'dart:ffi';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:couchbase_lite_dart/src/native/custom_bindings.dart';
 import 'package:ffi/ffi.dart';
 import 'package:couchbase_lite_dart/src/native/bindings.dart' as cbl;
 import 'package:couchbase_lite_dart/src/native/cblc_base.dart';

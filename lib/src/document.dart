@@ -30,28 +30,21 @@ class Document {
   Pointer<cbl.CBLDocument> _doc = nullptr;
   Pointer<cbl.CBLDocument> get doc => _doc;
 
-  FLDict _properties = FLDict.empty();
-
   Document.empty();
   bool get isEmpty => _doc == nullptr || ID.isEmpty;
 
   /// Creates a document from a C pointer
   Document.fromPointer(this._doc, {this.isMutable = false, this.db}) {
     if (_doc != nullptr) {
-      final id = CBLC.CBLDocument_ID(_doc);
-      ID = id.cast<Utf8>().toDartString();
+      final _c_id = FLSlice.fromSlice(CBLC.CBLDocument_ID(_doc));
+      ID = _c_id.toString();
+      _c_id.free();
 
-      final rev = CBLC.CBLDocument_RevisionID(_doc);
-      revisionID = rev.cast<Utf8>().toDartString();
+      final _c_rev = FLSlice.fromSlice(CBLC.CBLDocument_RevisionID(_doc));
+      revisionID = _c_rev.toString();
+      _c_rev.free();
 
       sequence = CBLC.CBLDocument_Sequence(_doc);
-
-      _properties = FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
-
-      // !Fix for (https://github.com/couchbaselabs/couchbase-lite-C/issues/88)
-      if (isMutable) {
-        properties = _properties.mutableCopy;
-      }
     }
   }
 
@@ -66,7 +59,10 @@ class Document {
     this.isMutable = true,
   }) {
     assert(ID.isNotEmpty, 'Document ID cannot be empty.');
-    _doc = CBLC.CBLDocument_New(ID.toNativeUtf8().cast());
+    final _c_id = FLSlice.fromString(ID);
+    _doc = CBLC.CBLDocument_CreateWithID(_c_id.slice);
+    _c_id.free();
+
     _new = true;
     if (data is FLDict) {
       properties = data;
@@ -80,33 +76,31 @@ class Document {
   /// This dictionary _reference_ is immutable, but if the document is mutable the
   /// underlying dictionary itself is mutable. You can obtain a mutable
   /// reference via [Document.mutableCopy].
-  FLDict get properties => _properties;
-  set properties(FLDict props) {
-    CBLC.CBLDocument_SetProperties(_doc, props._value);
-    _properties = props;
-  }
+  FLDict get properties =>
+      FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
+  set properties(FLDict props) =>
+      CBLC.CBLDocument_SetProperties(_doc, props._value);
 
   /// Returns the properties as JSON string.
   ///
   /// The same as `properties.json`
-  String get json => _properties.json;
+  String get json {
+    final _c_json = FLSlice.fromSliceResult(CBLC.CBLDocument_CreateJSON(_doc));
+    final _json = _c_json.toString();
+    _c_json.free();
+    return _json;
+  }
 
   /// Set properties using a JSON string.
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
   set json(String json) {
     final error = calloc<cbl.CBLError>();
-    ;
+    final _c_json = FLSlice.fromString(json);
 
-    CBLC.CBLDocument_SetPropertiesAsJSON(
-      _doc,
-      json.toNativeUtf8().cast(),
-      error,
-    );
-
+    CBLC.CBLDocument_SetJSON(_doc, _c_json.slice, error);
+    _c_json.free();
     validateError(error);
-
-    _properties = FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
   }
 
   /// Get the properties as a map.
@@ -115,19 +109,7 @@ class Document {
   /// Set properties using a JSON encodable value.
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
-  set map(Map<dynamic, dynamic> data) {
-    final error = calloc<cbl.CBLError>();
-
-    CBLC.CBLDocument_SetPropertiesAsJSON(
-      _doc,
-      jsonEncode(data).toNativeUtf8().cast(),
-      error,
-    );
-
-    validateError(error);
-
-    _properties = FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
-  }
+  set map(Map<dynamic, dynamic> data) => json = jsonEncode(data);
 
   /// Saves the document.
   ///
@@ -135,13 +117,13 @@ class Document {
   /// parameter specifies whether the save should fail, or the conflicting revision should
   /// be overwritten with the revision being saved.
   ///
-  /// If you need finer-grained control, call [saveResolving] instead.
+  /// If you need finer-grained control, call [saveWithConflictHandler] instead.
   /// Returns an updated Document reflecting the saved changes, or null on failure.
   ///
   /// If the document doesn't belong to any database, it's a noop
-  Document save() {
+  bool save() {
     assert(db != null, 'This document doesn\'t belong to any database');
-    return db?.saveDocument(this) ?? Document.empty();
+    return db?.saveDocument(this) ?? false;
   }
 
   /// Saves the document. This function is the same as
@@ -152,10 +134,14 @@ class Document {
   /// to cancel the save. If the handler rejects the save a [CouchbaseLiteException] will be thrown.
   ///
   /// If the document doesn't belong to any database, it's a noop
-  Document saveResolving(SaveConflictHandler conflictHandler) {
+  bool saveWithConflictHandler(SaveConflictHandler conflictHandler) {
     assert(db != null, 'This document doesn\'t belong to any database');
-    return db?.saveDocumentResolving(this, conflictHandler) ?? Document.empty();
+    return db?.saveDocumentWithConflictHandler(this, conflictHandler) ?? false;
   }
+
+  @Deprecated('Use saveWithConflictHandler instead. ')
+  bool saveResolving(SaveConflictHandler conflictHandler) =>
+      saveWithConflictHandler(conflictHandler);
 
   ///  The time, if any, at which the document will expire and be purged.
   ///
@@ -182,14 +168,32 @@ class Document {
     db?.setDocumentExpiration(ID, expiration);
   }
 
-  ///  Deletes a document from the database using [ConcurrencyControl]. Deletions are replicated.
+  /// Deletes a document from the database. Deletions are replicated.
+  /// You are still responible for disposing the Document.
   ///
-  ///  Returns true if the document was deleted, throws [CouchbaseLiteException] if an error occurred.
-  bool delete(
-      {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
-    if (_doc == nullptr) return false;
+  /// Returns true if the document was deleted, throws [CouchbaseLiteException] if an error occurred.
+  bool delete() {
+    if (db == null || db?._db == nullptr || _doc == nullptr) return false;
     final error = calloc<cbl.CBLError>();
-    final result = CBLC.CBLDocument_Delete(
+    final result = CBLC.CBLDatabase_DeleteDocument(
+      db!._db,
+      _doc,
+      error,
+    );
+
+    validateError(error);
+    return result;
+  }
+
+  /// Deletes a document from the database using [ConcurrencyControl]. Deletions are replicated.
+  /// You are still responible for disposing the Document.
+  ///
+  /// Returns true if the document was deleted, throws [CouchbaseLiteException] if an error occurred.
+  bool deleteWithConcurrencyControl(ConcurrencyControl concurrency) {
+    if (db == null || db?._db == nullptr || _doc == nullptr) return false;
+    final error = calloc<cbl.CBLError>();
+    final result = CBLC.CBLDatabase_DeleteDocumentWithConcurrencyControl(
+      db!._db,
       _doc,
       concurrency.index,
       error,
@@ -207,9 +211,9 @@ class Document {
   ///
   ///  Returns true if the document was purged, false if it doesn't exists and throws [CouchbaseLiteException] if the purge failed.
   bool purge() {
-    if (_doc == nullptr) return false;
+    if (db?._db == nullptr || _doc == nullptr) return false;
     final error = calloc<cbl.CBLError>();
-    final result = CBLC.CBLDocument_Purge(_doc, error);
+    final result = CBLC.CBLDatabase_PurgeDocument(db!._db, _doc, error);
 
     validateError(error);
     return result;

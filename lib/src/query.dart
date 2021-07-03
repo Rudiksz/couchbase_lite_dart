@@ -43,13 +43,16 @@ class Query {
   Query(this.db, this.queryString, {this.language = QueryLanguage.n1ql}) {
     final error = calloc<cbl.CBLError>();
 
-    _query = CBLC.CBLQuery_New(
+    final _c_queryString = FLSlice.fromString(queryString);
+
+    _query = CBLC.CBLDatabase_CreateQuery(
       db._db,
       language.index,
-      queryString.replaceAll('\n', '').toNativeUtf8().cast(),
+      _c_queryString.slice,
       outErrorPos,
       error,
     );
+    _c_queryString.free();
 
     validateError(error);
   }
@@ -76,6 +79,7 @@ class Query {
   /// indicates a linear scan of the entire database, which should be avoided by adding an index.
   /// The strategy will also show which index(es), if any, are used.
   String explain() {
+    if (_query == nullptr) return '';
     final result = CBLC.CBLQuery_Explain(_query);
     final slice = FLSlice.fromSliceResult(result);
     final str = slice.toString();
@@ -102,10 +106,9 @@ class Query {
   /// the `parameters` dictionary to this call should have a key `PARAM` that maps to
   /// the value of the parameter.
   set parameters(Map parameters) {
-    final json = jsonEncode(parameters);
-    final cstr = json.toNativeUtf8();
-    CBLC.CBLQuery_SetParametersAsJSON(_query, cstr.cast());
-    calloc.free(cstr);
+    final dict = FLDict.fromMap(parameters);
+    CBLC.CBLQuery_SetParameters(_query, dict.ref);
+    dict.dispose();
   }
 
   // ++ Query change listener
@@ -208,7 +211,7 @@ class ResultSet {
   /// **Note**: The dictionary reference is only valid until the result-set is advanced or disposed.
   /// If you want to keep it for longer, call `FLDict.retain()`, and `FLDict.dispose()` when done.
   FLDict get rowDict => _hasRow
-      ? FLDict.fromPointer(CBLC.CBLResultSet_RowDict(_results))
+      ? FLDict.fromPointer(CBLC.CBLResultSet_ResultDict(_results))
       : FLDict.empty();
 
   /// Returns the current result as an array of column values.
@@ -216,7 +219,7 @@ class ResultSet {
   /// **Note**: The array reference is only valid until the result-set is advanced or disposed.
   /// If you want to keep it for longer, call `FLArray.retain()`, and `FLArray.dispose()` when done.
   FLArray get rowArray => _hasRow
-      ? FLArray.fromPointer(CBLC.CBLResultSet_RowArray(_results))
+      ? FLArray.fromPointer(CBLC.CBLResultSet_ResultArray(_results))
       : FLArray();
 
   /// Returns the results as a List.
@@ -263,4 +266,5 @@ late final _CBLDart_QueryChangeListener_ptr = Cbl.dylib
 typedef _c_CBLDart_QueryChangeListener = Void Function(
   Pointer<Void> queryId,
   Pointer<cbl.CBLQuery> query,
+  Pointer<cbl.CBLListenerToken> token,
 );

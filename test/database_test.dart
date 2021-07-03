@@ -61,21 +61,20 @@ void main() {
     var db = Database('delete1_test', directory: '_tmp');
     db.open();
     await asyncSleep(1000);
-    expect(
-      () => Database.Delete('delete1_test', directory: '_tmp'),
-      throwsA(predicate((e) =>
-          e is CouchbaseLiteException &&
-          e.domain == cbl.CBLDomain &&
-          e.code == cbl.CBLErrorBusy)),
-    );
-
     db.close();
+    Database.DeleteAsync('delete1_test', directory: '_tmp');
+
+    print('here');
+
+    await asyncSleep(2000);
+
+    /*   db.close();
     await asyncSleep(1000);
     expect(
-      Database.Delete('delete1_test', directory: 'test'),
+      Database.Delete('delete1_test', directory: '_tmp'),
       !Directory('_tmp/delete1_test.cblite2').existsSync(),
     );
-
+*/
     addTearDown(() => db.close());
   });
 
@@ -101,15 +100,6 @@ void main() {
 
     expect(db.close(), true);
     expect(db.close(), true);
-
-    addTearDown(() => db.close());
-  });
-
-  test('compact()', () {
-    var db = Database('compact_test', directory: '_tmp');
-    db.open();
-
-    expect(db.compact(), true);
 
     addTearDown(() => db.close());
   });
@@ -174,19 +164,20 @@ void main() {
 
   test('saveDocument', () {
     var db = Database('savedoc', directory: '_tmp');
-    expect(
-      db.saveDocument(Document('testdoc', data: {'foo': 'bar'})),
-      predicate<Document>((doc) => doc.ID == 'testdoc'),
-    );
+    expect(db.saveDocument(Document('testdoc', data: {'foo': 'bar'})), true);
+
+    // TODO test save document with out-of-date revision
+
     addTearDown(() => db.close());
   });
 
-  test('saveDocumentResolving', () {
+  test('saveDocumentWithConflictHandler', () {
     var db = Database('savedoc', directory: '_tmp');
 
     // Conflict resolution not supported with "new" documents.
     expect(
-      () => db.saveDocumentResolving(Document('newdoc'), (_, __) => false),
+      () => db.saveDocumentWithConflictHandler(
+          Document('newdoc'), (_, __) => false),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
           e.domain == cbl.CBLDomain &&
@@ -200,7 +191,7 @@ void main() {
 
       // Save new document
       db.saveDocument(Document('testdoc', data: {'foo': 'bar1'}));
-      db.saveDocumentResolving(mutDoc, (newDoc, oldDoc) {
+      db.saveDocumentWithConflictHandler(mutDoc, (newDoc, oldDoc) {
         expect(newDoc.properties['foo'].asString, 'baz');
         expect(oldDoc.properties['foo'].asString, 'bar1');
         return true;
@@ -215,7 +206,7 @@ void main() {
 
       db.saveDocument(Document('testdoc', data: {'foo': 'bar1'}));
       expect(
-        () => db.saveDocumentResolving(mutDoc, (newDoc, oldDoc) {
+        () => db.saveDocumentWithConflictHandler(mutDoc, (newDoc, oldDoc) {
           expect(newDoc.properties['foo'].asString, 'baz');
           expect(oldDoc.properties['foo'].asString, 'bar1');
           return false;
@@ -235,10 +226,7 @@ void main() {
     var db = Database('getdoc', directory: '_tmp');
     expect(db.getDocument('testdoc').isEmpty, true);
 
-    expect(
-      db.saveDocument(Document('testdoc', data: {'foo': 'bar'})),
-      predicate<Document>((doc) => doc.ID == 'testdoc'),
-    );
+    expect(db.saveDocument(Document('testdoc', data: {'foo': 'bar'})), true);
 
     expect(
       db.getDocument('testdoc'),
@@ -373,7 +361,6 @@ void main() {
     var change_received = false;
 
     var token = db.addChangeListener((change) {
-      print('change received');
       change_received = true;
       changed_docs = change.documentIDs;
     });
@@ -389,7 +376,6 @@ void main() {
     expect(changed_docs, ['testdoc1']);
 
     addTearDown(() {
-      db.removeChangeListener(token);
       db.close();
     });
   });
@@ -407,7 +393,7 @@ void main() {
     db.removeChangeListener(token);
     await asyncSleep(100);
     db.saveDocument(Document('testdoc1'));
-    await asyncSleep(100);
+    await asyncSleep(1000);
 
     expect(change_received, false);
     expect(changed_docs, []);
@@ -421,11 +407,22 @@ void main() {
     var change_received = false;
 
     var token = db.addDocumentChangeListener('testdoc', (change) {
+      print('testdoc listener');
       change_received = true;
       changed_doc = change.documentID;
     });
 
+    var changed_doc1 = '';
+    var change_received1 = false;
+
+    var token1 = db.addDocumentChangeListener('testdoc1', (change) {
+      print('testdoc1 listener');
+      change_received1 = true;
+      changed_doc1 = change.documentID;
+    });
+
     expect(token, isA<String>());
+    expect(token1, isA<String>());
 
     db.saveDocument(Document('testdoc'));
 
@@ -434,6 +431,8 @@ void main() {
     }
 
     expect(changed_doc, 'testdoc');
+    expect(changed_doc1, '');
+    expect(change_received1, false);
 
     change_received = false;
     changed_doc = '';
@@ -443,10 +442,10 @@ void main() {
     expect(change_received, false);
     expect(changed_doc, '');
 
-    addTearDown(() {
-      db.removeDocumentChangeListener(token);
-      db.close();
-    });
+    expect(change_received1, true);
+    expect(changed_doc1, 'testdoc1');
+
+    addTearDown(db.close);
   });
 
   test('removeDocumentChangeListener', () async {
@@ -473,13 +472,44 @@ void main() {
   test('index', () async {
     var db = Database('dbindex', directory: '_tmp');
 
-    expect(db.createIndex('index1', ['foo']), true);
+    expect(
+      db.createIndex('index1', ['foo, bar']),
+      true,
+    );
 
-    expect(db.indexNames().json, '["index1"]');
+    expect(
+      db.createIndex('index2', ['["foo"]'], language: CBLQueryLanguage.json),
+      true,
+    );
 
-    expect(db.deleteIndex('index1'), true);
+    expect(
+      db.createIndex('index3', ['{"WHAT": ["foo"]}'],
+          language: CBLQueryLanguage.json),
+      true,
+    );
 
-    expect(db.indexNames().json, '[]');
+    expect(
+      () => db.createIndex('index2', ['foo'], language: CBLQueryLanguage.json),
+      throwsA(predicate((e) =>
+          e is CouchbaseLiteException &&
+          e.domain == cbl.CBLDomain &&
+          e.code == cbl.CBLErrorInvalidQuery)),
+    );
+
+    expect(
+      db.indexNames(),
+      ['index1', 'index2', 'index3'],
+    );
+
+    expect(
+      db.deleteIndex('index1'),
+      true,
+    );
+
+    expect(
+      db.indexNames(),
+      ['index2', 'index3'],
+    );
 
     addTearDown(() => db.close());
   });
@@ -507,25 +537,45 @@ void main() {
 
   test('sendNotifications', () async {
     var db = Database('sendnot', directory: '_tmp');
+
     var changed_docs = [];
+    var notificationReady = false;
+    var changed_doc = false;
+
     db.addChangeListener((c) => changed_docs = c.documentIDs);
 
+    db.addDocumentChangeListener('testdoc1', (c) => changed_doc = true);
+
+    // The idea here is that when the first notification is ready,
+    // we wait one second to tell the database to send the notifications.
+    // All notifications should be sent at the time.
+
     db.bufferNotifications(() async {
+      notificationReady = true;
       await asyncSleep(1000);
       db.sendNotifications();
     });
 
-    // The idea here is that once we save a document, we schedule the callback 1
-    // sec after we received the callback from the database (pooling the notifications)
     db.saveDocument(Document('testdoc'));
 
     // Still no change? Good.
-    await asyncSleep(500);
+    await asyncSleep(200);
+    expect(notificationReady, true);
     expect(changed_docs, []);
+    expect(changed_doc, false);
+
+    db.saveDocument(Document('testdoc1'));
+
+    // Still no change? Still good.
+    await asyncSleep(200);
+    expect(notificationReady, true);
+    expect(changed_docs, []);
+    expect(changed_doc, false);
 
     // Changes have arrived?
     await asyncSleep(1100);
-    expect(changed_docs, ['testdoc']);
+    expect(changed_docs, ['testdoc', 'testdoc1']);
+    expect(changed_doc, true);
 
     addTearDown(() => db.close());
   });

@@ -76,20 +76,20 @@ void main() {
     var doc = Document('testdoc');
     doc.properties['foo'] = 'bar';
     doc.properties['blob'] = blob.properties;
-    var doc1 = db.saveDocument(doc);
+    db.saveDocument(doc);
 
-    expect(doc1.properties('blob.@type').asString, 'blob');
-    expect(doc1.properties('blob.content_type').asString, 'image/png');
-    expect(doc1.properties('blob.length').asInt, 82);
-    expect(doc1.properties('blob.digest').asString,
+    expect(doc.properties('blob.@type').asString, 'blob');
+    expect(doc.properties('blob.content_type').asString, 'image/png');
+    expect(doc.properties('blob.length').asInt, 82);
+    expect(doc.properties('blob.digest').asString,
         'sha1-mW5ohOy6VMoWgH3xP6J0e0IBjlQ=');
 
     // Delete blob
-    var doc4 = doc1.mutableCopy;
+    var doc4 = doc.mutableCopy;
     doc4.properties['blob'] = null;
-    var doc5 = db.saveDocument(doc4);
+    db.saveDocument(doc4);
 
-    expect(doc5.properties['blob'].type, FLValueType.Null);
+    expect(doc4.properties['blob'].type, FLValueType.Null);
 
     // Save blob in a nested property
     var doc2 = Document('testdoc');
@@ -97,16 +97,16 @@ void main() {
     blobs['blob'] = blob.properties;
     doc2.properties['foo'] = 'bar';
     doc2.properties['blobs'] = blobs;
-    var doc3 = db.saveDocument(doc2);
+    db.saveDocument(doc2);
 
-    expect(doc3.properties('blobs.blob.@type').asString, 'blob');
-    expect(doc3.properties('blobs.blob.content_type').asString, 'image/png');
-    expect(doc3.properties('blobs.blob.length').asInt, 82);
-    expect(doc3.properties('blobs.blob.digest').asString,
+    expect(doc2.properties('blobs.blob.@type').asString, 'blob');
+    expect(doc2.properties('blobs.blob.content_type').asString, 'image/png');
+    expect(doc2.properties('blobs.blob.length').asInt, 82);
+    expect(doc2.properties('blobs.blob.digest').asString,
         'sha1-mW5ohOy6VMoWgH3xP6J0e0IBjlQ=');
 
     // Read back the content
-    var bl1 = Blob.fromValue(doc3.properties('blobs.blob').asMap);
+    var bl1 = Blob.fromValue(doc.properties('blob').asMap);
     expect(await bl1.getContent(), data);
 
     addTearDown(() => db.close());

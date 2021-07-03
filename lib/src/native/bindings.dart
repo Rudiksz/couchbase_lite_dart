@@ -82,12 +82,12 @@ class CblCBindings {
       _FLSlice_Copy_ptr.asFunction<_dart_FLSlice_Copy>();
 
   /// Returns a message describing an error.
-  /// @note  It is the caller's responsibility to free the returned C string by calling `free`.
-  ffi.Pointer<ffi.Int8> CBLError_Message(
-    ffi.Pointer<CBLError> arg0,
+  /// @note  You are responsible for releasing the result by calling \ref FLSliceResult_Release.
+  FLSliceResult CBLError_Message(
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLError_Message(
-      arg0,
+      outError,
     );
   }
 
@@ -95,19 +95,6 @@ class CblCBindings {
       _lookup<ffi.NativeFunction<_c_CBLError_Message>>('CBLError_Message');
   late final _dart_CBLError_Message _CBLError_Message =
       _CBLError_Message_ptr.asFunction<_dart_CBLError_Message>();
-
-  FLSliceResult CBLError_Message_s(
-    ffi.Pointer<CBLError> arg0,
-  ) {
-    return _CBLError_Message_s(
-      arg0,
-    );
-  }
-
-  late final _CBLError_Message_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLError_Message_s>>('CBLError_Message_s');
-  late final _dart_CBLError_Message_s _CBLError_Message_s =
-      _CBLError_Message_s_ptr.asFunction<_dart_CBLError_Message_s>();
 
   /// Returns the current time, in milliseconds since 1/1/1970.
   int CBL_Now() {
@@ -2813,38 +2800,38 @@ class CblCBindings {
   FLSlice get kCBLBlobContentTypeProperty => _kCBLBlobContentTypeProperty.ref;
 
   /// Returns true if a dictionary in a document is a blob reference.
-  /// If so, you can call \ref CBLBlob_Get to access it.
+  /// If so, you can call \ref FLDict_GetBlob to access it.
   /// @note This function tests whether the dictionary has a `@type` property,
   /// whose value is `"blob"`.
-  bool CBL_IsBlob(
+  bool FLDict_IsBlob(
     ffi.Pointer<FLDict> arg0,
   ) {
-    return _CBL_IsBlob(
+    return _FLDict_IsBlob(
           arg0,
         ) !=
         0;
   }
 
-  late final _CBL_IsBlob_ptr =
-      _lookup<ffi.NativeFunction<_c_CBL_IsBlob>>('CBL_IsBlob');
-  late final _dart_CBL_IsBlob _CBL_IsBlob =
-      _CBL_IsBlob_ptr.asFunction<_dart_CBL_IsBlob>();
+  late final _FLDict_IsBlob_ptr =
+      _lookup<ffi.NativeFunction<_c_FLDict_IsBlob>>('FLDict_IsBlob');
+  late final _dart_FLDict_IsBlob _FLDict_IsBlob =
+      _FLDict_IsBlob_ptr.asFunction<_dart_FLDict_IsBlob>();
 
   /// Returns a CBLBlob object corresponding to a blob dictionary in a document.
   /// @param blobDict  A dictionary in a document.
   /// @return  A CBLBlob instance for this blob, or NULL if the dictionary is not a blob.
-  ffi.Pointer<CBLBlob> CBLBlob_Get(
+  ffi.Pointer<CBLBlob> FLDict_GetBlob(
     ffi.Pointer<FLDict> blobDict,
   ) {
-    return _CBLBlob_Get(
+    return _FLDict_GetBlob(
       blobDict,
     );
   }
 
-  late final _CBLBlob_Get_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLBlob_Get>>('CBLBlob_Get');
-  late final _dart_CBLBlob_Get _CBLBlob_Get =
-      _CBLBlob_Get_ptr.asFunction<_dart_CBLBlob_Get>();
+  late final _FLDict_GetBlob_ptr =
+      _lookup<ffi.NativeFunction<_c_FLDict_GetBlob>>('FLDict_GetBlob');
+  late final _dart_FLDict_GetBlob _FLDict_GetBlob =
+      _FLDict_GetBlob_ptr.asFunction<_dart_FLDict_GetBlob>();
 
   /// Returns the length in bytes of a blob's content (from its `length` property).
   int CBLBlob_Length(
@@ -2861,7 +2848,7 @@ class CblCBindings {
       _CBLBlob_Length_ptr.asFunction<_dart_CBLBlob_Length>();
 
   /// Returns the cryptographic digest of a blob's content (from its `digest` property).
-  ffi.Pointer<ffi.Int8> CBLBlob_Digest(
+  FLSlice CBLBlob_Digest(
     ffi.Pointer<CBLBlob> arg0,
   ) {
     return _CBLBlob_Digest(
@@ -2875,7 +2862,7 @@ class CblCBindings {
       _CBLBlob_Digest_ptr.asFunction<_dart_CBLBlob_Digest>();
 
   /// Returns a blob's MIME type, if its metadata has a `content_type` property.
-  ffi.Pointer<ffi.Int8> CBLBlob_ContentType(
+  FLSlice CBLBlob_ContentType(
     ffi.Pointer<CBLBlob> arg0,
   ) {
     return _CBLBlob_ContentType(
@@ -2889,8 +2876,8 @@ class CblCBindings {
   late final _dart_CBLBlob_ContentType _CBLBlob_ContentType =
       _CBLBlob_ContentType_ptr.asFunction<_dart_CBLBlob_ContentType>();
 
-  /// Returns a blob's metadata. This includes the `digest`, `length` and `content_type`
-  /// properties, as well as any custom ones that may have been added.
+  /// Returns a blob's metadata. This includes the `digest`, `length`, `content_type`,
+  /// and `@type` properties, as well as any custom ones that may have been added.
   ffi.Pointer<FLDict> CBLBlob_Properties(
     ffi.Pointer<CBLBlob> arg0,
   ) {
@@ -2904,32 +2891,44 @@ class CblCBindings {
   late final _dart_CBLBlob_Properties _CBLBlob_Properties =
       _CBLBlob_Properties_ptr.asFunction<_dart_CBLBlob_Properties>();
 
+  /// Returns a blob's metadata as JSON.
+  FLSliceResult CBLBlob_ToJSON(
+    ffi.Pointer<CBLBlob> blob,
+  ) {
+    return _CBLBlob_ToJSON(
+      blob,
+    );
+  }
+
+  late final _CBLBlob_ToJSON_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLBlob_ToJSON>>('CBLBlob_ToJSON');
+  late final _dart_CBLBlob_ToJSON _CBLBlob_ToJSON =
+      _CBLBlob_ToJSON_ptr.asFunction<_dart_CBLBlob_ToJSON>();
+
   /// Reads the blob's contents into memory and returns them.
-  /// You are responsible for calling \ref FLSliceResult_Release on the returned data when done.
-  /// @warning  This can potentially allocate a very large heap block!
-  FLSliceResult CBLBlob_LoadContent(
-    ffi.Pointer<CBLBlob> arg0,
+  /// @note  You are responsible for releasing the result by calling \ref FLSliceResult_Release.
+  FLSliceResult CBLBlob_Content(
+    ffi.Pointer<CBLBlob> blob,
     ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLBlob_LoadContent(
-      arg0,
+    return _CBLBlob_Content(
+      blob,
       outError,
     );
   }
 
-  late final _CBLBlob_LoadContent_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLBlob_LoadContent>>(
-          'CBLBlob_LoadContent');
-  late final _dart_CBLBlob_LoadContent _CBLBlob_LoadContent =
-      _CBLBlob_LoadContent_ptr.asFunction<_dart_CBLBlob_LoadContent>();
+  late final _CBLBlob_Content_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLBlob_Content>>('CBLBlob_Content');
+  late final _dart_CBLBlob_Content _CBLBlob_Content =
+      _CBLBlob_Content_ptr.asFunction<_dart_CBLBlob_Content>();
 
   /// Opens a stream for reading a blob's content.
   ffi.Pointer<CBLBlobReadStream> CBLBlob_OpenContentStream(
-    ffi.Pointer<CBLBlob> arg0,
+    ffi.Pointer<CBLBlob> blob,
     ffi.Pointer<CBLError> outError,
   ) {
     return _CBLBlob_OpenContentStream(
-      arg0,
+      blob,
       outError,
     );
   }
@@ -2988,7 +2987,7 @@ class CblCBindings {
   /// @param contents  The data's address and length.
   /// @return  A new CBLBlob instance.
   ffi.Pointer<CBLBlob> CBLBlob_CreateWithData(
-    ffi.Pointer<ffi.Int8> contentType,
+    FLSlice contentType,
     FLSlice contents,
   ) {
     return _CBLBlob_CreateWithData(
@@ -3003,42 +3002,26 @@ class CblCBindings {
   late final _dart_CBLBlob_CreateWithData _CBLBlob_CreateWithData =
       _CBLBlob_CreateWithData_ptr.asFunction<_dart_CBLBlob_CreateWithData>();
 
-  ffi.Pointer<CBLBlob> CBLBlob_CreateWithData_s(
-    FLSlice contentType,
-    FLSlice contents,
-  ) {
-    return _CBLBlob_CreateWithData_s(
-      contentType,
-      contents,
-    );
-  }
-
-  late final _CBLBlob_CreateWithData_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLBlob_CreateWithData_s>>(
-          'CBLBlob_CreateWithData_s');
-  late final _dart_CBLBlob_CreateWithData_s _CBLBlob_CreateWithData_s =
-      _CBLBlob_CreateWithData_s_ptr.asFunction<
-          _dart_CBLBlob_CreateWithData_s>();
-
   /// Opens a stream for writing a new blob.
   /// You should next call \ref CBLBlobWriter_Write one or more times to write the data,
   /// then \ref CBLBlob_CreateWithStream to create the blob.
   ///
   /// If for some reason you need to abort, just call \ref CBLBlobWriter_Close.
-  ffi.Pointer<CBLBlobWriteStream> CBLBlobWriter_New(
+  ffi.Pointer<CBLBlobWriteStream> CBLBlobWriter_Create(
     ffi.Pointer<CBLDatabase> db,
     ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLBlobWriter_New(
+    return _CBLBlobWriter_Create(
       db,
       outError,
     );
   }
 
-  late final _CBLBlobWriter_New_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLBlobWriter_New>>('CBLBlobWriter_New');
-  late final _dart_CBLBlobWriter_New _CBLBlobWriter_New =
-      _CBLBlobWriter_New_ptr.asFunction<_dart_CBLBlobWriter_New>();
+  late final _CBLBlobWriter_Create_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLBlobWriter_Create>>(
+          'CBLBlobWriter_Create');
+  late final _dart_CBLBlobWriter_Create _CBLBlobWriter_Create =
+      _CBLBlobWriter_Create_ptr.asFunction<_dart_CBLBlobWriter_Create>();
 
   /// Closes a blob-writing stream, if you need to give up without creating a \ref CBLBlob.
   void CBLBlobWriter_Close(
@@ -3084,14 +3067,14 @@ class CblCBindings {
 
   /// Creates a new blob after its data has been written to a \ref CBLBlobWriteStream.
   /// You should then add the blob to a mutable document as a property -- see
-  /// \ref FLMutableDict_SetBlob and \ref FLMutableArray_SetBlob.
+  /// \ref FLSlot_SetBlob.
   /// @note  You are responsible for releasing the CBLBlob reference.
   /// @note  Do not free the stream; the blob will do that.
   /// @param contentType  The MIME type (optional).
   /// @param writer  The blob-writing stream the data was written to.
   /// @return  A new CBLBlob instance.
   ffi.Pointer<CBLBlob> CBLBlob_CreateWithStream(
-    ffi.Pointer<ffi.Int8> contentType,
+    FLSlice contentType,
     ffi.Pointer<CBLBlobWriteStream> writer,
   ) {
     return _CBLBlob_CreateWithStream(
@@ -3107,23 +3090,10 @@ class CblCBindings {
       _CBLBlob_CreateWithStream_ptr.asFunction<
           _dart_CBLBlob_CreateWithStream>();
 
-  ffi.Pointer<CBLBlob> CBLBlob_CreateWithStream_s(
-    FLSlice contentType,
-    ffi.Pointer<CBLBlobWriteStream> writer,
-  ) {
-    return _CBLBlob_CreateWithStream_s(
-      contentType,
-      writer,
-    );
-  }
-
-  late final _CBLBlob_CreateWithStream_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLBlob_CreateWithStream_s>>(
-          'CBLBlob_CreateWithStream_s');
-  late final _dart_CBLBlob_CreateWithStream_s _CBLBlob_CreateWithStream_s =
-      _CBLBlob_CreateWithStream_s_ptr.asFunction<
-          _dart_CBLBlob_CreateWithStream_s>();
-
+  /// Stores a blob reference in a Fleece mutable Array or Dict.
+  /// @param slot  The position in the collection, as returned by functions like
+  /// \ref FLMutableArray_Set or \ref FLMutableDict_Set.
+  /// @param blob  The CBLBlob to store (as a Dict) in the collection.
   void FLSlot_SetBlob(
     ffi.Pointer<FLSlot> slot,
     ffi.Pointer<CBLBlob> blob,
@@ -3139,44 +3109,6 @@ class CblCBindings {
   late final _dart_FLSlot_SetBlob _FLSlot_SetBlob =
       _FLSlot_SetBlob_ptr.asFunction<_dart_FLSlot_SetBlob>();
 
-  /// Stores a blob in a mutable array.
-  void FLMutableArray_SetBlob(
-    ffi.Pointer<FLArray> array,
-    int index,
-    ffi.Pointer<CBLBlob> blob,
-  ) {
-    return _FLMutableArray_SetBlob(
-      array,
-      index,
-      blob,
-    );
-  }
-
-  late final _FLMutableArray_SetBlob_ptr =
-      _lookup<ffi.NativeFunction<_c_FLMutableArray_SetBlob>>(
-          'FLMutableArray_SetBlob');
-  late final _dart_FLMutableArray_SetBlob _FLMutableArray_SetBlob =
-      _FLMutableArray_SetBlob_ptr.asFunction<_dart_FLMutableArray_SetBlob>();
-
-  /// Stores a blob in a mutable dictionary.
-  void FLMutableDict_SetBlob(
-    ffi.Pointer<FLDict> dict,
-    FLSlice key,
-    ffi.Pointer<CBLBlob> blob,
-  ) {
-    return _FLMutableDict_SetBlob(
-      dict,
-      key,
-      blob,
-    );
-  }
-
-  late final _FLMutableDict_SetBlob_ptr =
-      _lookup<ffi.NativeFunction<_c_FLMutableDict_SetBlob>>(
-          'FLMutableDict_SetBlob');
-  late final _dart_FLMutableDict_SetBlob _FLMutableDict_SetBlob =
-      _FLMutableDict_SetBlob_ptr.asFunction<_dart_FLMutableDict_SetBlob>();
-
   /// Returns the default database configuration.
   CBLDatabaseConfiguration CBLDatabaseConfiguration_Default() {
     return _CBLDatabaseConfiguration_Default();
@@ -3189,25 +3121,13 @@ class CblCBindings {
       _CBLDatabaseConfiguration_Default = _CBLDatabaseConfiguration_Default_ptr
           .asFunction<_dart_CBLDatabaseConfiguration_Default>();
 
-  CBLDatabaseConfiguration_s CBLDatabaseConfiguration_Default_s() {
-    return _CBLDatabaseConfiguration_Default_s();
-  }
-
-  late final _CBLDatabaseConfiguration_Default_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabaseConfiguration_Default_s>>(
-          'CBLDatabaseConfiguration_Default_s');
-  late final _dart_CBLDatabaseConfiguration_Default_s
-      _CBLDatabaseConfiguration_Default_s =
-      _CBLDatabaseConfiguration_Default_s_ptr.asFunction<
-          _dart_CBLDatabaseConfiguration_Default_s>();
-
   /// Returns true if a database with the given name exists in the given directory.
   /// @param name  The database name (without the ".cblite2" extension.)
   /// @param inDirectory  The directory containing the database. If NULL, `name` must be an
   /// absolute or relative path to the database.
   bool CBL_DatabaseExists(
-    ffi.Pointer<ffi.Int8> name,
-    ffi.Pointer<ffi.Int8> inDirectory,
+    FLSlice name,
+    FLSlice inDirectory,
   ) {
     return _CBL_DatabaseExists(
           name,
@@ -3221,39 +3141,22 @@ class CblCBindings {
   late final _dart_CBL_DatabaseExists _CBL_DatabaseExists =
       _CBL_DatabaseExists_ptr.asFunction<_dart_CBL_DatabaseExists>();
 
-  bool CBL_DatabaseExists_s(
-    FLSlice name,
-    FLSlice inDirectory,
-  ) {
-    return _CBL_DatabaseExists_s(
-          name,
-          inDirectory,
-        ) !=
-        0;
-  }
-
-  late final _CBL_DatabaseExists_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBL_DatabaseExists_s>>(
-          'CBL_DatabaseExists_s');
-  late final _dart_CBL_DatabaseExists_s _CBL_DatabaseExists_s =
-      _CBL_DatabaseExists_s_ptr.asFunction<_dart_CBL_DatabaseExists_s>();
-
   /// Copies a database file to a new location, and assigns it a new internal UUID to distinguish
   /// it from the original database when replicating.
   /// @param fromPath  The full filesystem path to the original database (including extension).
   /// @param toName  The new database name (without the ".cblite2" extension.)
   /// @param config  The database configuration (directory and encryption option.)
   bool CBL_CopyDatabase(
-    ffi.Pointer<ffi.Int8> fromPath,
-    ffi.Pointer<ffi.Int8> toName,
+    FLSlice fromPath,
+    FLSlice toName,
     ffi.Pointer<CBLDatabaseConfiguration> config,
-    ffi.Pointer<CBLError> arg3,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBL_CopyDatabase(
           fromPath,
           toName,
           config,
-          arg3,
+          outError,
         ) !=
         0;
   }
@@ -3263,26 +3166,6 @@ class CblCBindings {
   late final _dart_CBL_CopyDatabase _CBL_CopyDatabase =
       _CBL_CopyDatabase_ptr.asFunction<_dart_CBL_CopyDatabase>();
 
-  bool CBL_CopyDatabase_s(
-    FLSlice fromPath,
-    FLSlice toName,
-    ffi.Pointer<CBLDatabaseConfiguration_s> config,
-    ffi.Pointer<CBLError> arg3,
-  ) {
-    return _CBL_CopyDatabase_s(
-          fromPath,
-          toName,
-          config,
-          arg3,
-        ) !=
-        0;
-  }
-
-  late final _CBL_CopyDatabase_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBL_CopyDatabase_s>>('CBL_CopyDatabase_s');
-  late final _dart_CBL_CopyDatabase_s _CBL_CopyDatabase_s =
-      _CBL_CopyDatabase_s_ptr.asFunction<_dart_CBL_CopyDatabase_s>();
-
   /// Deletes a database file. If the database file is open, an error is returned.
   /// @param name  The database name (without the ".cblite2" extension.)
   /// @param inDirectory  The directory containing the database. If NULL, `name` must be an
@@ -3291,8 +3174,8 @@ class CblCBindings {
   /// @return  True if the database was deleted, false if it doesn't exist or deletion failed.
   /// (You can tell the last two cases apart by looking at \p outError.)
   bool CBL_DeleteDatabase(
-    ffi.Pointer<ffi.Int8> name,
-    ffi.Pointer<ffi.Int8> inDirectory,
+    FLSlice name,
+    FLSlice inDirectory,
     ffi.Pointer<CBLError> outError,
   ) {
     return _CBL_DeleteDatabase(
@@ -3308,42 +3191,23 @@ class CblCBindings {
   late final _dart_CBL_DeleteDatabase _CBL_DeleteDatabase =
       _CBL_DeleteDatabase_ptr.asFunction<_dart_CBL_DeleteDatabase>();
 
-  bool CBL_DeleteDatabase_s(
-    FLSlice name,
-    FLSlice inDirectory,
-    ffi.Pointer<CBLError> outError,
-  ) {
-    return _CBL_DeleteDatabase_s(
-          name,
-          inDirectory,
-          outError,
-        ) !=
-        0;
-  }
-
-  late final _CBL_DeleteDatabase_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBL_DeleteDatabase_s>>(
-          'CBL_DeleteDatabase_s');
-  late final _dart_CBL_DeleteDatabase_s _CBL_DeleteDatabase_s =
-      _CBL_DeleteDatabase_s_ptr.asFunction<_dart_CBL_DeleteDatabase_s>();
-
   /// Opens a database, or creates it if it doesn't exist yet, returning a new \ref CBLDatabase
   /// instance.
   /// It's OK to open the same database file multiple times. Each \ref CBLDatabase instance is
   /// independent of the others (and must be separately closed and released.)
   /// @param name  The database name (without the ".cblite2" extension.)
   /// @param config  The database configuration (directory and encryption option.)
-  /// @param error  On failure, the error will be written here.
+  /// @param outError  On failure, the error will be written here.
   /// @return  The new database object, or NULL on failure.
   ffi.Pointer<CBLDatabase> CBLDatabase_Open(
-    ffi.Pointer<ffi.Int8> name,
+    FLSlice name,
     ffi.Pointer<CBLDatabaseConfiguration> config,
-    ffi.Pointer<CBLError> error,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_Open(
       name,
       config,
-      error,
+      outError,
     );
   }
 
@@ -3352,31 +3216,14 @@ class CblCBindings {
   late final _dart_CBLDatabase_Open _CBLDatabase_Open =
       _CBLDatabase_Open_ptr.asFunction<_dart_CBLDatabase_Open>();
 
-  ffi.Pointer<CBLDatabase> CBLDatabase_Open_s(
-    FLSlice name,
-    ffi.Pointer<CBLDatabaseConfiguration_s> config,
-    ffi.Pointer<CBLError> error,
-  ) {
-    return _CBLDatabase_Open_s(
-      name,
-      config,
-      error,
-    );
-  }
-
-  late final _CBLDatabase_Open_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_Open_s>>('CBLDatabase_Open_s');
-  late final _dart_CBLDatabase_Open_s _CBLDatabase_Open_s =
-      _CBLDatabase_Open_s_ptr.asFunction<_dart_CBLDatabase_Open_s>();
-
   /// Closes an open database.
   bool CBLDatabase_Close(
     ffi.Pointer<CBLDatabase> arg0,
-    ffi.Pointer<CBLError> arg1,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_Close(
           arg0,
-          arg1,
+          outError,
         ) !=
         0;
   }
@@ -3390,11 +3237,11 @@ class CblCBindings {
   /// an error is returned.
   bool CBLDatabase_Delete(
     ffi.Pointer<CBLDatabase> arg0,
-    ffi.Pointer<CBLError> arg1,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_Delete(
           arg0,
-          arg1,
+          outError,
         ) !=
         0;
   }
@@ -3404,67 +3251,74 @@ class CblCBindings {
   late final _dart_CBLDatabase_Delete _CBLDatabase_Delete =
       _CBLDatabase_Delete_ptr.asFunction<_dart_CBLDatabase_Delete>();
 
-  /// Compacts a database file.
-  bool CBLDatabase_Compact(
-    ffi.Pointer<CBLDatabase> arg0,
-    ffi.Pointer<CBLError> arg1,
-  ) {
-    return _CBLDatabase_Compact(
-          arg0,
-          arg1,
-        ) !=
-        0;
-  }
-
-  late final _CBLDatabase_Compact_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_Compact>>(
-          'CBLDatabase_Compact');
-  late final _dart_CBLDatabase_Compact _CBLDatabase_Compact =
-      _CBLDatabase_Compact_ptr.asFunction<_dart_CBLDatabase_Compact>();
-
-  /// Begins a batch operation, similar to a transaction. You **must** later call \ref
-  /// CBLDatabase_EndBatch to end (commit) the batch.
-  /// @note  Multiple writes are much faster when grouped inside a single batch.
+  /// Begins a transaction. You **must** later call \ref
+  /// CBLDatabase_EndTransaction to commit or abort the transaction.
+  /// @note  Multiple writes are much faster when grouped in a transaction.
   /// @note  Changes will not be visible to other CBLDatabase instances on the same database until
-  /// the batch operation ends.
-  /// @note  Batch operations can nest. Changes are not committed until the outer batch ends.
-  bool CBLDatabase_BeginBatch(
+  /// the transaction ends.
+  /// @note  Transactions can nest. Changes are not committed until the outer transaction ends.
+  bool CBLDatabase_BeginTransaction(
     ffi.Pointer<CBLDatabase> arg0,
-    ffi.Pointer<CBLError> arg1,
+    ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLDatabase_BeginBatch(
+    return _CBLDatabase_BeginTransaction(
           arg0,
-          arg1,
+          outError,
         ) !=
         0;
   }
 
-  late final _CBLDatabase_BeginBatch_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_BeginBatch>>(
-          'CBLDatabase_BeginBatch');
-  late final _dart_CBLDatabase_BeginBatch _CBLDatabase_BeginBatch =
-      _CBLDatabase_BeginBatch_ptr.asFunction<_dart_CBLDatabase_BeginBatch>();
+  late final _CBLDatabase_BeginTransaction_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_BeginTransaction>>(
+          'CBLDatabase_BeginTransaction');
+  late final _dart_CBLDatabase_BeginTransaction _CBLDatabase_BeginTransaction =
+      _CBLDatabase_BeginTransaction_ptr.asFunction<
+          _dart_CBLDatabase_BeginTransaction>();
 
-  /// Ends a batch operation. This **must** be called after \ref CBLDatabase_BeginBatch.
-  bool CBLDatabase_EndBatch(
+  /// Ends a transaction, either committing or aborting.
+  bool CBLDatabase_EndTransaction(
     ffi.Pointer<CBLDatabase> arg0,
-    ffi.Pointer<CBLError> arg1,
+    bool commit,
+    ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLDatabase_EndBatch(
+    return _CBLDatabase_EndTransaction(
           arg0,
-          arg1,
+          commit ? 1 : 0,
+          outError,
         ) !=
         0;
   }
 
-  late final _CBLDatabase_EndBatch_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_EndBatch>>(
-          'CBLDatabase_EndBatch');
-  late final _dart_CBLDatabase_EndBatch _CBLDatabase_EndBatch =
-      _CBLDatabase_EndBatch_ptr.asFunction<_dart_CBLDatabase_EndBatch>();
+  late final _CBLDatabase_EndTransaction_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_EndTransaction>>(
+          'CBLDatabase_EndTransaction');
+  late final _dart_CBLDatabase_EndTransaction _CBLDatabase_EndTransaction =
+      _CBLDatabase_EndTransaction_ptr.asFunction<
+          _dart_CBLDatabase_EndTransaction>();
+
+  /// Performs database maintenance.
+  bool CBLDatabase_PerformMaintenance(
+    ffi.Pointer<CBLDatabase> db,
+    int type,
+    ffi.Pointer<CBLError> outError,
+  ) {
+    return _CBLDatabase_PerformMaintenance(
+          db,
+          type,
+          outError,
+        ) !=
+        0;
+  }
+
+  late final _CBLDatabase_PerformMaintenance_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_PerformMaintenance>>(
+          'CBLDatabase_PerformMaintenance');
+  late final _dart_CBLDatabase_PerformMaintenance
+      _CBLDatabase_PerformMaintenance = _CBLDatabase_PerformMaintenance_ptr
+          .asFunction<_dart_CBLDatabase_PerformMaintenance>();
 
   /// Returns the database's name.
-  ffi.Pointer<ffi.Int8> CBLDatabase_Name(
+  FLSlice CBLDatabase_Name(
     ffi.Pointer<CBLDatabase> arg0,
   ) {
     return _CBLDatabase_Name(
@@ -3478,7 +3332,7 @@ class CblCBindings {
       _CBLDatabase_Name_ptr.asFunction<_dart_CBLDatabase_Name>();
 
   /// Returns the database's full filesystem path.
-  ffi.Pointer<ffi.Int8> CBLDatabase_Path(
+  FLSliceResult CBLDatabase_Path(
     ffi.Pointer<CBLDatabase> arg0,
   ) {
     return _CBLDatabase_Path(
@@ -3594,14 +3448,18 @@ class CblCBindings {
   /// \ref CBLDatabase_GetMutableDocument instead.
   /// @param database  The database.
   /// @param docID  The ID of the document.
-  /// @return  A new \ref CBLDocument instance, or NULL if no document with that ID exists.
+  /// @param outError  On failure, the error will be written here. (A nonexistent document is not
+  /// considered a failure; in that event the error code will be zero.)
+  /// @return  A new \ref CBLDocument instance, or NULL if the doc doesn't exist or an error occurred.
   ffi.Pointer<CBLDocument> CBLDatabase_GetDocument(
     ffi.Pointer<CBLDatabase> database,
-    ffi.Pointer<ffi.Int8> docID,
+    FLSlice docID,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_GetDocument(
       database,
       docID,
+      outError,
     );
   }
 
@@ -3611,45 +3469,26 @@ class CblCBindings {
   late final _dart_CBLDatabase_GetDocument _CBLDatabase_GetDocument =
       _CBLDatabase_GetDocument_ptr.asFunction<_dart_CBLDatabase_GetDocument>();
 
-  ffi.Pointer<CBLDocument> CBLDatabase_GetDocument_s(
-    ffi.Pointer<CBLDatabase> database,
-    FLSlice docID,
-  ) {
-    return _CBLDatabase_GetDocument_s(
-      database,
-      docID,
-    );
-  }
-
-  late final _CBLDatabase_GetDocument_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_GetDocument_s>>(
-          'CBLDatabase_GetDocument_s');
-  late final _dart_CBLDatabase_GetDocument_s _CBLDatabase_GetDocument_s =
-      _CBLDatabase_GetDocument_s_ptr.asFunction<
-          _dart_CBLDatabase_GetDocument_s>();
-
   /// Saves a (mutable) document to the database.
-  /// If a conflicting revision has been saved since \p doc was loaded, the \p concurrency
-  /// parameter specifies whether the save should fail, or the conflicting revision should
-  /// be overwritten with the revision being saved.
-  /// If you need finer-grained control, call \ref CBLDatabase_SaveDocumentResolving instead.
+  /// \warning If a newer revision has been saved since \p doc was loaded, it will be overwritten by
+  /// this one. This can lead to data loss! To avoid this, call
+  /// \ref CBLDatabase_SaveDocumentWithConcurrencyControl or
+  /// \ref CBLDatabase_SaveDocumentWithConflictHandler instead.
   /// @param db  The database to save to.
   /// @param doc  The mutable document to save.
-  /// @param concurrency  Conflict-handling strategy (fail or overwrite).
-  /// @param error  On failure, the error will be written here.
-  /// @return  An updated document reflecting the saved changes, or NULL on failure.
-  ffi.Pointer<CBLDocument> CBLDatabase_SaveDocument(
+  /// @param outError  On failure, the error will be written here.
+  /// @return  True on success, false on failure.
+  bool CBLDatabase_SaveDocument(
     ffi.Pointer<CBLDatabase> db,
     ffi.Pointer<CBLDocument> doc,
-    int concurrency,
-    ffi.Pointer<CBLError> error,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_SaveDocument(
-      db,
-      doc,
-      concurrency,
-      error,
-    );
+          db,
+          doc,
+          outError,
+        ) !=
+        0;
   }
 
   late final _CBLDatabase_SaveDocument_ptr =
@@ -3659,62 +3498,129 @@ class CblCBindings {
       _CBLDatabase_SaveDocument_ptr.asFunction<
           _dart_CBLDatabase_SaveDocument>();
 
-  /// Saves a (mutable) document to the database. This function is the same as \ref
-  /// CBLDatabase_SaveDocument, except that it allows for custom conflict handling in the event
+  /// Saves a (mutable) document to the database.
+  /// If a conflicting revision has been saved since \p doc was loaded, the \p concurrency
+  /// parameter specifies whether the save should fail, or the conflicting revision should
+  /// be overwritten with the revision being saved.
+  /// If you need finer-grained control, call \ref CBLDatabase_SaveDocumentWithConflictHandler instead.
+  /// @param db  The database to save to.
+  /// @param doc  The mutable document to save.
+  /// @param concurrency  Conflict-handling strategy (fail or overwrite).
+  /// @param outError  On failure, the error will be written here.
+  /// @return  True on success, false on failure.
+  bool CBLDatabase_SaveDocumentWithConcurrencyControl(
+    ffi.Pointer<CBLDatabase> db,
+    ffi.Pointer<CBLDocument> doc,
+    int concurrency,
+    ffi.Pointer<CBLError> outError,
+  ) {
+    return _CBLDatabase_SaveDocumentWithConcurrencyControl(
+          db,
+          doc,
+          concurrency,
+          outError,
+        ) !=
+        0;
+  }
+
+  late final _CBLDatabase_SaveDocumentWithConcurrencyControl_ptr = _lookup<
+          ffi.NativeFunction<
+              _c_CBLDatabase_SaveDocumentWithConcurrencyControl>>(
+      'CBLDatabase_SaveDocumentWithConcurrencyControl');
+  late final _dart_CBLDatabase_SaveDocumentWithConcurrencyControl
+      _CBLDatabase_SaveDocumentWithConcurrencyControl =
+      _CBLDatabase_SaveDocumentWithConcurrencyControl_ptr.asFunction<
+          _dart_CBLDatabase_SaveDocumentWithConcurrencyControl>();
+
+  /// Saves a (mutable) document to the database, allowing for custom conflict handling in the event
   /// that the document has been updated since \p doc was loaded.
   /// @param db  The database to save to.
   /// @param doc  The mutable document to save.
   /// @param conflictHandler  The callback to be invoked if there is a conflict.
   /// @param context  An arbitrary value to be passed to the \p conflictHandler.
-  /// @param error  On failure, the error will be written here.
-  /// @return  An updated document reflecting the saved changes, or NULL on failure.
-  ffi.Pointer<CBLDocument> CBLDatabase_SaveDocumentResolving(
+  /// @param outError  On failure, the error will be written here.
+  /// @return  True on success, false on failure.
+  bool CBLDatabase_SaveDocumentWithConflictHandler(
     ffi.Pointer<CBLDatabase> db,
     ffi.Pointer<CBLDocument> doc,
-    ffi.Pointer<ffi.NativeFunction<CBLSaveConflictHandler>> conflictHandler,
+    ffi.Pointer<ffi.NativeFunction<CBLConflictHandler>> conflictHandler,
     ffi.Pointer<ffi.Void> context,
-    ffi.Pointer<CBLError> error,
+    ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLDatabase_SaveDocumentResolving(
-      db,
-      doc,
-      conflictHandler,
-      context,
-      error,
-    );
-  }
-
-  late final _CBLDatabase_SaveDocumentResolving_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_SaveDocumentResolving>>(
-          'CBLDatabase_SaveDocumentResolving');
-  late final _dart_CBLDatabase_SaveDocumentResolving
-      _CBLDatabase_SaveDocumentResolving =
-      _CBLDatabase_SaveDocumentResolving_ptr.asFunction<
-          _dart_CBLDatabase_SaveDocumentResolving>();
-
-  /// Deletes a document from the database. Deletions are replicated.
-  /// @warning  You are still responsible for releasing the CBLDocument.
-  /// @param document  The document to delete.
-  /// @param concurrency  Conflict-handling strategy.
-  /// @param error  On failure, the error will be written here.
-  /// @return  True if the document was deleted, false if an error occurred.
-  bool CBLDocument_Delete(
-    ffi.Pointer<CBLDocument> document,
-    int concurrency,
-    ffi.Pointer<CBLError> error,
-  ) {
-    return _CBLDocument_Delete(
-          document,
-          concurrency,
-          error,
+    return _CBLDatabase_SaveDocumentWithConflictHandler(
+          db,
+          doc,
+          conflictHandler,
+          context,
+          outError,
         ) !=
         0;
   }
 
-  late final _CBLDocument_Delete_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDocument_Delete>>('CBLDocument_Delete');
-  late final _dart_CBLDocument_Delete _CBLDocument_Delete =
-      _CBLDocument_Delete_ptr.asFunction<_dart_CBLDocument_Delete>();
+  late final _CBLDatabase_SaveDocumentWithConflictHandler_ptr = _lookup<
+          ffi.NativeFunction<_c_CBLDatabase_SaveDocumentWithConflictHandler>>(
+      'CBLDatabase_SaveDocumentWithConflictHandler');
+  late final _dart_CBLDatabase_SaveDocumentWithConflictHandler
+      _CBLDatabase_SaveDocumentWithConflictHandler =
+      _CBLDatabase_SaveDocumentWithConflictHandler_ptr.asFunction<
+          _dart_CBLDatabase_SaveDocumentWithConflictHandler>();
+
+  /// Deletes a document from the database. Deletions are replicated.
+  /// @warning  You are still responsible for releasing the CBLDocument.
+  /// @param db  The database containing the document.
+  /// @param document  The document to delete.
+  /// @param outError  On failure, the error will be written here.
+  /// @return  True if the document was deleted, false if an error occurred.
+  bool CBLDatabase_DeleteDocument(
+    ffi.Pointer<CBLDatabase> db,
+    ffi.Pointer<CBLDocument> document,
+    ffi.Pointer<CBLError> outError,
+  ) {
+    return _CBLDatabase_DeleteDocument(
+          db,
+          document,
+          outError,
+        ) !=
+        0;
+  }
+
+  late final _CBLDatabase_DeleteDocument_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_DeleteDocument>>(
+          'CBLDatabase_DeleteDocument');
+  late final _dart_CBLDatabase_DeleteDocument _CBLDatabase_DeleteDocument =
+      _CBLDatabase_DeleteDocument_ptr.asFunction<
+          _dart_CBLDatabase_DeleteDocument>();
+
+  /// Deletes a document from the database. Deletions are replicated.
+  /// @warning  You are still responsible for releasing the CBLDocument.
+  /// @param db  The database containing the document.
+  /// @param document  The document to delete.
+  /// @param concurrency  Conflict-handling strategy.
+  /// @param outError  On failure, the error will be written here.
+  /// @return  True if the document was deleted, false if an error occurred.
+  bool CBLDatabase_DeleteDocumentWithConcurrencyControl(
+    ffi.Pointer<CBLDatabase> db,
+    ffi.Pointer<CBLDocument> document,
+    int concurrency,
+    ffi.Pointer<CBLError> outError,
+  ) {
+    return _CBLDatabase_DeleteDocumentWithConcurrencyControl(
+          db,
+          document,
+          concurrency,
+          outError,
+        ) !=
+        0;
+  }
+
+  late final _CBLDatabase_DeleteDocumentWithConcurrencyControl_ptr = _lookup<
+          ffi.NativeFunction<
+              _c_CBLDatabase_DeleteDocumentWithConcurrencyControl>>(
+      'CBLDatabase_DeleteDocumentWithConcurrencyControl');
+  late final _dart_CBLDatabase_DeleteDocumentWithConcurrencyControl
+      _CBLDatabase_DeleteDocumentWithConcurrencyControl =
+      _CBLDatabase_DeleteDocumentWithConcurrencyControl_ptr.asFunction<
+          _dart_CBLDatabase_DeleteDocumentWithConcurrencyControl>();
 
   /// Purges a document. This removes all traces of the document from the database.
   /// Purges are _not_ replicated. If the document is changed on a server, it will be re-created
@@ -3722,41 +3628,46 @@ class CblCBindings {
   /// @warning  You are still responsible for releasing the \ref CBLDocument reference.
   /// @note If you don't have the document in memory already, \ref CBLDatabase_PurgeDocumentByID is a
   /// simpler shortcut.
+  /// @param db  The database containing the document.
   /// @param document  The document to delete.
-  /// @param error  On failure, the error will be written here.
+  /// @param outError  On failure, the error will be written here.
   /// @return  True if the document was purged, false if it doesn't exist or the purge failed.
-  bool CBLDocument_Purge(
+  bool CBLDatabase_PurgeDocument(
+    ffi.Pointer<CBLDatabase> db,
     ffi.Pointer<CBLDocument> document,
-    ffi.Pointer<CBLError> error,
+    ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLDocument_Purge(
+    return _CBLDatabase_PurgeDocument(
+          db,
           document,
-          error,
+          outError,
         ) !=
         0;
   }
 
-  late final _CBLDocument_Purge_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDocument_Purge>>('CBLDocument_Purge');
-  late final _dart_CBLDocument_Purge _CBLDocument_Purge =
-      _CBLDocument_Purge_ptr.asFunction<_dart_CBLDocument_Purge>();
+  late final _CBLDatabase_PurgeDocument_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_PurgeDocument>>(
+          'CBLDatabase_PurgeDocument');
+  late final _dart_CBLDatabase_PurgeDocument _CBLDatabase_PurgeDocument =
+      _CBLDatabase_PurgeDocument_ptr.asFunction<
+          _dart_CBLDatabase_PurgeDocument>();
 
   /// Purges a document, given only its ID.
   /// @note  If no document with that ID exists, this function will return false but the error
   /// code will be zero.
   /// @param database  The database.
   /// @param docID  The document ID to purge.
-  /// @param error  On failure, the error will be written here.
+  /// @param outError  On failure, the error will be written here.
   /// @return  True if the document was purged, false if it doesn't exist or the purge failed.
   bool CBLDatabase_PurgeDocumentByID(
     ffi.Pointer<CBLDatabase> database,
-    ffi.Pointer<ffi.Int8> docID,
-    ffi.Pointer<CBLError> error,
+    FLSlice docID,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_PurgeDocumentByID(
           database,
           docID,
-          error,
+          outError,
         ) !=
         0;
   }
@@ -3768,39 +3679,23 @@ class CblCBindings {
       _CBLDatabase_PurgeDocumentByID = _CBLDatabase_PurgeDocumentByID_ptr
           .asFunction<_dart_CBLDatabase_PurgeDocumentByID>();
 
-  bool CBLDatabase_PurgeDocumentByID_s(
-    ffi.Pointer<CBLDatabase> database,
-    FLSlice docID,
-    ffi.Pointer<CBLError> error,
-  ) {
-    return _CBLDatabase_PurgeDocumentByID_s(
-          database,
-          docID,
-          error,
-        ) !=
-        0;
-  }
-
-  late final _CBLDatabase_PurgeDocumentByID_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_PurgeDocumentByID_s>>(
-          'CBLDatabase_PurgeDocumentByID_s');
-  late final _dart_CBLDatabase_PurgeDocumentByID_s
-      _CBLDatabase_PurgeDocumentByID_s = _CBLDatabase_PurgeDocumentByID_s_ptr
-          .asFunction<_dart_CBLDatabase_PurgeDocumentByID_s>();
-
   /// Reads a document from the database, in mutable form that can be updated and saved.
   /// (This function is otherwise identical to \ref CBLDatabase_GetDocument.)
   /// @note  You must release the document when you're done with it.
   /// @param database  The database.
   /// @param docID  The ID of the document.
-  /// @return  A new mutable CBLDocument instance, or NULL if no document with that ID exists.
+  /// @param outError  On failure, the error will be written here. (A nonexistent document is not
+  /// considered a failure; in that event the error code will be zero.)
+  /// @return  A new \ref CBLDocument instance, or NULL if the doc doesn't exist or an error occurred.
   ffi.Pointer<CBLDocument> CBLDatabase_GetMutableDocument(
     ffi.Pointer<CBLDatabase> database,
-    ffi.Pointer<ffi.Int8> docID,
+    FLSlice docID,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_GetMutableDocument(
       database,
       docID,
+      outError,
     );
   }
 
@@ -3811,56 +3706,45 @@ class CblCBindings {
       _CBLDatabase_GetMutableDocument = _CBLDatabase_GetMutableDocument_ptr
           .asFunction<_dart_CBLDatabase_GetMutableDocument>();
 
-  ffi.Pointer<CBLDocument> CBLDatabase_GetMutableDocument_s(
-    ffi.Pointer<CBLDatabase> database,
-    FLSlice docID,
-  ) {
-    return _CBLDatabase_GetMutableDocument_s(
-      database,
-      docID,
-    );
+  /// Creates a new, empty document in memory, with a randomly-generated unique ID.
+  /// It will not be added to a database until saved.
+  /// @return  The new mutable document instance.
+  ffi.Pointer<CBLDocument> CBLDocument_Create() {
+    return _CBLDocument_Create();
   }
 
-  late final _CBLDatabase_GetMutableDocument_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_GetMutableDocument_s>>(
-          'CBLDatabase_GetMutableDocument_s');
-  late final _dart_CBLDatabase_GetMutableDocument_s
-      _CBLDatabase_GetMutableDocument_s = _CBLDatabase_GetMutableDocument_s_ptr
-          .asFunction<_dart_CBLDatabase_GetMutableDocument_s>();
+  late final _CBLDocument_Create_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDocument_Create>>('CBLDocument_Create');
+  late final _dart_CBLDocument_Create _CBLDocument_Create =
+      _CBLDocument_Create_ptr.asFunction<_dart_CBLDocument_Create>();
 
-  /// Creates a new, empty document in memory. It will not be added to a database until saved.
+  /// Creates a new, empty document in memory, with the given ID.
+  /// It will not be added to a database until saved.
+  /// @note  If the given ID conflicts with a document already in the database, that will not
+  /// be apparent until this document is saved. At that time, the result depends on the
+  /// conflict handling mode used when saving; see the save functions for details.
   /// @param docID  The ID of the new document, or NULL to assign a new unique ID.
-  /// @return  The mutable document instance.
-  ffi.Pointer<CBLDocument> CBLDocument_New(
-    ffi.Pointer<ffi.Int8> docID,
-  ) {
-    return _CBLDocument_New(
-      docID,
-    );
-  }
-
-  late final _CBLDocument_New_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDocument_New>>('CBLDocument_New');
-  late final _dart_CBLDocument_New _CBLDocument_New =
-      _CBLDocument_New_ptr.asFunction<_dart_CBLDocument_New>();
-
-  ffi.Pointer<CBLDocument> CBLDocument_New_s(
+  /// @return  The new mutable document instance.
+  ffi.Pointer<CBLDocument> CBLDocument_CreateWithID(
     FLSlice docID,
   ) {
-    return _CBLDocument_New_s(
+    return _CBLDocument_CreateWithID(
       docID,
     );
   }
 
-  late final _CBLDocument_New_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDocument_New_s>>('CBLDocument_New_s');
-  late final _dart_CBLDocument_New_s _CBLDocument_New_s =
-      _CBLDocument_New_s_ptr.asFunction<_dart_CBLDocument_New_s>();
+  late final _CBLDocument_CreateWithID_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDocument_CreateWithID>>(
+          'CBLDocument_CreateWithID');
+  late final _dart_CBLDocument_CreateWithID _CBLDocument_CreateWithID =
+      _CBLDocument_CreateWithID_ptr.asFunction<
+          _dart_CBLDocument_CreateWithID>();
 
   /// Creates a new mutable CBLDocument instance that refers to the same document as the original.
   /// If the original document has unsaved changes, the new one will also start out with the same
   /// changes; but mutating one document thereafter will not affect the other.
-  /// @note  You must release the new reference when you're done with it.
+  /// @note  You must release the new reference when you're done with it. Similarly, the original
+  /// document still exists and must also be released when you're done with it.
   ffi.Pointer<CBLDocument> CBLDocument_MutableCopy(
     ffi.Pointer<CBLDocument> original,
   ) {
@@ -3876,7 +3760,7 @@ class CblCBindings {
       _CBLDocument_MutableCopy_ptr.asFunction<_dart_CBLDocument_MutableCopy>();
 
   /// Returns a document's ID.
-  ffi.Pointer<ffi.Int8> CBLDocument_ID(
+  FLSlice CBLDocument_ID(
     ffi.Pointer<CBLDocument> arg0,
   ) {
     return _CBLDocument_ID(
@@ -3892,7 +3776,7 @@ class CblCBindings {
   /// Returns a document's revision ID, which is a short opaque string that's guaranteed to be
   /// unique to every change made to the document.
   /// If the document doesn't exist yet, this function returns NULL.
-  ffi.Pointer<ffi.Int8> CBLDocument_RevisionID(
+  FLSlice CBLDocument_RevisionID(
     ffi.Pointer<CBLDocument> arg0,
   ) {
     return _CBLDocument_RevisionID(
@@ -3991,98 +3875,60 @@ class CblCBindings {
       _CBLDocument_SetProperties_ptr.asFunction<
           _dart_CBLDocument_SetProperties>();
 
-  ffi.Pointer<FLDoc> CBLDocument_CreateFleeceDoc(
+  /// Returns a document's properties as JSON.
+  /// @note  You are responsible for releasing the result by calling \ref FLSliceResult_Release.
+  FLSliceResult CBLDocument_CreateJSON(
     ffi.Pointer<CBLDocument> arg0,
   ) {
-    return _CBLDocument_CreateFleeceDoc(
+    return _CBLDocument_CreateJSON(
       arg0,
     );
   }
 
-  late final _CBLDocument_CreateFleeceDoc_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDocument_CreateFleeceDoc>>(
-          'CBLDocument_CreateFleeceDoc');
-  late final _dart_CBLDocument_CreateFleeceDoc _CBLDocument_CreateFleeceDoc =
-      _CBLDocument_CreateFleeceDoc_ptr.asFunction<
-          _dart_CBLDocument_CreateFleeceDoc>();
-
-  /// Returns a document's properties as a null-terminated JSON string.
-  /// @note You are responsible for calling `free()` on the returned string.
-  ffi.Pointer<ffi.Int8> CBLDocument_PropertiesAsJSON(
-    ffi.Pointer<CBLDocument> arg0,
-  ) {
-    return _CBLDocument_PropertiesAsJSON(
-      arg0,
-    );
-  }
-
-  late final _CBLDocument_PropertiesAsJSON_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDocument_PropertiesAsJSON>>(
-          'CBLDocument_PropertiesAsJSON');
-  late final _dart_CBLDocument_PropertiesAsJSON _CBLDocument_PropertiesAsJSON =
-      _CBLDocument_PropertiesAsJSON_ptr.asFunction<
-          _dart_CBLDocument_PropertiesAsJSON>();
+  late final _CBLDocument_CreateJSON_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDocument_CreateJSON>>(
+          'CBLDocument_CreateJSON');
+  late final _dart_CBLDocument_CreateJSON _CBLDocument_CreateJSON =
+      _CBLDocument_CreateJSON_ptr.asFunction<_dart_CBLDocument_CreateJSON>();
 
   /// Sets a mutable document's properties from a JSON string.
-  bool CBLDocument_SetPropertiesAsJSON(
-    ffi.Pointer<CBLDocument> arg0,
-    ffi.Pointer<ffi.Int8> json,
-    ffi.Pointer<CBLError> arg2,
-  ) {
-    return _CBLDocument_SetPropertiesAsJSON(
-          arg0,
-          json,
-          arg2,
-        ) !=
-        0;
-  }
-
-  late final _CBLDocument_SetPropertiesAsJSON_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDocument_SetPropertiesAsJSON>>(
-          'CBLDocument_SetPropertiesAsJSON');
-  late final _dart_CBLDocument_SetPropertiesAsJSON
-      _CBLDocument_SetPropertiesAsJSON = _CBLDocument_SetPropertiesAsJSON_ptr
-          .asFunction<_dart_CBLDocument_SetPropertiesAsJSON>();
-
-  bool CBLDocument_SetPropertiesAsJSON_s(
+  bool CBLDocument_SetJSON(
     ffi.Pointer<CBLDocument> arg0,
     FLSlice json,
-    ffi.Pointer<CBLError> arg2,
+    ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLDocument_SetPropertiesAsJSON_s(
+    return _CBLDocument_SetJSON(
           arg0,
           json,
-          arg2,
+          outError,
         ) !=
         0;
   }
 
-  late final _CBLDocument_SetPropertiesAsJSON_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDocument_SetPropertiesAsJSON_s>>(
-          'CBLDocument_SetPropertiesAsJSON_s');
-  late final _dart_CBLDocument_SetPropertiesAsJSON_s
-      _CBLDocument_SetPropertiesAsJSON_s =
-      _CBLDocument_SetPropertiesAsJSON_s_ptr.asFunction<
-          _dart_CBLDocument_SetPropertiesAsJSON_s>();
+  late final _CBLDocument_SetJSON_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDocument_SetJSON>>(
+          'CBLDocument_SetJSON');
+  late final _dart_CBLDocument_SetJSON _CBLDocument_SetJSON =
+      _CBLDocument_SetJSON_ptr.asFunction<_dart_CBLDocument_SetJSON>();
 
   /// Returns the time, if any, at which a given document will expire and be purged.
   /// Documents don't normally expire; you have to call \ref CBLDatabase_SetDocumentExpiration
   /// to set a document's expiration time.
   /// @param db  The database.
   /// @param docID  The ID of the document.
-  /// @param error  On failure, an error is written here.
+  /// @param outError  On failure, an error is written here.
   /// @return  The expiration time as a CBLTimestamp (milliseconds since Unix epoch),
   /// or 0 if the document does not have an expiration,
   /// or -1 if the call failed.
   int CBLDatabase_GetDocumentExpiration(
     ffi.Pointer<CBLDatabase> db,
-    ffi.Pointer<ffi.Int8> docID,
-    ffi.Pointer<CBLError> error,
+    FLSlice docID,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_GetDocumentExpiration(
       db,
       docID,
-      error,
+      outError,
     );
   }
 
@@ -4094,44 +3940,24 @@ class CblCBindings {
       _CBLDatabase_GetDocumentExpiration_ptr.asFunction<
           _dart_CBLDatabase_GetDocumentExpiration>();
 
-  int CBLDatabase_GetDocumentExpiration_s(
-    ffi.Pointer<CBLDatabase> db,
-    FLSlice docID,
-    ffi.Pointer<CBLError> error,
-  ) {
-    return _CBLDatabase_GetDocumentExpiration_s(
-      db,
-      docID,
-      error,
-    );
-  }
-
-  late final _CBLDatabase_GetDocumentExpiration_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_GetDocumentExpiration_s>>(
-          'CBLDatabase_GetDocumentExpiration_s');
-  late final _dart_CBLDatabase_GetDocumentExpiration_s
-      _CBLDatabase_GetDocumentExpiration_s =
-      _CBLDatabase_GetDocumentExpiration_s_ptr.asFunction<
-          _dart_CBLDatabase_GetDocumentExpiration_s>();
-
   /// Sets or clears the expiration time of a document.
   /// @param db  The database.
   /// @param docID  The ID of the document.
   /// @param expiration  The expiration time as a CBLTimestamp (milliseconds since Unix epoch),
   /// or 0 if the document should never expire.
-  /// @param error  On failure, an error is written here.
+  /// @param outError  On failure, an error is written here.
   /// @return  True on success, false on failure.
   bool CBLDatabase_SetDocumentExpiration(
     ffi.Pointer<CBLDatabase> db,
-    ffi.Pointer<ffi.Int8> docID,
+    FLSlice docID,
     int expiration,
-    ffi.Pointer<CBLError> error,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_SetDocumentExpiration(
           db,
           docID,
           expiration,
-          error,
+          outError,
         ) !=
         0;
   }
@@ -4144,29 +3970,6 @@ class CblCBindings {
       _CBLDatabase_SetDocumentExpiration_ptr.asFunction<
           _dart_CBLDatabase_SetDocumentExpiration>();
 
-  bool CBLDatabase_SetDocumentExpiration_s(
-    ffi.Pointer<CBLDatabase> db,
-    FLSlice docID,
-    int expiration,
-    ffi.Pointer<CBLError> error,
-  ) {
-    return _CBLDatabase_SetDocumentExpiration_s(
-          db,
-          docID,
-          expiration,
-          error,
-        ) !=
-        0;
-  }
-
-  late final _CBLDatabase_SetDocumentExpiration_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_SetDocumentExpiration_s>>(
-          'CBLDatabase_SetDocumentExpiration_s');
-  late final _dart_CBLDatabase_SetDocumentExpiration_s
-      _CBLDatabase_SetDocumentExpiration_s =
-      _CBLDatabase_SetDocumentExpiration_s_ptr.asFunction<
-          _dart_CBLDatabase_SetDocumentExpiration_s>();
-
   /// Registers a document change listener callback. It will be called after a specific document
   /// is changed on disk.
   /// @param db  The database to observe.
@@ -4177,7 +3980,7 @@ class CblCBindings {
   /// listener.
   ffi.Pointer<CBLListenerToken> CBLDatabase_AddDocumentChangeListener(
     ffi.Pointer<CBLDatabase> db,
-    ffi.Pointer<ffi.Int8> docID,
+    FLSlice docID,
     ffi.Pointer<ffi.NativeFunction<CBLDocumentChangeListener>> listener,
     ffi.Pointer<ffi.Void> context,
   ) {
@@ -4199,9 +4002,10 @@ class CblCBindings {
 
   /// Formats and writes a message to the log, in the given domain at the given level.
   /// \warning This function takes a `printf`-style format string, with extra parameters to match the format placeholders, and has the same security vulnerabilities as other `printf`-style functions.
-  /// If you are logging a fixed string, call \ref CBL_Log_s instead, otherwise any `%` characters in the
-  /// `format` string will be misinterpreted as placeholders and the dreaded Undefined Behavior will result,
-  /// possibly including crashes or overwriting the stack.
+  ///
+  /// If you are logging a fixed string, call \ref CBL_LogMessage instead, otherwise any `%`
+  /// characters in the `format` string will be misinterpreted as placeholders and the dreaded
+  /// Undefined Behavior will result, possibly including crashes or overwriting the stack.
   /// @param domain  The log domain to associate this message with.
   /// @param level  The severity of the message. If this is lower than the current minimum level for the domain
   /// (as set by \ref CBLLog_SetConsoleLevel), nothing is logged.
@@ -4227,25 +4031,25 @@ class CblCBindings {
   /// @param level  The severity of the message. If this is lower than the current minimum level for the domain
   /// (as set by \ref CBLLog_SetConsoleLevel), nothing is logged.
   /// @param message  The exact message to write to the log.
-  void CBL_Log_s(
+  void CBL_LogMessage(
     int domain,
     int level,
     FLSlice message,
   ) {
-    return _CBL_Log_s(
+    return _CBL_LogMessage(
       domain,
       level,
       message,
     );
   }
 
-  late final _CBL_Log_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBL_Log_s>>('CBL_Log_s');
-  late final _dart_CBL_Log_s _CBL_Log_s =
-      _CBL_Log_s_ptr.asFunction<_dart_CBL_Log_s>();
+  late final _CBL_LogMessage_ptr =
+      _lookup<ffi.NativeFunction<_c_CBL_LogMessage>>('CBL_LogMessage');
+  late final _dart_CBL_LogMessage _CBL_LogMessage =
+      _CBL_LogMessage_ptr.asFunction<_dart_CBL_LogMessage>();
 
   /// Gets the current log level for debug console logging.
-  /// Only messages at this level or higher will be logged to the console or callback.
+  /// Only messages at this level or higher will be logged to the console.
   int CBLLog_ConsoleLevel() {
     return _CBLLog_ConsoleLevel();
   }
@@ -4257,7 +4061,7 @@ class CblCBindings {
       _CBLLog_ConsoleLevel_ptr.asFunction<_dart_CBLLog_ConsoleLevel>();
 
   /// Sets the detail level of logging.
-  /// Only messages whose level is ≥ the given level will be logged to the console or callback.
+  /// Only messages whose level is ≥ the given level will be logged to the console.
   void CBLLog_SetConsoleLevel(
     int arg0,
   ) {
@@ -4272,23 +4076,33 @@ class CblCBindings {
   late final _dart_CBLLog_SetConsoleLevel _CBLLog_SetConsoleLevel =
       _CBLLog_SetConsoleLevel_ptr.asFunction<_dart_CBLLog_SetConsoleLevel>();
 
-  /// Returns true if a message with the given domain and level would be logged to the console.
-  bool CBLLog_WillLogToConsole(
-    int domain,
-    int level,
-  ) {
-    return _CBLLog_WillLogToConsole(
-          domain,
-          level,
-        ) !=
-        0;
+  /// Gets the current log level for debug console logging.
+  /// Only messages at this level or higher will be logged to the callback.
+  int CBLLog_CallbackLevel() {
+    return _CBLLog_CallbackLevel();
   }
 
-  late final _CBLLog_WillLogToConsole_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLLog_WillLogToConsole>>(
-          'CBLLog_WillLogToConsole');
-  late final _dart_CBLLog_WillLogToConsole _CBLLog_WillLogToConsole =
-      _CBLLog_WillLogToConsole_ptr.asFunction<_dart_CBLLog_WillLogToConsole>();
+  late final _CBLLog_CallbackLevel_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLLog_CallbackLevel>>(
+          'CBLLog_CallbackLevel');
+  late final _dart_CBLLog_CallbackLevel _CBLLog_CallbackLevel =
+      _CBLLog_CallbackLevel_ptr.asFunction<_dart_CBLLog_CallbackLevel>();
+
+  /// Sets the detail level of logging.
+  /// Only messages whose level is ≥ the given level will be logged to the callback.
+  void CBLLog_SetCallbackLevel(
+    int arg0,
+  ) {
+    return _CBLLog_SetCallbackLevel(
+      arg0,
+    );
+  }
+
+  late final _CBLLog_SetCallbackLevel_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLLog_SetCallbackLevel>>(
+          'CBLLog_SetCallbackLevel');
+  late final _dart_CBLLog_SetCallbackLevel _CBLLog_SetCallbackLevel =
+      _CBLLog_SetCallbackLevel_ptr.asFunction<_dart_CBLLog_SetCallbackLevel>();
 
   /// Gets the current log callback.
   ffi.Pointer<ffi.NativeFunction<CBLLogCallback>> CBLLog_Callback() {
@@ -4314,7 +4128,7 @@ class CblCBindings {
   late final _dart_CBLLog_SetCallback _CBLLog_SetCallback =
       _CBLLog_SetCallback_ptr.asFunction<_dart_CBLLog_SetCallback>();
 
-  /// Gets the current file logging configuration.
+  /// Gets the current file logging configuration, or NULL if none is configured.
   ffi.Pointer<CBLLogFileConfiguration> CBLLog_FileConfig() {
     return _CBLLog_FileConfig();
   }
@@ -4324,13 +4138,16 @@ class CblCBindings {
   late final _dart_CBLLog_FileConfig _CBLLog_FileConfig =
       _CBLLog_FileConfig_ptr.asFunction<_dart_CBLLog_FileConfig>();
 
-  /// Sets the file logging configuration.
-  void CBLLog_SetFileConfig(
+  /// Sets the file logging configuration, and begins logging to files.
+  bool CBLLog_SetFileConfig(
     CBLLogFileConfiguration arg0,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLLog_SetFileConfig(
-      arg0,
-    );
+          arg0,
+          outError,
+        ) !=
+        0;
   }
 
   late final _CBLLog_SetFileConfig_ptr =
@@ -4352,49 +4169,29 @@ class CblCBindings {
   /// @param queryString  The query string.
   /// @param outErrorPos  If non-NULL, then on a parse error the approximate byte offset in the
   /// input expression will be stored here (or -1 if not known/applicable.)
-  /// @param error  On failure, the error will be written here.
+  /// @param outError  On failure, the error will be written here.
   /// @return  The new query object.
-  ffi.Pointer<CBLQuery> CBLQuery_New(
-    ffi.Pointer<CBLDatabase> db,
-    int language,
-    ffi.Pointer<ffi.Int8> queryString,
-    ffi.Pointer<ffi.Int32> outErrorPos,
-    ffi.Pointer<CBLError> error,
-  ) {
-    return _CBLQuery_New(
-      db,
-      language,
-      queryString,
-      outErrorPos,
-      error,
-    );
-  }
-
-  late final _CBLQuery_New_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLQuery_New>>('CBLQuery_New');
-  late final _dart_CBLQuery_New _CBLQuery_New =
-      _CBLQuery_New_ptr.asFunction<_dart_CBLQuery_New>();
-
-  ffi.Pointer<CBLQuery> CBLQuery_New_s(
+  ffi.Pointer<CBLQuery> CBLDatabase_CreateQuery(
     ffi.Pointer<CBLDatabase> db,
     int language,
     FLSlice queryString,
     ffi.Pointer<ffi.Int32> outErrorPos,
-    ffi.Pointer<CBLError> error,
+    ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLQuery_New_s(
+    return _CBLDatabase_CreateQuery(
       db,
       language,
       queryString,
       outErrorPos,
-      error,
+      outError,
     );
   }
 
-  late final _CBLQuery_New_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLQuery_New_s>>('CBLQuery_New_s');
-  late final _dart_CBLQuery_New_s _CBLQuery_New_s =
-      _CBLQuery_New_s_ptr.asFunction<_dart_CBLQuery_New_s>();
+  late final _CBLDatabase_CreateQuery_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_CreateQuery>>(
+          'CBLDatabase_CreateQuery');
+  late final _dart_CBLDatabase_CreateQuery _CBLDatabase_CreateQuery =
+      _CBLDatabase_CreateQuery_ptr.asFunction<_dart_CBLDatabase_CreateQuery>();
 
   /// Assigns values to the query's parameters.
   /// These values will be substited for those parameters whenever the query is executed,
@@ -4438,58 +4235,17 @@ class CblCBindings {
   late final _dart_CBLQuery_Parameters _CBLQuery_Parameters =
       _CBLQuery_Parameters_ptr.asFunction<_dart_CBLQuery_Parameters>();
 
-  /// Assigns values to the query's parameters, from JSON data.
-  /// See \ref CBLQuery_SetParameters for details.
-  /// @param query  The query.
-  /// @param json  The parameters in the form of a JSON-encoded object whose
-  /// keys are the parameter names. (You may use JSON5 syntax.)
-  bool CBLQuery_SetParametersAsJSON(
-    ffi.Pointer<CBLQuery> query,
-    ffi.Pointer<ffi.Int8> json,
-  ) {
-    return _CBLQuery_SetParametersAsJSON(
-          query,
-          json,
-        ) !=
-        0;
-  }
-
-  late final _CBLQuery_SetParametersAsJSON_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLQuery_SetParametersAsJSON>>(
-          'CBLQuery_SetParametersAsJSON');
-  late final _dart_CBLQuery_SetParametersAsJSON _CBLQuery_SetParametersAsJSON =
-      _CBLQuery_SetParametersAsJSON_ptr.asFunction<
-          _dart_CBLQuery_SetParametersAsJSON>();
-
-  bool CBLQuery_SetParametersAsJSON_s(
-    ffi.Pointer<CBLQuery> query,
-    FLSlice json,
-  ) {
-    return _CBLQuery_SetParametersAsJSON_s(
-          query,
-          json,
-        ) !=
-        0;
-  }
-
-  late final _CBLQuery_SetParametersAsJSON_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLQuery_SetParametersAsJSON_s>>(
-          'CBLQuery_SetParametersAsJSON_s');
-  late final _dart_CBLQuery_SetParametersAsJSON_s
-      _CBLQuery_SetParametersAsJSON_s = _CBLQuery_SetParametersAsJSON_s_ptr
-          .asFunction<_dart_CBLQuery_SetParametersAsJSON_s>();
-
   /// Runs the query, returning the results.
   /// To obtain the results you'll typically call \ref CBLResultSet_Next in a `while` loop,
   /// examining the values in the \ref CBLResultSet each time around.
   /// @note  You must release the result set when you're finished with it.
   ffi.Pointer<CBLResultSet> CBLQuery_Execute(
     ffi.Pointer<CBLQuery> arg0,
-    ffi.Pointer<CBLError> arg1,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLQuery_Execute(
       arg0,
-      arg1,
+      outError,
     );
   }
 
@@ -4502,6 +4258,7 @@ class CblCBindings {
   /// strategy. You can use this to help optimize the query: the word `SCAN` in the strategy
   /// indicates a linear scan of the entire database, which should be avoided by adding an index.
   /// The strategy will also show which index(es), if any, are used.
+  /// @note  You are responsible for releasing the result by calling \ref FLSliceResult_Release.
   FLSliceResult CBLQuery_Explain(
     ffi.Pointer<CBLQuery> arg0,
   ) {
@@ -4596,7 +4353,7 @@ class CblCBindings {
   /// @note  See \ref CBLQuery_ColumnName for a discussion of column names.
   ffi.Pointer<FLValue> CBLResultSet_ValueForKey(
     ffi.Pointer<CBLResultSet> arg0,
-    ffi.Pointer<ffi.Int8> key,
+    FLSlice key,
   ) {
     return _CBLResultSet_ValueForKey(
       arg0,
@@ -4611,56 +4368,40 @@ class CblCBindings {
       _CBLResultSet_ValueForKey_ptr.asFunction<
           _dart_CBLResultSet_ValueForKey>();
 
-  ffi.Pointer<FLValue> CBLResultSet_ValueForKey_s(
-    ffi.Pointer<CBLResultSet> arg0,
-    FLSlice key,
-  ) {
-    return _CBLResultSet_ValueForKey_s(
-      arg0,
-      key,
-    );
-  }
-
-  late final _CBLResultSet_ValueForKey_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLResultSet_ValueForKey_s>>(
-          'CBLResultSet_ValueForKey_s');
-  late final _dart_CBLResultSet_ValueForKey_s _CBLResultSet_ValueForKey_s =
-      _CBLResultSet_ValueForKey_s_ptr.asFunction<
-          _dart_CBLResultSet_ValueForKey_s>();
-
   /// Returns the current result as an array of column values.
   /// @warning The array reference is only valid until the result-set is advanced or released.
   /// If you want to keep it for longer, call \ref FLArray_Retain (and release it when done.)
-  ffi.Pointer<FLArray> CBLResultSet_RowArray(
+  ffi.Pointer<FLArray> CBLResultSet_ResultArray(
     ffi.Pointer<CBLResultSet> arg0,
   ) {
-    return _CBLResultSet_RowArray(
+    return _CBLResultSet_ResultArray(
       arg0,
     );
   }
 
-  late final _CBLResultSet_RowArray_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLResultSet_RowArray>>(
-          'CBLResultSet_RowArray');
-  late final _dart_CBLResultSet_RowArray _CBLResultSet_RowArray =
-      _CBLResultSet_RowArray_ptr.asFunction<_dart_CBLResultSet_RowArray>();
+  late final _CBLResultSet_ResultArray_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLResultSet_ResultArray>>(
+          'CBLResultSet_ResultArray');
+  late final _dart_CBLResultSet_ResultArray _CBLResultSet_ResultArray =
+      _CBLResultSet_ResultArray_ptr.asFunction<
+          _dart_CBLResultSet_ResultArray>();
 
   /// Returns the current result as a dictionary mapping column names to values.
   /// @warning The dict reference is only valid until the result-set is advanced or released.
   /// If you want to keep it for longer, call \ref FLDict_Retain (and release it when done.)
-  ffi.Pointer<FLDict> CBLResultSet_RowDict(
+  ffi.Pointer<FLDict> CBLResultSet_ResultDict(
     ffi.Pointer<CBLResultSet> arg0,
   ) {
-    return _CBLResultSet_RowDict(
+    return _CBLResultSet_ResultDict(
       arg0,
     );
   }
 
-  late final _CBLResultSet_RowDict_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLResultSet_RowDict>>(
-          'CBLResultSet_RowDict');
-  late final _dart_CBLResultSet_RowDict _CBLResultSet_RowDict =
-      _CBLResultSet_RowDict_ptr.asFunction<_dart_CBLResultSet_RowDict>();
+  late final _CBLResultSet_ResultDict_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLResultSet_ResultDict>>(
+          'CBLResultSet_ResultDict');
+  late final _dart_CBLResultSet_ResultDict _CBLResultSet_ResultDict =
+      _CBLResultSet_ResultDict_ptr.asFunction<_dart_CBLResultSet_ResultDict>();
 
   /// Returns the Query that created this ResultSet.
   ffi.Pointer<CBLQuery> CBLResultSet_GetQuery(
@@ -4712,17 +4453,17 @@ class CblCBindings {
   /// @note  You must release the result set when you're finished with it.
   /// @param query  The query being listened to.
   /// @param listener  The query listener that was notified.
-  /// @param error  If the query failed to run, the error will be stored here.
+  /// @param outError  If the query failed to run, the error will be stored here.
   /// @return  A new object containing the query's current results, or NULL if the query failed to run.
   ffi.Pointer<CBLResultSet> CBLQuery_CopyCurrentResults(
     ffi.Pointer<CBLQuery> query,
     ffi.Pointer<CBLListenerToken> listener,
-    ffi.Pointer<CBLError> error,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLQuery_CopyCurrentResults(
       query,
       listener,
-      error,
+      outError,
     );
   }
 
@@ -4733,57 +4474,62 @@ class CblCBindings {
       _CBLQuery_CopyCurrentResults_ptr.asFunction<
           _dart_CBLQuery_CopyCurrentResults>();
 
-  /// Creates a database index.
+  /// Creates a value index.
   /// Indexes are persistent.
   /// If an identical index with that name already exists, nothing happens (and no error is returned.)
   /// If a non-identical index with that name already exists, it is deleted and re-created.
-  bool CBLDatabase_CreateIndex(
-    ffi.Pointer<CBLDatabase> db,
-    ffi.Pointer<ffi.Int8> name,
-    CBLIndexSpec arg2,
-    ffi.Pointer<CBLError> outError,
-  ) {
-    return _CBLDatabase_CreateIndex(
-          db,
-          name,
-          arg2,
-          outError,
-        ) !=
-        0;
-  }
-
-  late final _CBLDatabase_CreateIndex_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_CreateIndex>>(
-          'CBLDatabase_CreateIndex');
-  late final _dart_CBLDatabase_CreateIndex _CBLDatabase_CreateIndex =
-      _CBLDatabase_CreateIndex_ptr.asFunction<_dart_CBLDatabase_CreateIndex>();
-
-  bool CBLDatabase_CreateIndex_s(
+  bool CBLDatabase_CreateValueIndex(
     ffi.Pointer<CBLDatabase> db,
     FLSlice name,
-    CBLIndexSpec_s arg2,
+    CBLValueIndexConfiguration config,
     ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLDatabase_CreateIndex_s(
+    return _CBLDatabase_CreateValueIndex(
           db,
           name,
-          arg2,
+          config,
           outError,
         ) !=
         0;
   }
 
-  late final _CBLDatabase_CreateIndex_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_CreateIndex_s>>(
-          'CBLDatabase_CreateIndex_s');
-  late final _dart_CBLDatabase_CreateIndex_s _CBLDatabase_CreateIndex_s =
-      _CBLDatabase_CreateIndex_s_ptr.asFunction<
-          _dart_CBLDatabase_CreateIndex_s>();
+  late final _CBLDatabase_CreateValueIndex_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_CreateValueIndex>>(
+          'CBLDatabase_CreateValueIndex');
+  late final _dart_CBLDatabase_CreateValueIndex _CBLDatabase_CreateValueIndex =
+      _CBLDatabase_CreateValueIndex_ptr.asFunction<
+          _dart_CBLDatabase_CreateValueIndex>();
+
+  /// Creates a full-text index.
+  /// Indexes are persistent.
+  /// If an identical index with that name already exists, nothing happens (and no error is returned.)
+  /// If a non-identical index with that name already exists, it is deleted and re-created.
+  bool CBLDatabase_CreateFullTextIndex(
+    ffi.Pointer<CBLDatabase> db,
+    FLSlice name,
+    CBLFullTextIndexConfiguration config,
+    ffi.Pointer<CBLError> outError,
+  ) {
+    return _CBLDatabase_CreateFullTextIndex(
+          db,
+          name,
+          config,
+          outError,
+        ) !=
+        0;
+  }
+
+  late final _CBLDatabase_CreateFullTextIndex_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_CreateFullTextIndex>>(
+          'CBLDatabase_CreateFullTextIndex');
+  late final _dart_CBLDatabase_CreateFullTextIndex
+      _CBLDatabase_CreateFullTextIndex = _CBLDatabase_CreateFullTextIndex_ptr
+          .asFunction<_dart_CBLDatabase_CreateFullTextIndex>();
 
   /// Deletes an index given its name.
   bool CBLDatabase_DeleteIndex(
     ffi.Pointer<CBLDatabase> db,
-    ffi.Pointer<ffi.Int8> name,
+    FLSlice name,
     ffi.Pointer<CBLError> outError,
   ) {
     return _CBLDatabase_DeleteIndex(
@@ -4802,63 +4548,46 @@ class CblCBindings {
 
   /// Returns the names of the indexes on this database, as a Fleece array of strings.
   /// @note  You are responsible for releasing the returned Fleece array.
-  ffi.Pointer<FLArray> CBLDatabase_IndexNames(
+  ffi.Pointer<FLArray> CBLDatabase_GetIndexNames(
     ffi.Pointer<CBLDatabase> db,
   ) {
-    return _CBLDatabase_IndexNames(
+    return _CBLDatabase_GetIndexNames(
       db,
     );
   }
 
-  late final _CBLDatabase_IndexNames_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDatabase_IndexNames>>(
-          'CBLDatabase_IndexNames');
-  late final _dart_CBLDatabase_IndexNames _CBLDatabase_IndexNames =
-      _CBLDatabase_IndexNames_ptr.asFunction<_dart_CBLDatabase_IndexNames>();
+  late final _CBLDatabase_GetIndexNames_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_GetIndexNames>>(
+          'CBLDatabase_GetIndexNames');
+  late final _dart_CBLDatabase_GetIndexNames _CBLDatabase_GetIndexNames =
+      _CBLDatabase_GetIndexNames_ptr.asFunction<
+          _dart_CBLDatabase_GetIndexNames>();
 
   /// The name of the HTTP cookie used by Sync Gateway to store session keys.
-  late final ffi.Pointer<ffi.Pointer<ffi.Int8>> _kCBLAuthDefaultCookieName =
-      _lookup<ffi.Pointer<ffi.Int8>>('kCBLAuthDefaultCookieName');
+  late final ffi.Pointer<FLSlice> _kCBLAuthDefaultCookieName =
+      _lookup<FLSlice>('kCBLAuthDefaultCookieName');
 
-  ffi.Pointer<ffi.Int8> get kCBLAuthDefaultCookieName =>
-      _kCBLAuthDefaultCookieName.value;
-
-  set kCBLAuthDefaultCookieName(ffi.Pointer<ffi.Int8> value) =>
-      _kCBLAuthDefaultCookieName.value = value;
+  FLSlice get kCBLAuthDefaultCookieName => _kCBLAuthDefaultCookieName.ref;
 
   /// Creates a new endpoint representing a server-based database at the given URL.
   /// The URL's scheme must be `ws` or `wss`, it must of course have a valid hostname,
   /// and its path must be the name of the database on that server.
   /// The port can be omitted; it defaults to 80 for `ws` and 443 for `wss`.
   /// For example: `wss://example.org/dbname`
-  ffi.Pointer<CBLEndpoint> CBLEndpoint_NewWithURL(
-    ffi.Pointer<ffi.Int8> url,
-  ) {
-    return _CBLEndpoint_NewWithURL(
-      url,
-    );
-  }
-
-  late final _CBLEndpoint_NewWithURL_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLEndpoint_NewWithURL>>(
-          'CBLEndpoint_NewWithURL');
-  late final _dart_CBLEndpoint_NewWithURL _CBLEndpoint_NewWithURL =
-      _CBLEndpoint_NewWithURL_ptr.asFunction<_dart_CBLEndpoint_NewWithURL>();
-
-  ffi.Pointer<CBLEndpoint> CBLEndpoint_NewWithURL_s(
+  ffi.Pointer<CBLEndpoint> CBLEndpoint_CreateWithURL(
     FLSlice url,
   ) {
-    return _CBLEndpoint_NewWithURL_s(
+    return _CBLEndpoint_CreateWithURL(
       url,
     );
   }
 
-  late final _CBLEndpoint_NewWithURL_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLEndpoint_NewWithURL_s>>(
-          'CBLEndpoint_NewWithURL_s');
-  late final _dart_CBLEndpoint_NewWithURL_s _CBLEndpoint_NewWithURL_s =
-      _CBLEndpoint_NewWithURL_s_ptr.asFunction<
-          _dart_CBLEndpoint_NewWithURL_s>();
+  late final _CBLEndpoint_CreateWithURL_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLEndpoint_CreateWithURL>>(
+          'CBLEndpoint_CreateWithURL');
+  late final _dart_CBLEndpoint_CreateWithURL _CBLEndpoint_CreateWithURL =
+      _CBLEndpoint_CreateWithURL_ptr.asFunction<
+          _dart_CBLEndpoint_CreateWithURL>();
 
   /// Frees a CBLEndpoint object.
   void CBLEndpoint_Free(
@@ -4875,68 +4604,39 @@ class CblCBindings {
       _CBLEndpoint_Free_ptr.asFunction<_dart_CBLEndpoint_Free>();
 
   /// Creates an authenticator for HTTP Basic (username/password) auth.
-  ffi.Pointer<CBLAuthenticator> CBLAuth_NewBasic(
-    ffi.Pointer<ffi.Int8> username,
-    ffi.Pointer<ffi.Int8> password,
-  ) {
-    return _CBLAuth_NewBasic(
-      username,
-      password,
-    );
-  }
-
-  late final _CBLAuth_NewBasic_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLAuth_NewBasic>>('CBLAuth_NewBasic');
-  late final _dart_CBLAuth_NewBasic _CBLAuth_NewBasic =
-      _CBLAuth_NewBasic_ptr.asFunction<_dart_CBLAuth_NewBasic>();
-
-  ffi.Pointer<CBLAuthenticator> CBLAuth_NewBasic_s(
+  ffi.Pointer<CBLAuthenticator> CBLAuth_CreatePassword(
     FLSlice username,
     FLSlice password,
   ) {
-    return _CBLAuth_NewBasic_s(
+    return _CBLAuth_CreatePassword(
       username,
       password,
     );
   }
 
-  late final _CBLAuth_NewBasic_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLAuth_NewBasic_s>>('CBLAuth_NewBasic_s');
-  late final _dart_CBLAuth_NewBasic_s _CBLAuth_NewBasic_s =
-      _CBLAuth_NewBasic_s_ptr.asFunction<_dart_CBLAuth_NewBasic_s>();
+  late final _CBLAuth_CreatePassword_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLAuth_CreatePassword>>(
+          'CBLAuth_CreatePassword');
+  late final _dart_CBLAuth_CreatePassword _CBLAuth_CreatePassword =
+      _CBLAuth_CreatePassword_ptr.asFunction<_dart_CBLAuth_CreatePassword>();
 
   /// Creates an authenticator using a Couchbase Sync Gateway login session identifier,
   /// and optionally a cookie name (pass NULL for the default.)
-  ffi.Pointer<CBLAuthenticator> CBLAuth_NewSession(
-    ffi.Pointer<ffi.Int8> sessionID,
-    ffi.Pointer<ffi.Int8> cookieName,
-  ) {
-    return _CBLAuth_NewSession(
-      sessionID,
-      cookieName,
-    );
-  }
-
-  late final _CBLAuth_NewSession_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLAuth_NewSession>>('CBLAuth_NewSession');
-  late final _dart_CBLAuth_NewSession _CBLAuth_NewSession =
-      _CBLAuth_NewSession_ptr.asFunction<_dart_CBLAuth_NewSession>();
-
-  ffi.Pointer<CBLAuthenticator> CBLAuth_NewSession_s(
+  ffi.Pointer<CBLAuthenticator> CBLAuth_CreateSession(
     FLSlice sessionID,
     FLSlice cookieName,
   ) {
-    return _CBLAuth_NewSession_s(
+    return _CBLAuth_CreateSession(
       sessionID,
       cookieName,
     );
   }
 
-  late final _CBLAuth_NewSession_s_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLAuth_NewSession_s>>(
-          'CBLAuth_NewSession_s');
-  late final _dart_CBLAuth_NewSession_s _CBLAuth_NewSession_s =
-      _CBLAuth_NewSession_s_ptr.asFunction<_dart_CBLAuth_NewSession_s>();
+  late final _CBLAuth_CreateSession_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLAuth_CreateSession>>(
+          'CBLAuth_CreateSession');
+  late final _dart_CBLAuth_CreateSession _CBLAuth_CreateSession =
+      _CBLAuth_CreateSession_ptr.asFunction<_dart_CBLAuth_CreateSession>();
 
   /// Frees a CBLAuthenticator object.
   void CBLAuth_Free(
@@ -4953,20 +4653,21 @@ class CblCBindings {
       _CBLAuth_Free_ptr.asFunction<_dart_CBLAuth_Free>();
 
   /// Creates a replicator with the given configuration.
-  ffi.Pointer<CBLReplicator> CBLReplicator_New(
+  ffi.Pointer<CBLReplicator> CBLReplicator_Create(
     ffi.Pointer<CBLReplicatorConfiguration> arg0,
-    ffi.Pointer<CBLError> arg1,
+    ffi.Pointer<CBLError> outError,
   ) {
-    return _CBLReplicator_New(
+    return _CBLReplicator_Create(
       arg0,
-      arg1,
+      outError,
     );
   }
 
-  late final _CBLReplicator_New_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLReplicator_New>>('CBLReplicator_New');
-  late final _dart_CBLReplicator_New _CBLReplicator_New =
-      _CBLReplicator_New_ptr.asFunction<_dart_CBLReplicator_New>();
+  late final _CBLReplicator_Create_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLReplicator_Create>>(
+          'CBLReplicator_Create');
+  late final _dart_CBLReplicator_Create _CBLReplicator_Create =
+      _CBLReplicator_Create_ptr.asFunction<_dart_CBLReplicator_Create>();
 
   /// Returns the configuration of an existing replicator.
   ffi.Pointer<CBLReplicatorConfiguration> CBLReplicator_Config(
@@ -4983,31 +4684,20 @@ class CblCBindings {
   late final _dart_CBLReplicator_Config _CBLReplicator_Config =
       _CBLReplicator_Config_ptr.asFunction<_dart_CBLReplicator_Config>();
 
-  /// Instructs the replicator to ignore existing checkpoints the next time it runs.
-  /// This will cause it to scan through all the documents on the remote database, which takes
-  /// a lot longer, but it can resolve problems with missing documents if the client and
-  /// server have gotten out of sync somehow.
-  void CBLReplicator_ResetCheckpoint(
-    ffi.Pointer<CBLReplicator> arg0,
-  ) {
-    return _CBLReplicator_ResetCheckpoint(
-      arg0,
-    );
-  }
-
-  late final _CBLReplicator_ResetCheckpoint_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLReplicator_ResetCheckpoint>>(
-          'CBLReplicator_ResetCheckpoint');
-  late final _dart_CBLReplicator_ResetCheckpoint
-      _CBLReplicator_ResetCheckpoint = _CBLReplicator_ResetCheckpoint_ptr
-          .asFunction<_dart_CBLReplicator_ResetCheckpoint>();
-
   /// Starts a replicator, asynchronously. Does nothing if it's already started.
+  /// @param replicator  The replicator instance.
+  /// @param resetCheckpoint  If true, the persistent saved state ("checkpoint") for this replication
+  /// will be discarded, causing it to re-scan all documents. This significantly
+  /// increases time and bandwidth (redundant docs are not transferred, but their
+  /// IDs are) but can resolve unexpected problems with missing documents if one
+  /// side or the other has gotten out of sync.
   void CBLReplicator_Start(
-    ffi.Pointer<CBLReplicator> arg0,
+    ffi.Pointer<CBLReplicator> replicator,
+    bool resetCheckpoint,
   ) {
     return _CBLReplicator_Start(
-      arg0,
+      replicator,
+      resetCheckpoint ? 1 : 0,
     );
   }
 
@@ -5107,11 +4797,11 @@ class CblCBindings {
   /// \warning  You are responsible for releasing the returned array via \ref FLValue_Release.
   ffi.Pointer<FLDict> CBLReplicator_PendingDocumentIDs(
     ffi.Pointer<CBLReplicator> arg0,
-    ffi.Pointer<CBLError> arg1,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLReplicator_PendingDocumentIDs(
       arg0,
-      arg1,
+      outError,
     );
   }
 
@@ -5171,25 +4861,25 @@ class CblCBindings {
           .asFunction<_dart_CBLReplicator_AddChangeListener>();
 
   /// Adds a listener that will be called when documents are replicated.
-  ffi.Pointer<CBLListenerToken> CBLReplicator_AddDocumentListener(
+  ffi.Pointer<CBLListenerToken> CBLReplicator_AddDocumentReplicationListener(
     ffi.Pointer<CBLReplicator> arg0,
-    ffi.Pointer<ffi.NativeFunction<CBLReplicatedDocumentListener>> arg1,
+    ffi.Pointer<ffi.NativeFunction<CBLDocumentReplicationListener>> arg1,
     ffi.Pointer<ffi.Void> context,
   ) {
-    return _CBLReplicator_AddDocumentListener(
+    return _CBLReplicator_AddDocumentReplicationListener(
       arg0,
       arg1,
       context,
     );
   }
 
-  late final _CBLReplicator_AddDocumentListener_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLReplicator_AddDocumentListener>>(
-          'CBLReplicator_AddDocumentListener');
-  late final _dart_CBLReplicator_AddDocumentListener
-      _CBLReplicator_AddDocumentListener =
-      _CBLReplicator_AddDocumentListener_ptr.asFunction<
-          _dart_CBLReplicator_AddDocumentListener>();
+  late final _CBLReplicator_AddDocumentReplicationListener_ptr = _lookup<
+          ffi.NativeFunction<_c_CBLReplicator_AddDocumentReplicationListener>>(
+      'CBLReplicator_AddDocumentReplicationListener');
+  late final _dart_CBLReplicator_AddDocumentReplicationListener
+      _CBLReplicator_AddDocumentReplicationListener =
+      _CBLReplicator_AddDocumentReplicationListener_ptr.asFunction<
+          _dart_CBLReplicator_AddDocumentReplicationListener>();
 
   void CBLDart_PostCObject(
     ffi.Pointer<ffi.NativeFunction<Dart_PostCObjectType>> function_pointer,
@@ -5284,7 +4974,7 @@ class CblCBindings {
     ffi.Pointer<ffi.Void> context,
     ffi.Pointer<CBLDatabase> db,
     int numDocs,
-    ffi.Pointer<ffi.Pointer<ffi.Int8>> docIDs,
+    ffi.Pointer<FLSlice> docIDs,
   ) {
     return _CBLDart_DatabaseChangeListener(
       context,
@@ -5304,7 +4994,7 @@ class CblCBindings {
   void CBLDart_DocumentChangeListener(
     ffi.Pointer<ffi.Void> context,
     ffi.Pointer<CBLDatabase> db,
-    ffi.Pointer<ffi.Int8> docID,
+    FLSlice docID,
   ) {
     return _CBLDart_DocumentChangeListener(
       context,
@@ -5323,10 +5013,12 @@ class CblCBindings {
   void CBLDart_QueryChangeListener(
     ffi.Pointer<ffi.Void> queryId,
     ffi.Pointer<CBLQuery> query,
+    ffi.Pointer<CBLListenerToken> token,
   ) {
     return _CBLDart_QueryChangeListener(
       queryId,
       query,
+      token,
     );
   }
 
@@ -5336,65 +5028,6 @@ class CblCBindings {
   late final _dart_CBLDart_QueryChangeListener _CBLDart_QueryChangeListener =
       _CBLDart_QueryChangeListener_ptr.asFunction<
           _dart_CBLDart_QueryChangeListener>();
-
-  void CBLDart_ReplicatorChangeListener(
-    ffi.Pointer<ffi.Void> id,
-    ffi.Pointer<CBLReplicator> repl,
-    ffi.Pointer<CBLReplicatorStatus> status,
-  ) {
-    return _CBLDart_ReplicatorChangeListener(
-      id,
-      repl,
-      status,
-    );
-  }
-
-  late final _CBLDart_ReplicatorChangeListener_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDart_ReplicatorChangeListener>>(
-          'CBLDart_ReplicatorChangeListener');
-  late final _dart_CBLDart_ReplicatorChangeListener
-      _CBLDart_ReplicatorChangeListener = _CBLDart_ReplicatorChangeListener_ptr
-          .asFunction<_dart_CBLDart_ReplicatorChangeListener>();
-
-  bool CBLDart_PushReplicationFilter(
-    ffi.Pointer<ffi.Void> context,
-    ffi.Pointer<CBLDocument> document,
-    bool isDeleted,
-  ) {
-    return _CBLDart_PushReplicationFilter(
-          context,
-          document,
-          isDeleted ? 1 : 0,
-        ) !=
-        0;
-  }
-
-  late final _CBLDart_PushReplicationFilter_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDart_PushReplicationFilter>>(
-          'CBLDart_PushReplicationFilter');
-  late final _dart_CBLDart_PushReplicationFilter
-      _CBLDart_PushReplicationFilter = _CBLDart_PushReplicationFilter_ptr
-          .asFunction<_dart_CBLDart_PushReplicationFilter>();
-
-  bool CBLDart_PullReplicationFilter(
-    ffi.Pointer<ffi.Void> context,
-    ffi.Pointer<CBLDocument> document,
-    bool isDeleted,
-  ) {
-    return _CBLDart_PullReplicationFilter(
-          context,
-          document,
-          isDeleted ? 1 : 0,
-        ) !=
-        0;
-  }
-
-  late final _CBLDart_PullReplicationFilter_ptr =
-      _lookup<ffi.NativeFunction<_c_CBLDart_PullReplicationFilter>>(
-          'CBLDart_PullReplicationFilter');
-  late final _dart_CBLDart_PullReplicationFilter
-      _CBLDart_PullReplicationFilter = _CBLDart_PullReplicationFilter_ptr
-          .asFunction<_dart_CBLDart_PullReplicationFilter>();
 }
 
 /// A simple reference to a block of memory. Does not imply ownership.
@@ -5423,14 +5056,14 @@ class FLSliceResult extends ffi.Struct {
 /// filled in with the details.
 class CBLError extends ffi.Struct {
   /// < Domain of errors; a namespace for the `code`.
-  @ffi.Uint32()
+  @ffi.Uint8()
   external int domain;
 
   /// < Error code, specific to the domain. 0 always means no error.
   @ffi.Int32()
   external int code;
 
-  @ffi.Int32()
+  @ffi.Uint32()
   external int internal_info;
 }
 
@@ -5554,69 +5187,11 @@ class FLDictIterator extends ffi.Struct {
   @ffi.Uint8()
   external int _private3;
 
-  external ffi.Pointer<ffi.Void> _unique__private4_item_0;
-  external ffi.Pointer<ffi.Void> _unique__private4_item_1;
-  external ffi.Pointer<ffi.Void> _unique__private4_item_2;
-  external ffi.Pointer<ffi.Void> _unique__private4_item_3;
+  @ffi.Array.multi([4])
+  external ffi.Array<ffi.Pointer<ffi.Void>> _private4;
 
-  /// Helper for array `_private4`.
-  ArrayHelper_FLDictIterator__private4_level0 get _private4 =>
-      ArrayHelper_FLDictIterator__private4_level0(this, [4], 0, 0);
   @ffi.Int32()
   external int _private5;
-}
-
-/// Helper for array `_private4` in struct `FLDictIterator`.
-class ArrayHelper_FLDictIterator__private4_level0 {
-  final FLDictIterator _struct;
-  final List<int> dimensions;
-  final int level;
-  final int _absoluteIndex;
-  int get length => dimensions[level];
-  ArrayHelper_FLDictIterator__private4_level0(
-      this._struct, this.dimensions, this.level, this._absoluteIndex);
-  void _checkBounds(int index) {
-    if (index >= length || index < 0) {
-      throw RangeError(
-          'Dimension $level: index not in range 0..$length exclusive.');
-    }
-  }
-
-  ffi.Pointer<ffi.Void> operator [](int index) {
-    _checkBounds(index);
-    switch (_absoluteIndex + index) {
-      case 0:
-        return _struct._unique__private4_item_0;
-      case 1:
-        return _struct._unique__private4_item_1;
-      case 2:
-        return _struct._unique__private4_item_2;
-      case 3:
-        return _struct._unique__private4_item_3;
-      default:
-        throw Exception('Invalid Array Helper generated.');
-    }
-  }
-
-  void operator []=(int index, ffi.Pointer<ffi.Void> value) {
-    _checkBounds(index);
-    switch (_absoluteIndex + index) {
-      case 0:
-        _struct._unique__private4_item_0 = value;
-        break;
-      case 1:
-        _struct._unique__private4_item_1 = value;
-        break;
-      case 2:
-        _struct._unique__private4_item_2 = value;
-        break;
-      case 3:
-        _struct._unique__private4_item_3 = value;
-        break;
-      default:
-        throw Exception('Invalid Array Helper generated.');
-    }
-  }
 }
 
 /// Opaque key for a dictionary. You are responsible for creating space for these; they can
@@ -5665,316 +5240,89 @@ abstract class FLEncoderFormat {
 
 class FLEncoder extends ffi.Opaque {}
 
+class _sbuf extends ffi.Struct {
+  external ffi.Pointer<ffi.Uint8> _base;
+
+  @ffi.Int32()
+  external int _size;
+}
+
+class _sFILEX extends ffi.Opaque {}
+
 class FILE extends ffi.Struct {
-  external ffi.Pointer<ffi.Void> _Placeholder;
+  external ffi.Pointer<ffi.Uint8> _p;
+
+  @ffi.Int32()
+  external int _r;
+
+  @ffi.Int32()
+  external int _w;
+
+  @ffi.Int16()
+  external int _flags;
+
+  @ffi.Int16()
+  external int _file;
+
+  external _sbuf _bf;
+
+  @ffi.Int32()
+  external int _lbfsize;
+
+  external ffi.Pointer<ffi.Void> _cookie;
+
+  external ffi.Pointer<ffi.NativeFunction<_typedefC_1>> _close;
+
+  external ffi.Pointer<ffi.NativeFunction<_typedefC_2>> _read;
+
+  external ffi.Pointer<ffi.NativeFunction<_typedefC_3>> _seek;
+
+  external ffi.Pointer<ffi.NativeFunction<_typedefC_4>> _write;
+
+  external _sbuf _ub;
+
+  external ffi.Pointer<_sFILEX> _extra;
+
+  @ffi.Int32()
+  external int _ur;
+
+  @ffi.Array.multi([3])
+  external ffi.Array<ffi.Uint8> _ubuf;
+
+  @ffi.Array.multi([1])
+  external ffi.Array<ffi.Uint8> _nbuf;
+
+  external _sbuf _lb;
+
+  @ffi.Int32()
+  external int _blksize;
+
+  @ffi.Int64()
+  external int _offset;
 }
 
 class CBLBlobReadStream extends ffi.Opaque {}
 
 class CBLBlobWriteStream extends ffi.Opaque {}
 
-/// Encryption key specified in a \ref CBLDatabaseConfiguration.
-class CBLEncryptionKey extends ffi.Struct {
-  /// < Encryption algorithm
-  @ffi.Uint32()
-  external int algorithm;
-
-  @ffi.Uint8()
-  external int _unique_bytes_item_0;
-  @ffi.Uint8()
-  external int _unique_bytes_item_1;
-  @ffi.Uint8()
-  external int _unique_bytes_item_2;
-  @ffi.Uint8()
-  external int _unique_bytes_item_3;
-  @ffi.Uint8()
-  external int _unique_bytes_item_4;
-  @ffi.Uint8()
-  external int _unique_bytes_item_5;
-  @ffi.Uint8()
-  external int _unique_bytes_item_6;
-  @ffi.Uint8()
-  external int _unique_bytes_item_7;
-  @ffi.Uint8()
-  external int _unique_bytes_item_8;
-  @ffi.Uint8()
-  external int _unique_bytes_item_9;
-  @ffi.Uint8()
-  external int _unique_bytes_item_10;
-  @ffi.Uint8()
-  external int _unique_bytes_item_11;
-  @ffi.Uint8()
-  external int _unique_bytes_item_12;
-  @ffi.Uint8()
-  external int _unique_bytes_item_13;
-  @ffi.Uint8()
-  external int _unique_bytes_item_14;
-  @ffi.Uint8()
-  external int _unique_bytes_item_15;
-  @ffi.Uint8()
-  external int _unique_bytes_item_16;
-  @ffi.Uint8()
-  external int _unique_bytes_item_17;
-  @ffi.Uint8()
-  external int _unique_bytes_item_18;
-  @ffi.Uint8()
-  external int _unique_bytes_item_19;
-  @ffi.Uint8()
-  external int _unique_bytes_item_20;
-  @ffi.Uint8()
-  external int _unique_bytes_item_21;
-  @ffi.Uint8()
-  external int _unique_bytes_item_22;
-  @ffi.Uint8()
-  external int _unique_bytes_item_23;
-  @ffi.Uint8()
-  external int _unique_bytes_item_24;
-  @ffi.Uint8()
-  external int _unique_bytes_item_25;
-  @ffi.Uint8()
-  external int _unique_bytes_item_26;
-  @ffi.Uint8()
-  external int _unique_bytes_item_27;
-  @ffi.Uint8()
-  external int _unique_bytes_item_28;
-  @ffi.Uint8()
-  external int _unique_bytes_item_29;
-  @ffi.Uint8()
-  external int _unique_bytes_item_30;
-  @ffi.Uint8()
-  external int _unique_bytes_item_31;
-
-  /// Helper for array `bytes`.
-  ArrayHelper_CBLEncryptionKey_bytes_level0 get bytes =>
-      ArrayHelper_CBLEncryptionKey_bytes_level0(this, [32], 0, 0);
-}
-
-/// Helper for array `bytes` in struct `CBLEncryptionKey`.
-class ArrayHelper_CBLEncryptionKey_bytes_level0 {
-  final CBLEncryptionKey _struct;
-  final List<int> dimensions;
-  final int level;
-  final int _absoluteIndex;
-  int get length => dimensions[level];
-  ArrayHelper_CBLEncryptionKey_bytes_level0(
-      this._struct, this.dimensions, this.level, this._absoluteIndex);
-  void _checkBounds(int index) {
-    if (index >= length || index < 0) {
-      throw RangeError(
-          'Dimension $level: index not in range 0..$length exclusive.');
-    }
-  }
-
-  int operator [](int index) {
-    _checkBounds(index);
-    switch (_absoluteIndex + index) {
-      case 0:
-        return _struct._unique_bytes_item_0;
-      case 1:
-        return _struct._unique_bytes_item_1;
-      case 2:
-        return _struct._unique_bytes_item_2;
-      case 3:
-        return _struct._unique_bytes_item_3;
-      case 4:
-        return _struct._unique_bytes_item_4;
-      case 5:
-        return _struct._unique_bytes_item_5;
-      case 6:
-        return _struct._unique_bytes_item_6;
-      case 7:
-        return _struct._unique_bytes_item_7;
-      case 8:
-        return _struct._unique_bytes_item_8;
-      case 9:
-        return _struct._unique_bytes_item_9;
-      case 10:
-        return _struct._unique_bytes_item_10;
-      case 11:
-        return _struct._unique_bytes_item_11;
-      case 12:
-        return _struct._unique_bytes_item_12;
-      case 13:
-        return _struct._unique_bytes_item_13;
-      case 14:
-        return _struct._unique_bytes_item_14;
-      case 15:
-        return _struct._unique_bytes_item_15;
-      case 16:
-        return _struct._unique_bytes_item_16;
-      case 17:
-        return _struct._unique_bytes_item_17;
-      case 18:
-        return _struct._unique_bytes_item_18;
-      case 19:
-        return _struct._unique_bytes_item_19;
-      case 20:
-        return _struct._unique_bytes_item_20;
-      case 21:
-        return _struct._unique_bytes_item_21;
-      case 22:
-        return _struct._unique_bytes_item_22;
-      case 23:
-        return _struct._unique_bytes_item_23;
-      case 24:
-        return _struct._unique_bytes_item_24;
-      case 25:
-        return _struct._unique_bytes_item_25;
-      case 26:
-        return _struct._unique_bytes_item_26;
-      case 27:
-        return _struct._unique_bytes_item_27;
-      case 28:
-        return _struct._unique_bytes_item_28;
-      case 29:
-        return _struct._unique_bytes_item_29;
-      case 30:
-        return _struct._unique_bytes_item_30;
-      case 31:
-        return _struct._unique_bytes_item_31;
-      default:
-        throw Exception('Invalid Array Helper generated.');
-    }
-  }
-
-  void operator []=(int index, int value) {
-    _checkBounds(index);
-    switch (_absoluteIndex + index) {
-      case 0:
-        _struct._unique_bytes_item_0 = value;
-        break;
-      case 1:
-        _struct._unique_bytes_item_1 = value;
-        break;
-      case 2:
-        _struct._unique_bytes_item_2 = value;
-        break;
-      case 3:
-        _struct._unique_bytes_item_3 = value;
-        break;
-      case 4:
-        _struct._unique_bytes_item_4 = value;
-        break;
-      case 5:
-        _struct._unique_bytes_item_5 = value;
-        break;
-      case 6:
-        _struct._unique_bytes_item_6 = value;
-        break;
-      case 7:
-        _struct._unique_bytes_item_7 = value;
-        break;
-      case 8:
-        _struct._unique_bytes_item_8 = value;
-        break;
-      case 9:
-        _struct._unique_bytes_item_9 = value;
-        break;
-      case 10:
-        _struct._unique_bytes_item_10 = value;
-        break;
-      case 11:
-        _struct._unique_bytes_item_11 = value;
-        break;
-      case 12:
-        _struct._unique_bytes_item_12 = value;
-        break;
-      case 13:
-        _struct._unique_bytes_item_13 = value;
-        break;
-      case 14:
-        _struct._unique_bytes_item_14 = value;
-        break;
-      case 15:
-        _struct._unique_bytes_item_15 = value;
-        break;
-      case 16:
-        _struct._unique_bytes_item_16 = value;
-        break;
-      case 17:
-        _struct._unique_bytes_item_17 = value;
-        break;
-      case 18:
-        _struct._unique_bytes_item_18 = value;
-        break;
-      case 19:
-        _struct._unique_bytes_item_19 = value;
-        break;
-      case 20:
-        _struct._unique_bytes_item_20 = value;
-        break;
-      case 21:
-        _struct._unique_bytes_item_21 = value;
-        break;
-      case 22:
-        _struct._unique_bytes_item_22 = value;
-        break;
-      case 23:
-        _struct._unique_bytes_item_23 = value;
-        break;
-      case 24:
-        _struct._unique_bytes_item_24 = value;
-        break;
-      case 25:
-        _struct._unique_bytes_item_25 = value;
-        break;
-      case 26:
-        _struct._unique_bytes_item_26 = value;
-        break;
-      case 27:
-        _struct._unique_bytes_item_27 = value;
-        break;
-      case 28:
-        _struct._unique_bytes_item_28 = value;
-        break;
-      case 29:
-        _struct._unique_bytes_item_29 = value;
-        break;
-      case 30:
-        _struct._unique_bytes_item_30 = value;
-        break;
-      case 31:
-        _struct._unique_bytes_item_31 = value;
-        break;
-      default:
-        throw Exception('Invalid Array Helper generated.');
-    }
-  }
-}
-
 /// Database configuration options.
 class CBLDatabaseConfiguration extends ffi.Struct {
   /// < The parent directory of the database
-  external ffi.Pointer<ffi.Int8> directory;
-
-  /// < Options for opening the database
-  @ffi.Uint32()
-  external int flags;
-
-  /// < The database's encryption key (if any)
-  external ffi.Pointer<CBLEncryptionKey> encryptionKey;
-}
-
-class CBLDatabaseConfiguration_s extends ffi.Struct {
-  /// < The parent directory of the database
   external FLSlice directory;
-
-  /// < Options for opening the database
-  @ffi.Uint32()
-  external int flags;
-
-  /// < The database's encryption key (if any)
-  external ffi.Pointer<CBLEncryptionKey> encryptionKey;
 }
 
 /// The properties for configuring logging to files.
 /// @warning `usePlaintext` results in significantly larger log files and higher CPU usage that may slow
 /// down your app; we recommend turning it off in production.
 class CBLLogFileConfiguration extends ffi.Struct {
-  /// < The directory where log files will be created.
-  external ffi.Pointer<ffi.Int8> directory;
+  /// < The minimum level of message to write
+  @ffi.Uint8()
+  external int level;
 
-  /// < Max number of older logs to keep (i.e. total number will be one more.)
+  /// < The directory where log files will be created.
+  external FLSlice directory;
+
+  /// < Max number of older log files to keep (in addition to current one.)
   @ffi.Uint32()
   external int maxRotateCount;
 
@@ -5982,26 +5330,38 @@ class CBLLogFileConfiguration extends ffi.Struct {
   @ffi.Uint64()
   external int maxSize;
 
-  /// < Whether or not to log in plaintext (as opposed to binary)
+  /// < Whether or not to log in plaintext (as opposed to binary.) Plaintext logging is slower and bigger.
   @ffi.Uint8()
   external int usePlaintext;
 }
 
-/// Parameters for creating a database index.
-class CBLIndexSpec extends ffi.Struct {
-  /// The type of index to create.
+/// Value Index Configuration.
+class CBLValueIndexConfiguration extends ffi.Struct {
+  /// The language used in the expressions.
   @ffi.Uint32()
-  external int type;
+  external int expressionLanguage;
 
-  /// A JSON array describing each column of the index.
-  external ffi.Pointer<ffi.Int8> keyExpressionsJSON;
+  /// The expressions describing each coloumn of the index. The expressions could be specified
+  /// in a JSON Array or in N1QL syntax using comma delimiter.
+  external FLSlice expressions;
+}
 
-  /// In a full-text index, should diacritical marks (accents) be ignored?
+/// Full-Text Index Configuration.
+class CBLFullTextIndexConfiguration extends ffi.Struct {
+  /// The language used in the expressions.
+  @ffi.Uint32()
+  external int expressionLanguage;
+
+  /// The expressions describing each coloumn of the index. The expressions could be specified
+  /// in a JSON Array or in N1QL syntax using comma delimiter.
+  external FLSlice expressions;
+
+  /// Should diacritical marks (accents) be ignored?
   /// Defaults to false. Generally this should be left `false` for non-English text.
   @ffi.Uint8()
   external int ignoreAccents;
 
-  /// In a full-text index, the dominant language. Setting this enables word stemming, i.e.
+  /// The dominant language. Setting this enables word stemming, i.e.
   /// matching different cases of the same word ("big" and "bigger", for instance) and ignoring
   /// common "stop-words" ("the", "a", "of", etc.)
   ///
@@ -6012,18 +5372,6 @@ class CBLIndexSpec extends ffi.Struct {
   ///
   /// If left null,  or set to an unrecognized language, no language-specific behaviors
   /// such as stemming and stop-word removal occur.
-  external ffi.Pointer<ffi.Int8> language;
-}
-
-class CBLIndexSpec_s extends ffi.Struct {
-  @ffi.Uint32()
-  external int type;
-
-  external FLSlice keyExpressionsJSON;
-
-  @ffi.Uint8()
-  external int ignoreAccents;
-
   external FLSlice language;
 }
 
@@ -6038,17 +5386,17 @@ class CBLProxySettings extends ffi.Struct {
   external int type;
 
   /// < Proxy server hostname or IP address
-  external ffi.Pointer<ffi.Int8> hostname;
+  external FLSlice hostname;
 
   /// < Proxy server port
   @ffi.Uint16()
   external int port;
 
   /// < Username for proxy auth (optional)
-  external ffi.Pointer<ffi.Int8> username;
+  external FLSlice username;
 
   /// < Password for proxy auth
-  external ffi.Pointer<ffi.Int8> password;
+  external FLSlice password;
 }
 
 /// The configuration of a replicator.
@@ -6066,6 +5414,23 @@ class CBLReplicatorConfiguration extends ffi.Struct {
   /// < Continuous replication?
   @ffi.Uint8()
   external int continuous;
+
+  /// < Disable/Enable auto-purging documents when the user's access to the documents has been revoked.
+  @ffi.Uint8()
+  external int disableAutoPurge;
+
+  /// < Max retry attempts where the initial connect to replicate counts toward the given value.
+  /// < Specify 0 to use the default value, 10 times for a non-continuous replicator and max-int time for a continuous replicator. Specify 1 means there will be no retry after the first attempt.
+  @ffi.Uint32()
+  external int maxAttempts;
+
+  /// < Max wait time between retry attempts in seconds. Specify 0 to use the default value of 300 seconds.
+  @ffi.Uint32()
+  external int maxAttemptWaitTime;
+
+  /// < The heartbeat interval in seconds. Specify 0 to use the default value of 300 seconds.
+  @ffi.Uint32()
+  external int heartbeat;
 
   /// < Authentication credentials, if needed
   external ffi.Pointer<CBLAuthenticator> authenticator;
@@ -6108,7 +5473,7 @@ class CBLReplicatorConfiguration extends ffi.Struct {
 /// It's fine to use in a progress bar, though.
 class CBLReplicatorProgress extends ffi.Struct {
   @ffi.Float()
-  external double fractionComplete;
+  external double complete;
 
   /// < Number of documents transferred so far
   @ffi.Uint64()
@@ -6131,7 +5496,7 @@ class CBLReplicatorStatus extends ffi.Struct {
 /// Information about a document that's been pushed or pulled.
 class CBLReplicatedDocument extends ffi.Struct {
   /// < The document ID
-  external ffi.Pointer<ffi.Int8> ID;
+  external FLSlice ID;
 
   /// < Indicates whether the document was deleted or removed
   @ffi.Uint32()
@@ -6142,6 +5507,44 @@ class CBLReplicatedDocument extends ffi.Struct {
 }
 
 class Dart_CObject extends ffi.Opaque {}
+
+const int noErr = 0;
+
+const int kNilOptions = 0;
+
+const int kVariableLengthArray = 1;
+
+const int kUnknownType = 1061109567;
+
+const int normal = 0;
+
+const int bold = 1;
+
+const int italic = 2;
+
+const int underline = 4;
+
+const int outline = 8;
+
+const int shadow = 16;
+
+const int condense = 32;
+
+const int extend = 64;
+
+const int developStage = 32;
+
+const int alphaStage = 64;
+
+const int betaStage = 96;
+
+const int finalStage = 128;
+
+const int kCFCompareLessThan = -1;
+
+const int kCFCompareEqualTo = 0;
+
+const int kCFCompareGreaterThan = 1;
 
 const int CBLDomain = 1;
 
@@ -6154,8 +5557,6 @@ const int CBLFleeceDomain = 4;
 const int CBLNetworkDomain = 5;
 
 const int CBLWebSocketDomain = 6;
-
-const int CBLMaxErrorDomainPlus1 = 7;
 
 const int CBLErrorAssertionFailed = 1;
 
@@ -6217,8 +5618,6 @@ const int CBLErrorBadDocID = 29;
 
 const int CBLErrorCantUpgradeDatabase = 30;
 
-const int CBLNumErrorCodesPlus1 = 31;
-
 const int CBLNetErrDNSFailure = 1;
 
 const int CBLNetErrUnknownHost = 2;
@@ -6249,15 +5648,11 @@ const int CBLNetErrTLSCertRevoked = 14;
 
 const int CBLNetErrTLSCertNameMismatch = 15;
 
-const int kCBLDatabase_Create = 1;
+const int kCBLMaintenanceTypeCompact = 0;
 
-const int kCBLDatabase_ReadOnly = 2;
+const int kCBLMaintenanceTypeReindex = 1;
 
-const int kCBLDatabase_NoUpgrade = 4;
-
-const int kCBLEncryptionNone = 0;
-
-const int kCBLEncryptionKeySizeAES256 = 32;
+const int kCBLMaintenanceTypeIntegrityCheck = 2;
 
 const int kCBLConcurrencyControlLastWriteWins = 0;
 
@@ -6289,15 +5684,15 @@ const int kCBLJSONLanguage = 0;
 
 const int kCBLN1QLLanguage = 1;
 
-const int kCBLValueIndex = 0;
-
-const int kCBLFullTextIndex = 1;
-
 const int kCBLReplicatorTypePushAndPull = 0;
 
 const int kCBLReplicatorTypePush = 1;
 
 const int kCBLReplicatorTypePull = 2;
+
+const int kCBLDocumentFlagsDeleted = 1;
+
+const int kCBLDocumentFlagsAccessRemoved = 2;
 
 const int kCBLProxyHTTP = 0;
 
@@ -6313,10 +5708,6 @@ const int kCBLReplicatorIdle = 3;
 
 const int kCBLReplicatorBusy = 4;
 
-const int kCBLDocumentFlagsDeleted = 1;
-
-const int kCBLDocumentFlagsAccessRemoved = 2;
-
 const int kNativeArgNumberPos = 0;
 
 const int kNativeArgNumberSize = 8;
@@ -6329,45 +5720,491 @@ const int kCBLReplicatorFilterTypePush = 0;
 
 const int kCBLReplicatorFilterTypePull = 1;
 
-const int _SAL_VERSION = 20;
+const int __COREFOUNDATION_CFBASE__ = 1;
 
-const int __SAL_H_VERSION = 180000000;
+const int DYNAMIC_TARGETS_ENABLED = 0;
 
-const int _USE_DECLSPECS_FOR_SAL = 0;
+const int TARGET_OS_MAC = 1;
 
-const int _USE_ATTRIBUTES_FOR_SAL = 0;
+const int TARGET_OS_WIN32 = 0;
 
-const int __bool_true_false_are_defined = 1;
+const int TARGET_OS_UNIX = 0;
 
-const int false_1 = 0;
+const int TARGET_OS_OSX = 1;
 
-const int true_1 = 1;
+const int TARGET_OS_IPHONE = 0;
 
-const int _VCRT_COMPILER_PREPROCESSOR = 1;
+const int TARGET_OS_IOS = 0;
 
-const int _CRT_PACKING = 8;
+const int TARGET_OS_WATCH = 0;
 
-const int _VCRUNTIME_DISABLED_WARNINGS = 4514;
+const int TARGET_OS_TV = 0;
 
-const int _HAS_EXCEPTIONS = 1;
+const int TARGET_OS_MACCATALYST = 0;
 
-const int _WCHAR_T_DEFINED = 1;
+const int TARGET_OS_UIKITFORMAC = 0;
 
-const int NULL = 0;
+const int TARGET_OS_SIMULATOR = 0;
 
-const int _HAS_CXX17 = 0;
+const int TARGET_OS_EMBEDDED = 0;
 
-const int _HAS_CXX20 = 0;
+const int TARGET_OS_RTKIT = 0;
 
-const int _HAS_NODISCARD = 1;
+const int TARGET_OS_DRIVERKIT = 0;
 
-const int INT8_MIN = -128;
+const int TARGET_IPHONE_SIMULATOR = 0;
 
-const int INT16_MIN = -32768;
+const int TARGET_OS_NANO = 0;
 
-const int INT32_MIN = -2147483648;
+const int TARGET_ABI_USES_IOS_VALUES = 0;
 
-const int INT64_MIN = -9223372036854775808;
+const int TARGET_CPU_PPC = 0;
+
+const int TARGET_CPU_PPC64 = 0;
+
+const int TARGET_CPU_68K = 0;
+
+const int TARGET_CPU_X86 = 0;
+
+const int TARGET_CPU_X86_64 = 1;
+
+const int TARGET_CPU_ARM = 0;
+
+const int TARGET_CPU_ARM64 = 0;
+
+const int TARGET_CPU_MIPS = 0;
+
+const int TARGET_CPU_SPARC = 0;
+
+const int TARGET_CPU_ALPHA = 0;
+
+const int TARGET_RT_MAC_CFM = 0;
+
+const int TARGET_RT_MAC_MACHO = 1;
+
+const int TARGET_RT_LITTLE_ENDIAN = 1;
+
+const int TARGET_RT_BIG_ENDIAN = 0;
+
+const int TARGET_RT_64_BIT = 1;
+
+const int __COREFOUNDATION_CFAVAILABILITY__ = 1;
+
+const int __API_TO_BE_DEPRECATED = 100000;
+
+const int __MAC_10_0 = 1000;
+
+const int __MAC_10_1 = 1010;
+
+const int __MAC_10_2 = 1020;
+
+const int __MAC_10_3 = 1030;
+
+const int __MAC_10_4 = 1040;
+
+const int __MAC_10_5 = 1050;
+
+const int __MAC_10_6 = 1060;
+
+const int __MAC_10_7 = 1070;
+
+const int __MAC_10_8 = 1080;
+
+const int __MAC_10_9 = 1090;
+
+const int __MAC_10_10 = 101000;
+
+const int __MAC_10_10_2 = 101002;
+
+const int __MAC_10_10_3 = 101003;
+
+const int __MAC_10_11 = 101100;
+
+const int __MAC_10_11_2 = 101102;
+
+const int __MAC_10_11_3 = 101103;
+
+const int __MAC_10_11_4 = 101104;
+
+const int __MAC_10_12 = 101200;
+
+const int __MAC_10_12_1 = 101201;
+
+const int __MAC_10_12_2 = 101202;
+
+const int __MAC_10_12_4 = 101204;
+
+const int __MAC_10_13 = 101300;
+
+const int __MAC_10_13_1 = 101301;
+
+const int __MAC_10_13_2 = 101302;
+
+const int __MAC_10_13_4 = 101304;
+
+const int __MAC_10_14 = 101400;
+
+const int __MAC_10_14_1 = 101401;
+
+const int __MAC_10_14_4 = 101404;
+
+const int __MAC_10_14_6 = 101406;
+
+const int __MAC_10_15 = 101500;
+
+const int __MAC_10_15_1 = 101501;
+
+const int __MAC_10_15_4 = 101504;
+
+const int __MAC_10_16 = 101600;
+
+const int __MAC_11_0 = 110000;
+
+const int __MAC_11_1 = 110100;
+
+const int __IPHONE_2_0 = 20000;
+
+const int __IPHONE_2_1 = 20100;
+
+const int __IPHONE_2_2 = 20200;
+
+const int __IPHONE_3_0 = 30000;
+
+const int __IPHONE_3_1 = 30100;
+
+const int __IPHONE_3_2 = 30200;
+
+const int __IPHONE_4_0 = 40000;
+
+const int __IPHONE_4_1 = 40100;
+
+const int __IPHONE_4_2 = 40200;
+
+const int __IPHONE_4_3 = 40300;
+
+const int __IPHONE_5_0 = 50000;
+
+const int __IPHONE_5_1 = 50100;
+
+const int __IPHONE_6_0 = 60000;
+
+const int __IPHONE_6_1 = 60100;
+
+const int __IPHONE_7_0 = 70000;
+
+const int __IPHONE_7_1 = 70100;
+
+const int __IPHONE_8_0 = 80000;
+
+const int __IPHONE_8_1 = 80100;
+
+const int __IPHONE_8_2 = 80200;
+
+const int __IPHONE_8_3 = 80300;
+
+const int __IPHONE_8_4 = 80400;
+
+const int __IPHONE_9_0 = 90000;
+
+const int __IPHONE_9_1 = 90100;
+
+const int __IPHONE_9_2 = 90200;
+
+const int __IPHONE_9_3 = 90300;
+
+const int __IPHONE_10_0 = 100000;
+
+const int __IPHONE_10_1 = 100100;
+
+const int __IPHONE_10_2 = 100200;
+
+const int __IPHONE_10_3 = 100300;
+
+const int __IPHONE_11_0 = 110000;
+
+const int __IPHONE_11_1 = 110100;
+
+const int __IPHONE_11_2 = 110200;
+
+const int __IPHONE_11_3 = 110300;
+
+const int __IPHONE_11_4 = 110400;
+
+const int __IPHONE_12_0 = 120000;
+
+const int __IPHONE_12_1 = 120100;
+
+const int __IPHONE_12_2 = 120200;
+
+const int __IPHONE_12_3 = 120300;
+
+const int __IPHONE_12_4 = 120400;
+
+const int __IPHONE_13_0 = 130000;
+
+const int __IPHONE_13_1 = 130100;
+
+const int __IPHONE_13_2 = 130200;
+
+const int __IPHONE_13_3 = 130300;
+
+const int __IPHONE_13_4 = 130400;
+
+const int __IPHONE_13_5 = 130500;
+
+const int __IPHONE_13_6 = 130600;
+
+const int __IPHONE_13_7 = 130700;
+
+const int __IPHONE_14_0 = 140000;
+
+const int __IPHONE_14_1 = 140100;
+
+const int __IPHONE_14_2 = 140200;
+
+const int __IPHONE_14_3 = 140300;
+
+const int __TVOS_9_0 = 90000;
+
+const int __TVOS_9_1 = 90100;
+
+const int __TVOS_9_2 = 90200;
+
+const int __TVOS_10_0 = 100000;
+
+const int __TVOS_10_0_1 = 100001;
+
+const int __TVOS_10_1 = 100100;
+
+const int __TVOS_10_2 = 100200;
+
+const int __TVOS_11_0 = 110000;
+
+const int __TVOS_11_1 = 110100;
+
+const int __TVOS_11_2 = 110200;
+
+const int __TVOS_11_3 = 110300;
+
+const int __TVOS_11_4 = 110400;
+
+const int __TVOS_12_0 = 120000;
+
+const int __TVOS_12_1 = 120100;
+
+const int __TVOS_12_2 = 120200;
+
+const int __TVOS_12_3 = 120300;
+
+const int __TVOS_12_4 = 120400;
+
+const int __TVOS_13_0 = 130000;
+
+const int __TVOS_13_2 = 130200;
+
+const int __TVOS_13_3 = 130300;
+
+const int __TVOS_13_4 = 130400;
+
+const int __TVOS_14_0 = 140000;
+
+const int __TVOS_14_1 = 140100;
+
+const int __TVOS_14_2 = 140200;
+
+const int __TVOS_14_3 = 140300;
+
+const int __WATCHOS_1_0 = 10000;
+
+const int __WATCHOS_2_0 = 20000;
+
+const int __WATCHOS_2_1 = 20100;
+
+const int __WATCHOS_2_2 = 20200;
+
+const int __WATCHOS_3_0 = 30000;
+
+const int __WATCHOS_3_1 = 30100;
+
+const int __WATCHOS_3_1_1 = 30101;
+
+const int __WATCHOS_3_2 = 30200;
+
+const int __WATCHOS_4_0 = 40000;
+
+const int __WATCHOS_4_1 = 40100;
+
+const int __WATCHOS_4_2 = 40200;
+
+const int __WATCHOS_4_3 = 40300;
+
+const int __WATCHOS_5_0 = 50000;
+
+const int __WATCHOS_5_1 = 50100;
+
+const int __WATCHOS_5_2 = 50200;
+
+const int __WATCHOS_5_3 = 50300;
+
+const int __WATCHOS_6_0 = 60000;
+
+const int __WATCHOS_6_1 = 60100;
+
+const int __WATCHOS_6_2 = 60200;
+
+const int __WATCHOS_7_0 = 70000;
+
+const int __WATCHOS_7_1 = 70100;
+
+const int __WATCHOS_7_2 = 70200;
+
+const int MAC_OS_X_VERSION_10_0 = 1000;
+
+const int MAC_OS_X_VERSION_10_1 = 1010;
+
+const int MAC_OS_X_VERSION_10_2 = 1020;
+
+const int MAC_OS_X_VERSION_10_3 = 1030;
+
+const int MAC_OS_X_VERSION_10_4 = 1040;
+
+const int MAC_OS_X_VERSION_10_5 = 1050;
+
+const int MAC_OS_X_VERSION_10_6 = 1060;
+
+const int MAC_OS_X_VERSION_10_7 = 1070;
+
+const int MAC_OS_X_VERSION_10_8 = 1080;
+
+const int MAC_OS_X_VERSION_10_9 = 1090;
+
+const int MAC_OS_X_VERSION_10_10 = 101000;
+
+const int MAC_OS_X_VERSION_10_10_2 = 101002;
+
+const int MAC_OS_X_VERSION_10_10_3 = 101003;
+
+const int MAC_OS_X_VERSION_10_11 = 101100;
+
+const int MAC_OS_X_VERSION_10_11_2 = 101102;
+
+const int MAC_OS_X_VERSION_10_11_3 = 101103;
+
+const int MAC_OS_X_VERSION_10_11_4 = 101104;
+
+const int MAC_OS_X_VERSION_10_12 = 101200;
+
+const int MAC_OS_X_VERSION_10_12_1 = 101201;
+
+const int MAC_OS_X_VERSION_10_12_2 = 101202;
+
+const int MAC_OS_X_VERSION_10_12_4 = 101204;
+
+const int MAC_OS_X_VERSION_10_13 = 101300;
+
+const int MAC_OS_X_VERSION_10_13_1 = 101301;
+
+const int MAC_OS_X_VERSION_10_13_2 = 101302;
+
+const int MAC_OS_X_VERSION_10_13_4 = 101304;
+
+const int MAC_OS_X_VERSION_10_14 = 101400;
+
+const int MAC_OS_X_VERSION_10_14_1 = 101401;
+
+const int MAC_OS_X_VERSION_10_14_4 = 101404;
+
+const int MAC_OS_X_VERSION_10_14_6 = 101406;
+
+const int MAC_OS_X_VERSION_10_15 = 101500;
+
+const int MAC_OS_X_VERSION_10_15_1 = 101501;
+
+const int MAC_OS_X_VERSION_10_16 = 101600;
+
+const int MAC_OS_VERSION_11_0 = 110000;
+
+const int __DRIVERKIT_19_0 = 190000;
+
+const int __DRIVERKIT_20_0 = 200000;
+
+const int __MAC_OS_X_VERSION_MIN_REQUIRED = 110000;
+
+const int __MAC_OS_X_VERSION_MAX_ALLOWED = 110100;
+
+const int __ENABLE_LEGACY_MAC_AVAILABILITY = 1;
+
+const int API_TO_BE_DEPRECATED = 100000;
+
+const int MAC_OS_VERSION_11_1 = 110100;
+
+const int MAC_OS_X_VERSION_MIN_REQUIRED = 110000;
+
+const int MAC_OS_X_VERSION_MAX_ALLOWED = 110100;
+
+const int __AVAILABILITY_MACROS_USES_AVAILABILITY = 1;
+
+const int __CF_ENUM_FIXED_IS_AVAILABLE = 1;
+
+const int __WORDSIZE = 64;
+
+const int __DARWIN_ONLY_64_BIT_INO_T = 0;
+
+const int __DARWIN_ONLY_UNIX_CONFORMANCE = 1;
+
+const int __DARWIN_ONLY_VERS_1050 = 0;
+
+const int __DARWIN_UNIX03 = 1;
+
+const int __DARWIN_64_BIT_INO_T = 1;
+
+const int __DARWIN_VERS_1050 = 1;
+
+const int __DARWIN_NON_CANCELABLE = 0;
+
+const String __DARWIN_SUF_64_BIT_INO_T = '\$INODE64';
+
+const String __DARWIN_SUF_1050 = '\$1050';
+
+const String __DARWIN_SUF_EXTSN = '\$DARWIN_EXTSN';
+
+const int __DARWIN_C_ANSI = 4096;
+
+const int __DARWIN_C_FULL = 900000;
+
+const int __DARWIN_C_LEVEL = 900000;
+
+const int __STDC_WANT_LIB_EXT1__ = 1;
+
+const int __DARWIN_NO_LONG_LONG = 0;
+
+const int _DARWIN_FEATURE_64_BIT_INODE = 1;
+
+const int _DARWIN_FEATURE_ONLY_UNIX_CONFORMANCE = 1;
+
+const int _DARWIN_FEATURE_UNIX_CONFORMANCE = 3;
+
+const int __DARWIN_NULL = 0;
+
+const int __PTHREAD_SIZE__ = 8176;
+
+const int __PTHREAD_ATTR_SIZE__ = 56;
+
+const int __PTHREAD_MUTEXATTR_SIZE__ = 8;
+
+const int __PTHREAD_MUTEX_SIZE__ = 56;
+
+const int __PTHREAD_CONDATTR_SIZE__ = 8;
+
+const int __PTHREAD_COND_SIZE__ = 40;
+
+const int __PTHREAD_ONCE_SIZE__ = 8;
+
+const int __PTHREAD_RWLOCK_SIZE__ = 192;
+
+const int __PTHREAD_RWLOCKATTR_SIZE__ = 16;
+
+const int USER_ADDR_NULL = 0;
 
 const int INT8_MAX = 127;
 
@@ -6376,6 +6213,14 @@ const int INT16_MAX = 32767;
 const int INT32_MAX = 2147483647;
 
 const int INT64_MAX = 9223372036854775807;
+
+const int INT8_MIN = -128;
+
+const int INT16_MIN = -32768;
+
+const int INT32_MIN = -2147483648;
+
+const int INT64_MIN = -9223372036854775808;
 
 const int UINT8_MAX = 255;
 
@@ -6411,7 +6256,7 @@ const int UINT_LEAST64_MAX = -1;
 
 const int INT_FAST8_MIN = -128;
 
-const int INT_FAST16_MIN = -2147483648;
+const int INT_FAST16_MIN = -32768;
 
 const int INT_FAST32_MIN = -2147483648;
 
@@ -6419,7 +6264,7 @@ const int INT_FAST64_MIN = -9223372036854775808;
 
 const int INT_FAST8_MAX = 127;
 
-const int INT_FAST16_MAX = 2147483647;
+const int INT_FAST16_MAX = 32767;
 
 const int INT_FAST32_MAX = 2147483647;
 
@@ -6427,23 +6272,23 @@ const int INT_FAST64_MAX = 9223372036854775807;
 
 const int UINT_FAST8_MAX = 255;
 
-const int UINT_FAST16_MAX = 4294967295;
+const int UINT_FAST16_MAX = 65535;
 
 const int UINT_FAST32_MAX = 4294967295;
 
 const int UINT_FAST64_MAX = -1;
 
-const int INTPTR_MIN = -9223372036854775808;
-
 const int INTPTR_MAX = 9223372036854775807;
 
-const int UINTPTR_MAX = -1;
+const int INTPTR_MIN = -9223372036854775808;
 
-const int INTMAX_MIN = -9223372036854775808;
+const int UINTPTR_MAX = -1;
 
 const int INTMAX_MAX = 9223372036854775807;
 
 const int UINTMAX_MAX = -1;
+
+const int INTMAX_MIN = -9223372036854775808;
 
 const int PTRDIFF_MIN = -9223372036854775808;
 
@@ -6451,725 +6296,1093 @@ const int PTRDIFF_MAX = 9223372036854775807;
 
 const int SIZE_MAX = -1;
 
+const int RSIZE_MAX = 9223372036854775807;
+
+const int WCHAR_MAX = 2147483647;
+
+const int WCHAR_MIN = -2147483648;
+
+const int WINT_MIN = -2147483648;
+
+const int WINT_MAX = 2147483647;
+
 const int SIG_ATOMIC_MIN = -2147483648;
 
 const int SIG_ATOMIC_MAX = 2147483647;
 
-const int WCHAR_MIN = 0;
+const int true_1 = 1;
 
-const int WCHAR_MAX = 65535;
+const int false_1 = 0;
 
-const int WINT_MIN = 0;
+const int __bool_true_false_are_defined = 1;
 
-const int WINT_MAX = 65535;
+const int UNIVERSAL_INTERFACES_VERSION = 1024;
 
-const int _ARGMAX = 100;
+const int PRAGMA_IMPORT = 0;
 
-const int _TRUNCATE = -1;
+const int PRAGMA_ONCE = 0;
 
-const int _CRT_INT_MAX = 2147483647;
+const int PRAGMA_STRUCT_PACK = 1;
 
-const int _CRT_SIZE_MAX = -1;
+const int PRAGMA_STRUCT_PACKPUSH = 1;
 
-const String __FILEW__ = 't';
+const int PRAGMA_STRUCT_ALIGN = 0;
 
-const int _CRT_FUNCTIONS_REQUIRED = 1;
+const int PRAGMA_ENUM_PACK = 0;
 
-const int _CRT_HAS_CXX17 = 0;
+const int PRAGMA_ENUM_ALWAYSINT = 0;
 
-const int _ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE = 1;
+const int PRAGMA_ENUM_OPTIONS = 0;
 
-const int _CRT_BUILD_DESKTOP_APP = 1;
+const int TYPE_EXTENDED = 0;
 
-const int _CRT_INTERNAL_NONSTDC_NAMES = 1;
+const int TYPE_LONGDOUBLE_IS_DOUBLE = 0;
 
-const int __STDC_SECURE_LIB__ = 200411;
+const int TYPE_LONGLONG = 1;
 
-const int __GOT_SECURE_LIB__ = 200411;
+const int FUNCTION_PASCAL = 0;
 
-const int __STDC_WANT_SECURE_LIB__ = 1;
+const int FUNCTION_DECLSPEC = 0;
 
-const int _SECURECRT_FILL_BUFFER_PATTERN = 254;
+const int FUNCTION_WIN32CC = 0;
 
-const int _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES = 0;
+const int TARGET_API_MAC_OS8 = 0;
 
-const int _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT = 0;
+const int TARGET_API_MAC_CARBON = 1;
 
-const int _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES = 1;
+const int TARGET_API_MAC_OSX = 1;
 
-const int _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_MEMORY = 0;
+const int TARGET_CARBON = 1;
 
-const int _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES_MEMORY = 0;
+const int OLDROUTINENAMES = 0;
 
-const int _MAX_ITOSTR_BASE16_COUNT = 9;
+const int OPAQUE_TOOLBOX_STRUCTS = 1;
 
-const int _MAX_ITOSTR_BASE10_COUNT = 12;
+const int OPAQUE_UPP_TYPES = 1;
 
-const int _MAX_ITOSTR_BASE8_COUNT = 12;
+const int ACCESSOR_CALLS_ARE_FUNCTIONS = 1;
 
-const int _MAX_ITOSTR_BASE2_COUNT = 33;
+const int CALL_NOT_IN_CARBON = 0;
 
-const int _MAX_LTOSTR_BASE16_COUNT = 9;
+const int MIXEDMODE_CALLS_ARE_FUNCTIONS = 1;
 
-const int _MAX_LTOSTR_BASE10_COUNT = 12;
+const int _QUAD_HIGHWORD = 1;
 
-const int _MAX_LTOSTR_BASE8_COUNT = 12;
+const int _QUAD_LOWWORD = 0;
 
-const int _MAX_LTOSTR_BASE2_COUNT = 33;
+const int __DARWIN_LITTLE_ENDIAN = 1234;
 
-const int _MAX_ULTOSTR_BASE16_COUNT = 9;
+const int __DARWIN_BIG_ENDIAN = 4321;
 
-const int _MAX_ULTOSTR_BASE10_COUNT = 11;
+const int __DARWIN_PDP_ENDIAN = 3412;
 
-const int _MAX_ULTOSTR_BASE8_COUNT = 12;
+const int __DARWIN_BYTE_ORDER = 1234;
 
-const int _MAX_ULTOSTR_BASE2_COUNT = 33;
+const int LITTLE_ENDIAN = 1234;
 
-const int _MAX_I64TOSTR_BASE16_COUNT = 17;
+const int BIG_ENDIAN = 4321;
 
-const int _MAX_I64TOSTR_BASE10_COUNT = 21;
+const int PDP_ENDIAN = 3412;
 
-const int _MAX_I64TOSTR_BASE8_COUNT = 23;
+const int BYTE_ORDER = 1234;
 
-const int _MAX_I64TOSTR_BASE2_COUNT = 65;
+const int __DARWIN_FD_SETSIZE = 1024;
 
-const int _MAX_U64TOSTR_BASE16_COUNT = 17;
+const int __DARWIN_NBBY = 8;
 
-const int _MAX_U64TOSTR_BASE10_COUNT = 21;
+const int __DARWIN_NFDBITS = 32;
 
-const int _MAX_U64TOSTR_BASE8_COUNT = 23;
+const int NBBY = 8;
 
-const int _MAX_U64TOSTR_BASE2_COUNT = 65;
+const int NFDBITS = 32;
 
-const int CHAR_BIT = 8;
+const int FD_SETSIZE = 1024;
 
-const int SCHAR_MIN = -128;
+const int ALLOW_OBSOLETE_CARBON_MACMEMORY = 0;
 
-const int SCHAR_MAX = 127;
+const int ALLOW_OBSOLETE_CARBON_OSUTILS = 0;
 
-const int UCHAR_MAX = 255;
+const int NULL = 0;
 
-const int CHAR_MIN = -128;
+const int kInvalidID = 0;
 
-const int CHAR_MAX = 127;
+const int TRUE = 1;
 
-const int MB_LEN_MAX = 5;
+const int FALSE = 0;
 
-const int SHRT_MIN = -32768;
+const double kCFCoreFoundationVersionNumber10_0 = 196.4;
 
-const int SHRT_MAX = 32767;
+const double kCFCoreFoundationVersionNumber10_0_3 = 196.5;
 
-const int USHRT_MAX = 65535;
+const double kCFCoreFoundationVersionNumber10_1 = 226.0;
 
-const int INT_MIN = -2147483648;
+const double kCFCoreFoundationVersionNumber10_1_1 = 226.0;
 
-const int INT_MAX = 2147483647;
+const double kCFCoreFoundationVersionNumber10_1_2 = 227.2;
 
-const int UINT_MAX = 4294967295;
+const double kCFCoreFoundationVersionNumber10_1_3 = 227.2;
 
-const int LONG_MIN = -2147483648;
+const double kCFCoreFoundationVersionNumber10_1_4 = 227.3;
 
-const int LONG_MAX = 2147483647;
+const double kCFCoreFoundationVersionNumber10_2 = 263.0;
 
-const int ULONG_MAX = 4294967295;
+const double kCFCoreFoundationVersionNumber10_2_1 = 263.1;
 
-const int LLONG_MAX = 9223372036854775807;
+const double kCFCoreFoundationVersionNumber10_2_2 = 263.1;
 
-const int LLONG_MIN = -9223372036854775808;
+const double kCFCoreFoundationVersionNumber10_2_3 = 263.3;
 
-const int ULLONG_MAX = -1;
+const double kCFCoreFoundationVersionNumber10_2_4 = 263.3;
 
-const int _I8_MIN = -128;
+const double kCFCoreFoundationVersionNumber10_2_5 = 263.5;
 
-const int _I8_MAX = 127;
+const double kCFCoreFoundationVersionNumber10_2_6 = 263.5;
 
-const int _UI8_MAX = 255;
+const double kCFCoreFoundationVersionNumber10_2_7 = 263.5;
 
-const int _I16_MIN = -32768;
+const double kCFCoreFoundationVersionNumber10_2_8 = 263.5;
 
-const int _I16_MAX = 32767;
+const double kCFCoreFoundationVersionNumber10_3 = 299.0;
 
-const int _UI16_MAX = 65535;
+const double kCFCoreFoundationVersionNumber10_3_1 = 299.0;
 
-const int _I32_MIN = -2147483648;
+const double kCFCoreFoundationVersionNumber10_3_2 = 299.0;
 
-const int _I32_MAX = 2147483647;
+const double kCFCoreFoundationVersionNumber10_3_3 = 299.3;
 
-const int _UI32_MAX = 4294967295;
+const double kCFCoreFoundationVersionNumber10_3_4 = 299.31;
 
-const int _I64_MIN = -9223372036854775808;
+const double kCFCoreFoundationVersionNumber10_3_5 = 299.31;
 
-const int _I64_MAX = 9223372036854775807;
+const double kCFCoreFoundationVersionNumber10_3_6 = 299.32;
 
-const int _UI64_MAX = -1;
+const double kCFCoreFoundationVersionNumber10_3_7 = 299.33;
 
-const int RSIZE_MAX = 9223372036854775807;
+const double kCFCoreFoundationVersionNumber10_3_8 = 299.33;
 
-const int EXIT_SUCCESS = 0;
+const double kCFCoreFoundationVersionNumber10_3_9 = 299.35;
+
+const double kCFCoreFoundationVersionNumber10_4 = 368.0;
+
+const double kCFCoreFoundationVersionNumber10_4_1 = 368.1;
+
+const double kCFCoreFoundationVersionNumber10_4_2 = 368.11;
+
+const double kCFCoreFoundationVersionNumber10_4_3 = 368.18;
+
+const double kCFCoreFoundationVersionNumber10_4_4_Intel = 368.26;
+
+const double kCFCoreFoundationVersionNumber10_4_4_PowerPC = 368.25;
+
+const double kCFCoreFoundationVersionNumber10_4_5_Intel = 368.26;
+
+const double kCFCoreFoundationVersionNumber10_4_5_PowerPC = 368.25;
+
+const double kCFCoreFoundationVersionNumber10_4_6_Intel = 368.26;
+
+const double kCFCoreFoundationVersionNumber10_4_6_PowerPC = 368.25;
+
+const double kCFCoreFoundationVersionNumber10_4_7 = 368.27;
+
+const double kCFCoreFoundationVersionNumber10_4_8 = 368.27;
+
+const double kCFCoreFoundationVersionNumber10_4_9 = 368.28;
+
+const double kCFCoreFoundationVersionNumber10_4_10 = 368.28;
+
+const double kCFCoreFoundationVersionNumber10_4_11 = 368.31;
+
+const double kCFCoreFoundationVersionNumber10_5 = 476.0;
+
+const double kCFCoreFoundationVersionNumber10_5_1 = 476.0;
+
+const double kCFCoreFoundationVersionNumber10_5_2 = 476.1;
+
+const double kCFCoreFoundationVersionNumber10_5_3 = 476.13;
+
+const double kCFCoreFoundationVersionNumber10_5_4 = 476.14;
+
+const double kCFCoreFoundationVersionNumber10_5_5 = 476.15;
+
+const double kCFCoreFoundationVersionNumber10_5_6 = 476.17;
+
+const double kCFCoreFoundationVersionNumber10_5_7 = 476.18;
+
+const double kCFCoreFoundationVersionNumber10_5_8 = 476.19;
+
+const double kCFCoreFoundationVersionNumber10_6 = 550.0;
+
+const double kCFCoreFoundationVersionNumber10_6_1 = 550.0;
+
+const double kCFCoreFoundationVersionNumber10_6_2 = 550.13;
+
+const double kCFCoreFoundationVersionNumber10_6_3 = 550.19;
+
+const double kCFCoreFoundationVersionNumber10_6_4 = 550.29;
+
+const double kCFCoreFoundationVersionNumber10_6_5 = 550.42;
+
+const double kCFCoreFoundationVersionNumber10_6_6 = 550.42;
+
+const double kCFCoreFoundationVersionNumber10_6_7 = 550.42;
+
+const double kCFCoreFoundationVersionNumber10_6_8 = 550.43;
+
+const double kCFCoreFoundationVersionNumber10_7 = 635.0;
+
+const double kCFCoreFoundationVersionNumber10_7_1 = 635.0;
+
+const double kCFCoreFoundationVersionNumber10_7_2 = 635.15;
+
+const double kCFCoreFoundationVersionNumber10_7_3 = 635.19;
+
+const double kCFCoreFoundationVersionNumber10_7_4 = 635.21;
+
+const double kCFCoreFoundationVersionNumber10_7_5 = 635.21;
+
+const double kCFCoreFoundationVersionNumber10_8 = 744.0;
+
+const double kCFCoreFoundationVersionNumber10_8_1 = 744.0;
+
+const double kCFCoreFoundationVersionNumber10_8_2 = 744.12;
+
+const double kCFCoreFoundationVersionNumber10_8_3 = 744.18;
+
+const double kCFCoreFoundationVersionNumber10_8_4 = 744.19;
+
+const double kCFCoreFoundationVersionNumber10_9 = 855.11;
+
+const double kCFCoreFoundationVersionNumber10_9_1 = 855.11;
+
+const double kCFCoreFoundationVersionNumber10_9_2 = 855.14;
+
+const double kCFCoreFoundationVersionNumber10_10 = 1151.16;
+
+const double kCFCoreFoundationVersionNumber10_10_1 = 1151.16;
+
+const int kCFCoreFoundationVersionNumber10_10_2 = 1152;
+
+const double kCFCoreFoundationVersionNumber10_10_3 = 1153.18;
+
+const double kCFCoreFoundationVersionNumber10_10_4 = 1153.18;
+
+const double kCFCoreFoundationVersionNumber10_10_5 = 1153.18;
+
+const int kCFCoreFoundationVersionNumber10_10_Max = 1199;
+
+const int kCFCoreFoundationVersionNumber10_11 = 1253;
+
+const double kCFCoreFoundationVersionNumber10_11_1 = 1255.1;
+
+const double kCFCoreFoundationVersionNumber10_11_2 = 1256.14;
+
+const double kCFCoreFoundationVersionNumber10_11_3 = 1256.14;
+
+const double kCFCoreFoundationVersionNumber10_11_4 = 1258.1;
+
+const int kCFCoreFoundationVersionNumber10_11_Max = 1299;
+
+const int ISA_PTRAUTH_DISCRIMINATOR = 27361;
+
+const int __DARWIN_WCHAR_MAX = 2147483647;
+
+const int __DARWIN_WCHAR_MIN = -2147483648;
+
+const int __DARWIN_WEOF = -1;
+
+const int _FORTIFY_SOURCE = 2;
+
+const int __DARWIN_NSIG = 32;
+
+const int NSIG = 32;
+
+const int _I386_SIGNAL_H_ = 1;
+
+const int SIGHUP = 1;
+
+const int SIGINT = 2;
+
+const int SIGQUIT = 3;
+
+const int SIGILL = 4;
+
+const int SIGTRAP = 5;
+
+const int SIGABRT = 6;
+
+const int SIGIOT = 6;
+
+const int SIGEMT = 7;
+
+const int SIGFPE = 8;
+
+const int SIGKILL = 9;
+
+const int SIGBUS = 10;
+
+const int SIGSEGV = 11;
+
+const int SIGSYS = 12;
+
+const int SIGPIPE = 13;
+
+const int SIGALRM = 14;
+
+const int SIGTERM = 15;
+
+const int SIGURG = 16;
+
+const int SIGSTOP = 17;
+
+const int SIGTSTP = 18;
+
+const int SIGCONT = 19;
+
+const int SIGCHLD = 20;
+
+const int SIGTTIN = 21;
+
+const int SIGTTOU = 22;
+
+const int SIGIO = 23;
+
+const int SIGXCPU = 24;
+
+const int SIGXFSZ = 25;
+
+const int SIGVTALRM = 26;
+
+const int SIGPROF = 27;
+
+const int SIGWINCH = 28;
+
+const int SIGINFO = 29;
+
+const int SIGUSR1 = 30;
+
+const int SIGUSR2 = 31;
+
+const int FP_PREC_24B = 0;
+
+const int FP_PREC_53B = 2;
+
+const int FP_PREC_64B = 3;
+
+const int FP_RND_NEAR = 0;
+
+const int FP_RND_DOWN = 1;
+
+const int FP_RND_UP = 2;
+
+const int FP_CHOP = 3;
+
+const int FP_STATE_BYTES = 512;
+
+const int _X86_INSTRUCTION_STATE_MAX_INSN_BYTES = 2380;
+
+const int _X86_INSTRUCTION_STATE_CACHELINE_SIZE = 64;
+
+const int __LASTBRANCH_MAX = 32;
+
+const int SIGEV_NONE = 0;
+
+const int SIGEV_SIGNAL = 1;
+
+const int SIGEV_THREAD = 3;
+
+const int ILL_NOOP = 0;
+
+const int ILL_ILLOPC = 1;
+
+const int ILL_ILLTRP = 2;
+
+const int ILL_PRVOPC = 3;
+
+const int ILL_ILLOPN = 4;
+
+const int ILL_ILLADR = 5;
+
+const int ILL_PRVREG = 6;
+
+const int ILL_COPROC = 7;
+
+const int ILL_BADSTK = 8;
+
+const int FPE_NOOP = 0;
+
+const int FPE_FLTDIV = 1;
+
+const int FPE_FLTOVF = 2;
+
+const int FPE_FLTUND = 3;
+
+const int FPE_FLTRES = 4;
+
+const int FPE_FLTINV = 5;
+
+const int FPE_FLTSUB = 6;
+
+const int FPE_INTDIV = 7;
+
+const int FPE_INTOVF = 8;
+
+const int SEGV_NOOP = 0;
+
+const int SEGV_MAPERR = 1;
+
+const int SEGV_ACCERR = 2;
+
+const int BUS_NOOP = 0;
+
+const int BUS_ADRALN = 1;
+
+const int BUS_ADRERR = 2;
+
+const int BUS_OBJERR = 3;
+
+const int TRAP_BRKPT = 1;
+
+const int TRAP_TRACE = 2;
+
+const int CLD_NOOP = 0;
+
+const int CLD_EXITED = 1;
+
+const int CLD_KILLED = 2;
+
+const int CLD_DUMPED = 3;
+
+const int CLD_TRAPPED = 4;
+
+const int CLD_STOPPED = 5;
+
+const int CLD_CONTINUED = 6;
+
+const int POLL_IN = 1;
+
+const int POLL_OUT = 2;
+
+const int POLL_MSG = 3;
+
+const int POLL_ERR = 4;
+
+const int POLL_PRI = 5;
+
+const int POLL_HUP = 6;
+
+const int SA_ONSTACK = 1;
+
+const int SA_RESTART = 2;
+
+const int SA_RESETHAND = 4;
+
+const int SA_NOCLDSTOP = 8;
+
+const int SA_NODEFER = 16;
+
+const int SA_NOCLDWAIT = 32;
+
+const int SA_SIGINFO = 64;
+
+const int SA_USERTRAMP = 256;
+
+const int SA_64REGSET = 512;
+
+const int SA_USERSPACE_MASK = 127;
+
+const int SIG_BLOCK = 1;
+
+const int SIG_UNBLOCK = 2;
+
+const int SIG_SETMASK = 3;
+
+const int SI_USER = 65537;
+
+const int SI_QUEUE = 65538;
+
+const int SI_TIMER = 65539;
+
+const int SI_ASYNCIO = 65540;
+
+const int SI_MESGQ = 65541;
+
+const int SS_ONSTACK = 1;
+
+const int SS_DISABLE = 4;
+
+const int MINSIGSTKSZ = 32768;
+
+const int SIGSTKSZ = 131072;
+
+const int SV_ONSTACK = 1;
+
+const int SV_INTERRUPT = 2;
+
+const int SV_RESETHAND = 4;
+
+const int SV_NODEFER = 16;
+
+const int SV_NOCLDSTOP = 8;
+
+const int SV_SIGINFO = 64;
+
+const int PRIO_PROCESS = 0;
+
+const int PRIO_PGRP = 1;
+
+const int PRIO_USER = 2;
+
+const int PRIO_DARWIN_THREAD = 3;
+
+const int PRIO_DARWIN_PROCESS = 4;
+
+const int PRIO_MIN = -20;
+
+const int PRIO_MAX = 20;
+
+const int PRIO_DARWIN_BG = 4096;
+
+const int PRIO_DARWIN_NONUI = 4097;
+
+const int RUSAGE_SELF = 0;
+
+const int RUSAGE_CHILDREN = -1;
+
+const int RUSAGE_INFO_V0 = 0;
+
+const int RUSAGE_INFO_V1 = 1;
+
+const int RUSAGE_INFO_V2 = 2;
+
+const int RUSAGE_INFO_V3 = 3;
+
+const int RUSAGE_INFO_V4 = 4;
+
+const int RUSAGE_INFO_V5 = 5;
+
+const int RUSAGE_INFO_CURRENT = 5;
+
+const int RU_PROC_RUNS_RESLIDE = 1;
+
+const int RLIM_INFINITY = 9223372036854775807;
+
+const int RLIM_SAVED_MAX = 9223372036854775807;
+
+const int RLIM_SAVED_CUR = 9223372036854775807;
+
+const int RLIMIT_CPU = 0;
+
+const int RLIMIT_FSIZE = 1;
+
+const int RLIMIT_DATA = 2;
+
+const int RLIMIT_STACK = 3;
+
+const int RLIMIT_CORE = 4;
+
+const int RLIMIT_AS = 5;
+
+const int RLIMIT_RSS = 5;
+
+const int RLIMIT_MEMLOCK = 6;
+
+const int RLIMIT_NPROC = 7;
+
+const int RLIMIT_NOFILE = 8;
+
+const int RLIM_NLIMITS = 9;
+
+const int _RLIMIT_POSIX_FLAG = 4096;
+
+const int RLIMIT_WAKEUPS_MONITOR = 1;
+
+const int RLIMIT_CPU_USAGE_MONITOR = 2;
+
+const int RLIMIT_THREAD_CPULIMITS = 3;
+
+const int RLIMIT_FOOTPRINT_INTERVAL = 4;
+
+const int WAKEMON_ENABLE = 1;
+
+const int WAKEMON_DISABLE = 2;
+
+const int WAKEMON_GET_PARAMS = 4;
+
+const int WAKEMON_SET_DEFAULTS = 8;
+
+const int WAKEMON_MAKE_FATAL = 16;
+
+const int CPUMON_MAKE_FATAL = 4096;
+
+const int FOOTPRINT_INTERVAL_RESET = 1;
+
+const int IOPOL_TYPE_DISK = 0;
+
+const int IOPOL_TYPE_VFS_ATIME_UPDATES = 2;
+
+const int IOPOL_TYPE_VFS_MATERIALIZE_DATALESS_FILES = 3;
+
+const int IOPOL_TYPE_VFS_STATFS_NO_DATA_VOLUME = 4;
+
+const int IOPOL_TYPE_VFS_TRIGGER_RESOLVE = 5;
+
+const int IOPOL_TYPE_VFS_IGNORE_CONTENT_PROTECTION = 6;
+
+const int IOPOL_SCOPE_PROCESS = 0;
+
+const int IOPOL_SCOPE_THREAD = 1;
+
+const int IOPOL_SCOPE_DARWIN_BG = 2;
+
+const int IOPOL_DEFAULT = 0;
+
+const int IOPOL_IMPORTANT = 1;
+
+const int IOPOL_PASSIVE = 2;
+
+const int IOPOL_THROTTLE = 3;
+
+const int IOPOL_UTILITY = 4;
+
+const int IOPOL_STANDARD = 5;
+
+const int IOPOL_APPLICATION = 5;
+
+const int IOPOL_NORMAL = 1;
+
+const int IOPOL_ATIME_UPDATES_DEFAULT = 0;
+
+const int IOPOL_ATIME_UPDATES_OFF = 1;
+
+const int IOPOL_MATERIALIZE_DATALESS_FILES_DEFAULT = 0;
+
+const int IOPOL_MATERIALIZE_DATALESS_FILES_OFF = 1;
+
+const int IOPOL_MATERIALIZE_DATALESS_FILES_ON = 2;
+
+const int IOPOL_VFS_STATFS_NO_DATA_VOLUME_DEFAULT = 0;
+
+const int IOPOL_VFS_STATFS_FORCE_NO_DATA_VOLUME = 1;
+
+const int IOPOL_VFS_TRIGGER_RESOLVE_DEFAULT = 0;
+
+const int IOPOL_VFS_TRIGGER_RESOLVE_OFF = 1;
+
+const int IOPOL_VFS_CONTENT_PROTECTION_DEFAULT = 0;
+
+const int IOPOL_VFS_CONTENT_PROTECTION_IGNORE = 1;
+
+const int WNOHANG = 1;
+
+const int WUNTRACED = 2;
+
+const int WCOREFLAG = 128;
+
+const int _WSTOPPED = 127;
+
+const int WEXITED = 4;
+
+const int WSTOPPED = 8;
+
+const int WCONTINUED = 16;
+
+const int WNOWAIT = 32;
+
+const int WAIT_ANY = -1;
+
+const int WAIT_MYPGRP = 0;
 
 const int EXIT_FAILURE = 1;
 
-const int _WRITE_ABORT_MSG = 1;
+const int EXIT_SUCCESS = 0;
 
-const int _CALL_REPORTFAULT = 2;
+const int RAND_MAX = 2147483647;
 
-const int _OUT_TO_DEFAULT = 0;
+const int RENAME_SECLUDE = 1;
 
-const int _OUT_TO_STDERR = 1;
+const int RENAME_SWAP = 2;
 
-const int _OUT_TO_MSGBOX = 2;
+const int RENAME_EXCL = 4;
 
-const int _REPORT_ERRMODE = 3;
+const int __SLBF = 1;
 
-const int RAND_MAX = 32767;
+const int __SNBF = 2;
 
-const int _CVTBUFSIZE = 349;
+const int __SRD = 4;
 
-const int _MAX_PATH = 260;
+const int __SWR = 8;
 
-const int _MAX_DRIVE = 3;
+const int __SRW = 16;
 
-const int _MAX_DIR = 256;
+const int __SEOF = 32;
 
-const int _MAX_FNAME = 256;
+const int __SERR = 64;
 
-const int _MAX_EXT = 256;
+const int __SMBF = 128;
 
-const int _MAX_ENV = 32767;
+const int __SAPP = 256;
 
-const int EPERM = 1;
+const int __SSTR = 512;
 
-const int ENOENT = 2;
+const int __SOPT = 1024;
 
-const int ESRCH = 3;
+const int __SNPT = 2048;
 
-const int EINTR = 4;
+const int __SOFF = 4096;
 
-const int EIO = 5;
+const int __SMOD = 8192;
 
-const int ENXIO = 6;
+const int __SALC = 16384;
 
-const int E2BIG = 7;
-
-const int ENOEXEC = 8;
-
-const int EBADF = 9;
-
-const int ECHILD = 10;
-
-const int EAGAIN = 11;
-
-const int ENOMEM = 12;
-
-const int EACCES = 13;
-
-const int EFAULT = 14;
-
-const int EBUSY = 16;
-
-const int EEXIST = 17;
-
-const int EXDEV = 18;
-
-const int ENODEV = 19;
-
-const int ENOTDIR = 20;
-
-const int EISDIR = 21;
-
-const int ENFILE = 23;
-
-const int EMFILE = 24;
-
-const int ENOTTY = 25;
-
-const int EFBIG = 27;
-
-const int ENOSPC = 28;
-
-const int ESPIPE = 29;
-
-const int EROFS = 30;
-
-const int EMLINK = 31;
-
-const int EPIPE = 32;
-
-const int EDOM = 33;
-
-const int EDEADLK = 36;
-
-const int ENAMETOOLONG = 38;
-
-const int ENOLCK = 39;
-
-const int ENOSYS = 40;
-
-const int ENOTEMPTY = 41;
-
-const int EINVAL = 22;
-
-const int ERANGE = 34;
-
-const int EILSEQ = 42;
-
-const int STRUNCATE = 80;
-
-const int EDEADLOCK = 36;
-
-const int EADDRINUSE = 100;
-
-const int EADDRNOTAVAIL = 101;
-
-const int EAFNOSUPPORT = 102;
-
-const int EALREADY = 103;
-
-const int EBADMSG = 104;
-
-const int ECANCELED = 105;
-
-const int ECONNABORTED = 106;
-
-const int ECONNREFUSED = 107;
-
-const int ECONNRESET = 108;
-
-const int EDESTADDRREQ = 109;
-
-const int EHOSTUNREACH = 110;
-
-const int EIDRM = 111;
-
-const int EINPROGRESS = 112;
-
-const int EISCONN = 113;
-
-const int ELOOP = 114;
-
-const int EMSGSIZE = 115;
-
-const int ENETDOWN = 116;
-
-const int ENETRESET = 117;
-
-const int ENETUNREACH = 118;
-
-const int ENOBUFS = 119;
-
-const int ENODATA = 120;
-
-const int ENOLINK = 121;
-
-const int ENOMSG = 122;
-
-const int ENOPROTOOPT = 123;
-
-const int ENOSR = 124;
-
-const int ENOSTR = 125;
-
-const int ENOTCONN = 126;
-
-const int ENOTRECOVERABLE = 127;
-
-const int ENOTSOCK = 128;
-
-const int ENOTSUP = 129;
-
-const int EOPNOTSUPP = 130;
-
-const int EOTHER = 131;
-
-const int EOVERFLOW = 132;
-
-const int EOWNERDEAD = 133;
-
-const int EPROTO = 134;
-
-const int EPROTONOSUPPORT = 135;
-
-const int EPROTOTYPE = 136;
-
-const int ETIME = 137;
-
-const int ETIMEDOUT = 138;
-
-const int ETXTBSY = 139;
-
-const int EWOULDBLOCK = 140;
-
-const int _NLSCMPERROR = 2147483647;
-
-const String _CRT_INTERNAL_STDIO_SYMBOL_PREFIX = '';
-
-const int _CRT_INTERNAL_PRINTF_LEGACY_VSPRINTF_NULL_TERMINATION = 1;
-
-const int _CRT_INTERNAL_PRINTF_STANDARD_SNPRINTF_BEHAVIOR = 2;
-
-const int _CRT_INTERNAL_PRINTF_LEGACY_WIDE_SPECIFIERS = 4;
-
-const int _CRT_INTERNAL_PRINTF_LEGACY_MSVCRT_COMPATIBILITY = 8;
-
-const int _CRT_INTERNAL_PRINTF_LEGACY_THREE_DIGIT_EXPONENTS = 16;
-
-const int _CRT_INTERNAL_SCANF_SECURECRT = 1;
-
-const int _CRT_INTERNAL_SCANF_LEGACY_WIDE_SPECIFIERS = 2;
-
-const int _CRT_INTERNAL_SCANF_LEGACY_MSVCRT_COMPATIBILITY = 4;
-
-const int WEOF = 65535;
-
-const int BUFSIZ = 512;
-
-const int _NFILE = 512;
-
-const int _NSTREAM_ = 512;
-
-const int _IOB_ENTRIES = 3;
-
-const int EOF = -1;
+const int __SIGN = 32768;
 
 const int _IOFBF = 0;
 
-const int _IOLBF = 64;
+const int _IOLBF = 1;
 
-const int _IONBF = 4;
+const int _IONBF = 2;
 
-const int L_tmpnam = 260;
+const int BUFSIZ = 1024;
 
-const int L_tmpnam_s = 260;
+const int EOF = -1;
+
+const int FOPEN_MAX = 20;
+
+const int FILENAME_MAX = 1024;
+
+const String P_tmpdir = '/var/tmp/';
+
+const int L_tmpnam = 1024;
+
+const int TMP_MAX = 308915776;
+
+const int SEEK_SET = 0;
 
 const int SEEK_CUR = 1;
 
 const int SEEK_END = 2;
 
-const int SEEK_SET = 0;
-
-const int FILENAME_MAX = 260;
-
-const int FOPEN_MAX = 20;
-
-const int _SYS_OPEN = 20;
-
-const int TMP_MAX = 2147483647;
-
-const int TMP_MAX_S = 2147483647;
-
-const int _TMP_MAX_S = 2147483647;
-
-const int SYS_OPEN = 20;
+const int L_ctermid = 1024;
 
 const int FLTimestampNone = -9223372036854775808;
 
+const String __PRI_8_LENGTH_MODIFIER__ = 'hh';
+
+const String __PRI_64_LENGTH_MODIFIER__ = 'll';
+
+const String __SCN_64_LENGTH_MODIFIER__ = 'll';
+
+const String __PRI_MAX_LENGTH_MODIFIER__ = 'j';
+
+const String __SCN_MAX_LENGTH_MODIFIER__ = 'j';
+
 const String PRId8 = 'hhd';
-
-const String PRId16 = 'hd';
-
-const String PRId32 = 'd';
-
-const String PRId64 = 'lld';
-
-const String PRIdLEAST8 = 'hhd';
-
-const String PRIdLEAST16 = 'hd';
-
-const String PRIdLEAST32 = 'd';
-
-const String PRIdLEAST64 = 'lld';
-
-const String PRIdFAST8 = 'hhd';
-
-const String PRIdFAST16 = 'd';
-
-const String PRIdFAST32 = 'd';
-
-const String PRIdFAST64 = 'lld';
-
-const String PRIdMAX = 'lld';
-
-const String PRIdPTR = 'lld';
 
 const String PRIi8 = 'hhi';
 
-const String PRIi16 = 'hi';
-
-const String PRIi32 = 'i';
-
-const String PRIi64 = 'lli';
-
-const String PRIiLEAST8 = 'hhi';
-
-const String PRIiLEAST16 = 'hi';
-
-const String PRIiLEAST32 = 'i';
-
-const String PRIiLEAST64 = 'lli';
-
-const String PRIiFAST8 = 'hhi';
-
-const String PRIiFAST16 = 'i';
-
-const String PRIiFAST32 = 'i';
-
-const String PRIiFAST64 = 'lli';
-
-const String PRIiMAX = 'lli';
-
-const String PRIiPTR = 'lli';
-
 const String PRIo8 = 'hho';
-
-const String PRIo16 = 'ho';
-
-const String PRIo32 = 'o';
-
-const String PRIo64 = 'llo';
-
-const String PRIoLEAST8 = 'hho';
-
-const String PRIoLEAST16 = 'ho';
-
-const String PRIoLEAST32 = 'o';
-
-const String PRIoLEAST64 = 'llo';
-
-const String PRIoFAST8 = 'hho';
-
-const String PRIoFAST16 = 'o';
-
-const String PRIoFAST32 = 'o';
-
-const String PRIoFAST64 = 'llo';
-
-const String PRIoMAX = 'llo';
-
-const String PRIoPTR = 'llo';
 
 const String PRIu8 = 'hhu';
 
-const String PRIu16 = 'hu';
-
-const String PRIu32 = 'u';
-
-const String PRIu64 = 'llu';
-
-const String PRIuLEAST8 = 'hhu';
-
-const String PRIuLEAST16 = 'hu';
-
-const String PRIuLEAST32 = 'u';
-
-const String PRIuLEAST64 = 'llu';
-
-const String PRIuFAST8 = 'hhu';
-
-const String PRIuFAST16 = 'u';
-
-const String PRIuFAST32 = 'u';
-
-const String PRIuFAST64 = 'llu';
-
-const String PRIuMAX = 'llu';
-
-const String PRIuPTR = 'llu';
-
 const String PRIx8 = 'hhx';
-
-const String PRIx16 = 'hx';
-
-const String PRIx32 = 'x';
-
-const String PRIx64 = 'llx';
-
-const String PRIxLEAST8 = 'hhx';
-
-const String PRIxLEAST16 = 'hx';
-
-const String PRIxLEAST32 = 'x';
-
-const String PRIxLEAST64 = 'llx';
-
-const String PRIxFAST8 = 'hhx';
-
-const String PRIxFAST16 = 'x';
-
-const String PRIxFAST32 = 'x';
-
-const String PRIxFAST64 = 'llx';
-
-const String PRIxMAX = 'llx';
-
-const String PRIxPTR = 'llx';
 
 const String PRIX8 = 'hhX';
 
+const String PRId16 = 'hd';
+
+const String PRIi16 = 'hi';
+
+const String PRIo16 = 'ho';
+
+const String PRIu16 = 'hu';
+
+const String PRIx16 = 'hx';
+
 const String PRIX16 = 'hX';
+
+const String PRId32 = 'd';
+
+const String PRIi32 = 'i';
+
+const String PRIo32 = 'o';
+
+const String PRIu32 = 'u';
+
+const String PRIx32 = 'x';
 
 const String PRIX32 = 'X';
 
+const String PRId64 = 'lld';
+
+const String PRIi64 = 'lli';
+
+const String PRIo64 = 'llo';
+
+const String PRIu64 = 'llu';
+
+const String PRIx64 = 'llx';
+
 const String PRIX64 = 'llX';
+
+const String PRIdLEAST8 = 'hhd';
+
+const String PRIiLEAST8 = 'hhi';
+
+const String PRIoLEAST8 = 'hho';
+
+const String PRIuLEAST8 = 'hhu';
+
+const String PRIxLEAST8 = 'hhx';
 
 const String PRIXLEAST8 = 'hhX';
 
+const String PRIdLEAST16 = 'hd';
+
+const String PRIiLEAST16 = 'hi';
+
+const String PRIoLEAST16 = 'ho';
+
+const String PRIuLEAST16 = 'hu';
+
+const String PRIxLEAST16 = 'hx';
+
 const String PRIXLEAST16 = 'hX';
+
+const String PRIdLEAST32 = 'd';
+
+const String PRIiLEAST32 = 'i';
+
+const String PRIoLEAST32 = 'o';
+
+const String PRIuLEAST32 = 'u';
+
+const String PRIxLEAST32 = 'x';
 
 const String PRIXLEAST32 = 'X';
 
+const String PRIdLEAST64 = 'lld';
+
+const String PRIiLEAST64 = 'lli';
+
+const String PRIoLEAST64 = 'llo';
+
+const String PRIuLEAST64 = 'llu';
+
+const String PRIxLEAST64 = 'llx';
+
 const String PRIXLEAST64 = 'llX';
+
+const String PRIdFAST8 = 'hhd';
+
+const String PRIiFAST8 = 'hhi';
+
+const String PRIoFAST8 = 'hho';
+
+const String PRIuFAST8 = 'hhu';
+
+const String PRIxFAST8 = 'hhx';
 
 const String PRIXFAST8 = 'hhX';
 
-const String PRIXFAST16 = 'X';
+const String PRIdFAST16 = 'hd';
+
+const String PRIiFAST16 = 'hi';
+
+const String PRIoFAST16 = 'ho';
+
+const String PRIuFAST16 = 'hu';
+
+const String PRIxFAST16 = 'hx';
+
+const String PRIXFAST16 = 'hX';
+
+const String PRIdFAST32 = 'd';
+
+const String PRIiFAST32 = 'i';
+
+const String PRIoFAST32 = 'o';
+
+const String PRIuFAST32 = 'u';
+
+const String PRIxFAST32 = 'x';
 
 const String PRIXFAST32 = 'X';
 
+const String PRIdFAST64 = 'lld';
+
+const String PRIiFAST64 = 'lli';
+
+const String PRIoFAST64 = 'llo';
+
+const String PRIuFAST64 = 'llu';
+
+const String PRIxFAST64 = 'llx';
+
 const String PRIXFAST64 = 'llX';
 
-const String PRIXMAX = 'llX';
+const String PRIdPTR = 'ld';
 
-const String PRIXPTR = 'llX';
+const String PRIiPTR = 'li';
+
+const String PRIoPTR = 'lo';
+
+const String PRIuPTR = 'lu';
+
+const String PRIxPTR = 'lx';
+
+const String PRIXPTR = 'lX';
+
+const String PRIdMAX = 'jd';
+
+const String PRIiMAX = 'ji';
+
+const String PRIoMAX = 'jo';
+
+const String PRIuMAX = 'ju';
+
+const String PRIxMAX = 'jx';
+
+const String PRIXMAX = 'jX';
 
 const String SCNd8 = 'hhd';
 
-const String SCNd16 = 'hd';
-
-const String SCNd32 = 'd';
-
-const String SCNd64 = 'lld';
-
-const String SCNdLEAST8 = 'hhd';
-
-const String SCNdLEAST16 = 'hd';
-
-const String SCNdLEAST32 = 'd';
-
-const String SCNdLEAST64 = 'lld';
-
-const String SCNdFAST8 = 'hhd';
-
-const String SCNdFAST16 = 'd';
-
-const String SCNdFAST32 = 'd';
-
-const String SCNdFAST64 = 'lld';
-
-const String SCNdMAX = 'lld';
-
-const String SCNdPTR = 'lld';
-
 const String SCNi8 = 'hhi';
-
-const String SCNi16 = 'hi';
-
-const String SCNi32 = 'i';
-
-const String SCNi64 = 'lli';
-
-const String SCNiLEAST8 = 'hhi';
-
-const String SCNiLEAST16 = 'hi';
-
-const String SCNiLEAST32 = 'i';
-
-const String SCNiLEAST64 = 'lli';
-
-const String SCNiFAST8 = 'hhi';
-
-const String SCNiFAST16 = 'i';
-
-const String SCNiFAST32 = 'i';
-
-const String SCNiFAST64 = 'lli';
-
-const String SCNiMAX = 'lli';
-
-const String SCNiPTR = 'lli';
 
 const String SCNo8 = 'hho';
 
-const String SCNo16 = 'ho';
-
-const String SCNo32 = 'o';
-
-const String SCNo64 = 'llo';
-
-const String SCNoLEAST8 = 'hho';
-
-const String SCNoLEAST16 = 'ho';
-
-const String SCNoLEAST32 = 'o';
-
-const String SCNoLEAST64 = 'llo';
-
-const String SCNoFAST8 = 'hho';
-
-const String SCNoFAST16 = 'o';
-
-const String SCNoFAST32 = 'o';
-
-const String SCNoFAST64 = 'llo';
-
-const String SCNoMAX = 'llo';
-
-const String SCNoPTR = 'llo';
-
 const String SCNu8 = 'hhu';
-
-const String SCNu16 = 'hu';
-
-const String SCNu32 = 'u';
-
-const String SCNu64 = 'llu';
-
-const String SCNuLEAST8 = 'hhu';
-
-const String SCNuLEAST16 = 'hu';
-
-const String SCNuLEAST32 = 'u';
-
-const String SCNuLEAST64 = 'llu';
-
-const String SCNuFAST8 = 'hhu';
-
-const String SCNuFAST16 = 'u';
-
-const String SCNuFAST32 = 'u';
-
-const String SCNuFAST64 = 'llu';
-
-const String SCNuMAX = 'llu';
-
-const String SCNuPTR = 'llu';
 
 const String SCNx8 = 'hhx';
 
+const String SCNd16 = 'hd';
+
+const String SCNi16 = 'hi';
+
+const String SCNo16 = 'ho';
+
+const String SCNu16 = 'hu';
+
 const String SCNx16 = 'hx';
+
+const String SCNd32 = 'd';
+
+const String SCNi32 = 'i';
+
+const String SCNo32 = 'o';
+
+const String SCNu32 = 'u';
 
 const String SCNx32 = 'x';
 
+const String SCNd64 = 'lld';
+
+const String SCNi64 = 'lli';
+
+const String SCNo64 = 'llo';
+
+const String SCNu64 = 'llu';
+
 const String SCNx64 = 'llx';
+
+const String SCNdLEAST8 = 'hhd';
+
+const String SCNiLEAST8 = 'hhi';
+
+const String SCNoLEAST8 = 'hho';
+
+const String SCNuLEAST8 = 'hhu';
 
 const String SCNxLEAST8 = 'hhx';
 
+const String SCNdLEAST16 = 'hd';
+
+const String SCNiLEAST16 = 'hi';
+
+const String SCNoLEAST16 = 'ho';
+
+const String SCNuLEAST16 = 'hu';
+
 const String SCNxLEAST16 = 'hx';
+
+const String SCNdLEAST32 = 'd';
+
+const String SCNiLEAST32 = 'i';
+
+const String SCNoLEAST32 = 'o';
+
+const String SCNuLEAST32 = 'u';
 
 const String SCNxLEAST32 = 'x';
 
+const String SCNdLEAST64 = 'lld';
+
+const String SCNiLEAST64 = 'lli';
+
+const String SCNoLEAST64 = 'llo';
+
+const String SCNuLEAST64 = 'llu';
+
 const String SCNxLEAST64 = 'llx';
+
+const String SCNdFAST8 = 'hhd';
+
+const String SCNiFAST8 = 'hhi';
+
+const String SCNoFAST8 = 'hho';
+
+const String SCNuFAST8 = 'hhu';
 
 const String SCNxFAST8 = 'hhx';
 
-const String SCNxFAST16 = 'x';
+const String SCNdFAST16 = 'hd';
+
+const String SCNiFAST16 = 'hi';
+
+const String SCNoFAST16 = 'ho';
+
+const String SCNuFAST16 = 'hu';
+
+const String SCNxFAST16 = 'hx';
+
+const String SCNdFAST32 = 'd';
+
+const String SCNiFAST32 = 'i';
+
+const String SCNoFAST32 = 'o';
+
+const String SCNuFAST32 = 'u';
 
 const String SCNxFAST32 = 'x';
 
+const String SCNdFAST64 = 'lld';
+
+const String SCNiFAST64 = 'lli';
+
+const String SCNoFAST64 = 'llo';
+
+const String SCNuFAST64 = 'llu';
+
 const String SCNxFAST64 = 'llx';
 
-const String SCNxMAX = 'llx';
+const String SCNdPTR = 'ld';
 
-const String SCNxPTR = 'llx';
+const String SCNiPTR = 'li';
+
+const String SCNoPTR = 'lo';
+
+const String SCNuPTR = 'lu';
+
+const String SCNxPTR = 'lx';
+
+const String SCNdMAX = 'jd';
+
+const String SCNiMAX = 'ji';
+
+const String SCNoMAX = 'jo';
+
+const String SCNuMAX = 'ju';
+
+const String SCNxMAX = 'jx';
 
 const int DART_FLAGS_CURRENT_VERSION = 12;
 
@@ -7181,20 +7394,20 @@ const String DART_KERNEL_ISOLATE_NAME = 'kernel-service';
 
 const String DART_VM_SERVICE_ISOLATE_NAME = 'vm-service';
 
-const String kSnapshotBuildIdCSymbol = '_kDartSnapshotBuildId';
+const String kSnapshotBuildIdCSymbol = 'kDartSnapshotBuildId';
 
-const String kVmSnapshotDataCSymbol = '_kDartVmSnapshotData';
+const String kVmSnapshotDataCSymbol = 'kDartVmSnapshotData';
 
-const String kVmSnapshotInstructionsCSymbol = '_kDartVmSnapshotInstructions';
+const String kVmSnapshotInstructionsCSymbol = 'kDartVmSnapshotInstructions';
 
-const String kVmSnapshotBssCSymbol = '_kDartVmSnapshotBss';
+const String kVmSnapshotBssCSymbol = 'kDartVmSnapshotBss';
 
-const String kIsolateSnapshotDataCSymbol = '_kDartIsolateSnapshotData';
+const String kIsolateSnapshotDataCSymbol = 'kDartIsolateSnapshotData';
 
 const String kIsolateSnapshotInstructionsCSymbol =
-    '_kDartIsolateSnapshotInstructions';
+    'kDartIsolateSnapshotInstructions';
 
-const String kIsolateSnapshotBssCSymbol = '_kDartIsolateSnapshotBss';
+const String kIsolateSnapshotBssCSymbol = 'kDartIsolateSnapshotBss';
 
 const String kSnapshotBuildIdAsmSymbol = '_kDartSnapshotBuildId';
 
@@ -7247,20 +7460,12 @@ typedef _dart_FLSlice_Copy = FLSliceResult Function(
   FLSlice arg0,
 );
 
-typedef _c_CBLError_Message = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<CBLError> arg0,
+typedef _c_CBLError_Message = FLSliceResult Function(
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLError_Message = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<CBLError> arg0,
-);
-
-typedef _c_CBLError_Message_s = FLSliceResult Function(
-  ffi.Pointer<CBLError> arg0,
-);
-
-typedef _dart_CBLError_Message_s = FLSliceResult Function(
-  ffi.Pointer<CBLError> arg0,
+typedef _dart_CBLError_Message = FLSliceResult Function(
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBL_Now = ffi.Int64 Function();
@@ -8665,19 +8870,19 @@ typedef _dart_FLEncodeApplyingJSONDelta = int Function(
   ffi.Pointer<FLEncoder> encoder,
 );
 
-typedef _c_CBL_IsBlob = ffi.Uint8 Function(
+typedef _c_FLDict_IsBlob = ffi.Uint8 Function(
   ffi.Pointer<FLDict> arg0,
 );
 
-typedef _dart_CBL_IsBlob = int Function(
+typedef _dart_FLDict_IsBlob = int Function(
   ffi.Pointer<FLDict> arg0,
 );
 
-typedef _c_CBLBlob_Get = ffi.Pointer<CBLBlob> Function(
+typedef _c_FLDict_GetBlob = ffi.Pointer<CBLBlob> Function(
   ffi.Pointer<FLDict> blobDict,
 );
 
-typedef _dart_CBLBlob_Get = ffi.Pointer<CBLBlob> Function(
+typedef _dart_FLDict_GetBlob = ffi.Pointer<CBLBlob> Function(
   ffi.Pointer<FLDict> blobDict,
 );
 
@@ -8689,19 +8894,19 @@ typedef _dart_CBLBlob_Length = int Function(
   ffi.Pointer<CBLBlob> arg0,
 );
 
-typedef _c_CBLBlob_Digest = ffi.Pointer<ffi.Int8> Function(
+typedef _c_CBLBlob_Digest = FLSlice Function(
   ffi.Pointer<CBLBlob> arg0,
 );
 
-typedef _dart_CBLBlob_Digest = ffi.Pointer<ffi.Int8> Function(
+typedef _dart_CBLBlob_Digest = FLSlice Function(
   ffi.Pointer<CBLBlob> arg0,
 );
 
-typedef _c_CBLBlob_ContentType = ffi.Pointer<ffi.Int8> Function(
+typedef _c_CBLBlob_ContentType = FLSlice Function(
   ffi.Pointer<CBLBlob> arg0,
 );
 
-typedef _dart_CBLBlob_ContentType = ffi.Pointer<ffi.Int8> Function(
+typedef _dart_CBLBlob_ContentType = FLSlice Function(
   ffi.Pointer<CBLBlob> arg0,
 );
 
@@ -8713,24 +8918,32 @@ typedef _dart_CBLBlob_Properties = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLBlob> arg0,
 );
 
-typedef _c_CBLBlob_LoadContent = FLSliceResult Function(
-  ffi.Pointer<CBLBlob> arg0,
+typedef _c_CBLBlob_ToJSON = FLSliceResult Function(
+  ffi.Pointer<CBLBlob> blob,
+);
+
+typedef _dart_CBLBlob_ToJSON = FLSliceResult Function(
+  ffi.Pointer<CBLBlob> blob,
+);
+
+typedef _c_CBLBlob_Content = FLSliceResult Function(
+  ffi.Pointer<CBLBlob> blob,
   ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLBlob_LoadContent = FLSliceResult Function(
-  ffi.Pointer<CBLBlob> arg0,
+typedef _dart_CBLBlob_Content = FLSliceResult Function(
+  ffi.Pointer<CBLBlob> blob,
   ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLBlob_OpenContentStream = ffi.Pointer<CBLBlobReadStream> Function(
-  ffi.Pointer<CBLBlob> arg0,
+  ffi.Pointer<CBLBlob> blob,
   ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLBlob_OpenContentStream = ffi.Pointer<CBLBlobReadStream>
     Function(
-  ffi.Pointer<CBLBlob> arg0,
+  ffi.Pointer<CBLBlob> blob,
   ffi.Pointer<CBLError> outError,
 );
 
@@ -8757,31 +8970,21 @@ typedef _dart_CBLBlobReader_Close = void Function(
 );
 
 typedef _c_CBLBlob_CreateWithData = ffi.Pointer<CBLBlob> Function(
-  ffi.Pointer<ffi.Int8> contentType,
+  FLSlice contentType,
   FLSlice contents,
 );
 
 typedef _dart_CBLBlob_CreateWithData = ffi.Pointer<CBLBlob> Function(
-  ffi.Pointer<ffi.Int8> contentType,
-  FLSlice contents,
-);
-
-typedef _c_CBLBlob_CreateWithData_s = ffi.Pointer<CBLBlob> Function(
   FLSlice contentType,
   FLSlice contents,
 );
 
-typedef _dart_CBLBlob_CreateWithData_s = ffi.Pointer<CBLBlob> Function(
-  FLSlice contentType,
-  FLSlice contents,
-);
-
-typedef _c_CBLBlobWriter_New = ffi.Pointer<CBLBlobWriteStream> Function(
+typedef _c_CBLBlobWriter_Create = ffi.Pointer<CBLBlobWriteStream> Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLBlobWriter_New = ffi.Pointer<CBLBlobWriteStream> Function(
+typedef _dart_CBLBlobWriter_Create = ffi.Pointer<CBLBlobWriteStream> Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLError> outError,
 );
@@ -8809,21 +9012,11 @@ typedef _dart_CBLBlobWriter_Write = int Function(
 );
 
 typedef _c_CBLBlob_CreateWithStream = ffi.Pointer<CBLBlob> Function(
-  ffi.Pointer<ffi.Int8> contentType,
-  ffi.Pointer<CBLBlobWriteStream> writer,
-);
-
-typedef _dart_CBLBlob_CreateWithStream = ffi.Pointer<CBLBlob> Function(
-  ffi.Pointer<ffi.Int8> contentType,
-  ffi.Pointer<CBLBlobWriteStream> writer,
-);
-
-typedef _c_CBLBlob_CreateWithStream_s = ffi.Pointer<CBLBlob> Function(
   FLSlice contentType,
   ffi.Pointer<CBLBlobWriteStream> writer,
 );
 
-typedef _dart_CBLBlob_CreateWithStream_s = ffi.Pointer<CBLBlob> Function(
+typedef _dart_CBLBlob_CreateWithStream = ffi.Pointer<CBLBlob> Function(
   FLSlice contentType,
   ffi.Pointer<CBLBlobWriteStream> writer,
 );
@@ -8838,201 +9031,127 @@ typedef _dart_FLSlot_SetBlob = void Function(
   ffi.Pointer<CBLBlob> blob,
 );
 
-typedef _c_FLMutableArray_SetBlob = ffi.Void Function(
-  ffi.Pointer<FLArray> array,
-  ffi.Uint32 index,
-  ffi.Pointer<CBLBlob> blob,
-);
-
-typedef _dart_FLMutableArray_SetBlob = void Function(
-  ffi.Pointer<FLArray> array,
-  int index,
-  ffi.Pointer<CBLBlob> blob,
-);
-
-typedef _c_FLMutableDict_SetBlob = ffi.Void Function(
-  ffi.Pointer<FLDict> dict,
-  FLSlice key,
-  ffi.Pointer<CBLBlob> blob,
-);
-
-typedef _dart_FLMutableDict_SetBlob = void Function(
-  ffi.Pointer<FLDict> dict,
-  FLSlice key,
-  ffi.Pointer<CBLBlob> blob,
-);
-
 typedef _c_CBLDatabaseConfiguration_Default = CBLDatabaseConfiguration
     Function();
 
 typedef _dart_CBLDatabaseConfiguration_Default = CBLDatabaseConfiguration
     Function();
 
-typedef _c_CBLDatabaseConfiguration_Default_s = CBLDatabaseConfiguration_s
-    Function();
-
-typedef _dart_CBLDatabaseConfiguration_Default_s = CBLDatabaseConfiguration_s
-    Function();
-
 typedef _c_CBL_DatabaseExists = ffi.Uint8 Function(
-  ffi.Pointer<ffi.Int8> name,
-  ffi.Pointer<ffi.Int8> inDirectory,
-);
-
-typedef _dart_CBL_DatabaseExists = int Function(
-  ffi.Pointer<ffi.Int8> name,
-  ffi.Pointer<ffi.Int8> inDirectory,
-);
-
-typedef _c_CBL_DatabaseExists_s = ffi.Uint8 Function(
   FLSlice name,
   FLSlice inDirectory,
 );
 
-typedef _dart_CBL_DatabaseExists_s = int Function(
+typedef _dart_CBL_DatabaseExists = int Function(
   FLSlice name,
   FLSlice inDirectory,
 );
 
 typedef _c_CBL_CopyDatabase = ffi.Uint8 Function(
-  ffi.Pointer<ffi.Int8> fromPath,
-  ffi.Pointer<ffi.Int8> toName,
+  FLSlice fromPath,
+  FLSlice toName,
   ffi.Pointer<CBLDatabaseConfiguration> config,
-  ffi.Pointer<CBLError> arg3,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBL_CopyDatabase = int Function(
-  ffi.Pointer<ffi.Int8> fromPath,
-  ffi.Pointer<ffi.Int8> toName,
+  FLSlice fromPath,
+  FLSlice toName,
   ffi.Pointer<CBLDatabaseConfiguration> config,
-  ffi.Pointer<CBLError> arg3,
-);
-
-typedef _c_CBL_CopyDatabase_s = ffi.Uint8 Function(
-  FLSlice fromPath,
-  FLSlice toName,
-  ffi.Pointer<CBLDatabaseConfiguration_s> config,
-  ffi.Pointer<CBLError> arg3,
-);
-
-typedef _dart_CBL_CopyDatabase_s = int Function(
-  FLSlice fromPath,
-  FLSlice toName,
-  ffi.Pointer<CBLDatabaseConfiguration_s> config,
-  ffi.Pointer<CBLError> arg3,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBL_DeleteDatabase = ffi.Uint8 Function(
-  ffi.Pointer<ffi.Int8> name,
-  ffi.Pointer<ffi.Int8> inDirectory,
-  ffi.Pointer<CBLError> outError,
-);
-
-typedef _dart_CBL_DeleteDatabase = int Function(
-  ffi.Pointer<ffi.Int8> name,
-  ffi.Pointer<ffi.Int8> inDirectory,
-  ffi.Pointer<CBLError> outError,
-);
-
-typedef _c_CBL_DeleteDatabase_s = ffi.Uint8 Function(
   FLSlice name,
   FLSlice inDirectory,
   ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBL_DeleteDatabase_s = int Function(
+typedef _dart_CBL_DeleteDatabase = int Function(
   FLSlice name,
   FLSlice inDirectory,
   ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabase_Open = ffi.Pointer<CBLDatabase> Function(
-  ffi.Pointer<ffi.Int8> name,
+  FLSlice name,
   ffi.Pointer<CBLDatabaseConfiguration> config,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_Open = ffi.Pointer<CBLDatabase> Function(
-  ffi.Pointer<ffi.Int8> name,
+  FLSlice name,
   ffi.Pointer<CBLDatabaseConfiguration> config,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _c_CBLDatabase_Open_s = ffi.Pointer<CBLDatabase> Function(
-  FLSlice name,
-  ffi.Pointer<CBLDatabaseConfiguration_s> config,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _dart_CBLDatabase_Open_s = ffi.Pointer<CBLDatabase> Function(
-  FLSlice name,
-  ffi.Pointer<CBLDatabaseConfiguration_s> config,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabase_Close = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_Close = int Function(
   ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabase_Delete = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_Delete = int Function(
   ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDatabase_Compact = ffi.Uint8 Function(
+typedef _c_CBLDatabase_BeginTransaction = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDatabase_Compact = int Function(
+typedef _dart_CBLDatabase_BeginTransaction = int Function(
   ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDatabase_BeginBatch = ffi.Uint8 Function(
+typedef _c_CBLDatabase_EndTransaction = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Uint8 commit,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDatabase_BeginBatch = int Function(
+typedef _dart_CBLDatabase_EndTransaction = int Function(
   ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+  int commit,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDatabase_EndBatch = ffi.Uint8 Function(
-  ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+typedef _c_CBLDatabase_PerformMaintenance = ffi.Uint8 Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Uint32 type,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDatabase_EndBatch = int Function(
-  ffi.Pointer<CBLDatabase> arg0,
-  ffi.Pointer<CBLError> arg1,
+typedef _dart_CBLDatabase_PerformMaintenance = int Function(
+  ffi.Pointer<CBLDatabase> db,
+  int type,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDatabase_Name = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<CBLDatabase> arg0,
-);
-
-typedef _dart_CBLDatabase_Name = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<CBLDatabase> arg0,
-);
-
-typedef _c_CBLDatabase_Path = ffi.Pointer<ffi.Int8> Function(
+typedef _c_CBLDatabase_Name = FLSlice Function(
   ffi.Pointer<CBLDatabase> arg0,
 );
 
-typedef _dart_CBLDatabase_Path = ffi.Pointer<ffi.Int8> Function(
+typedef _dart_CBLDatabase_Name = FLSlice Function(
+  ffi.Pointer<CBLDatabase> arg0,
+);
+
+typedef _c_CBLDatabase_Path = FLSliceResult Function(
+  ffi.Pointer<CBLDatabase> arg0,
+);
+
+typedef _dart_CBLDatabase_Path = FLSliceResult Function(
   ffi.Pointer<CBLDatabase> arg0,
 );
 
@@ -9056,7 +9175,7 @@ typedef CBLDatabaseChangeListener = ffi.Void Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLDatabase>,
   ffi.Uint32,
-  ffi.Pointer<ffi.Pointer<ffi.Int8>>,
+  ffi.Pointer<FLSlice>,
 );
 
 typedef _c_CBLDatabase_AddChangeListener = ffi.Pointer<CBLListenerToken>
@@ -9100,143 +9219,137 @@ typedef _dart_CBLDatabase_SendNotifications = void Function(
 
 typedef _c_CBLDatabase_GetDocument = ffi.Pointer<CBLDocument> Function(
   ffi.Pointer<CBLDatabase> database,
-  ffi.Pointer<ffi.Int8> docID,
+  FLSlice docID,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_GetDocument = ffi.Pointer<CBLDocument> Function(
   ffi.Pointer<CBLDatabase> database,
-  ffi.Pointer<ffi.Int8> docID,
-);
-
-typedef _c_CBLDatabase_GetDocument_s = ffi.Pointer<CBLDocument> Function(
-  ffi.Pointer<CBLDatabase> database,
   FLSlice docID,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDatabase_GetDocument_s = ffi.Pointer<CBLDocument> Function(
-  ffi.Pointer<CBLDatabase> database,
-  FLSlice docID,
+typedef _c_CBLDatabase_SaveDocument = ffi.Uint8 Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Pointer<CBLDocument> doc,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDatabase_SaveDocument = ffi.Pointer<CBLDocument> Function(
+typedef _dart_CBLDatabase_SaveDocument = int Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Pointer<CBLDocument> doc,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLDatabase_SaveDocumentWithConcurrencyControl = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLDocument> doc,
   ffi.Uint8 concurrency,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDatabase_SaveDocument = ffi.Pointer<CBLDocument> Function(
+typedef _dart_CBLDatabase_SaveDocumentWithConcurrencyControl = int Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLDocument> doc,
   int concurrency,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef CBLSaveConflictHandler = ffi.Uint8 Function(
+typedef CBLConflictHandler = ffi.Uint8 Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLDocument>,
   ffi.Pointer<CBLDocument>,
 );
 
-typedef _c_CBLDatabase_SaveDocumentResolving = ffi.Pointer<CBLDocument>
-    Function(
+typedef _c_CBLDatabase_SaveDocumentWithConflictHandler = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLDocument> doc,
-  ffi.Pointer<ffi.NativeFunction<CBLSaveConflictHandler>> conflictHandler,
+  ffi.Pointer<ffi.NativeFunction<CBLConflictHandler>> conflictHandler,
   ffi.Pointer<ffi.Void> context,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDatabase_SaveDocumentResolving = ffi.Pointer<CBLDocument>
-    Function(
+typedef _dart_CBLDatabase_SaveDocumentWithConflictHandler = int Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLDocument> doc,
-  ffi.Pointer<ffi.NativeFunction<CBLSaveConflictHandler>> conflictHandler,
+  ffi.Pointer<ffi.NativeFunction<CBLConflictHandler>> conflictHandler,
   ffi.Pointer<ffi.Void> context,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDocument_Delete = ffi.Uint8 Function(
+typedef _c_CBLDatabase_DeleteDocument = ffi.Uint8 Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Pointer<CBLDocument> document,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLDatabase_DeleteDocument = int Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Pointer<CBLDocument> document,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLDatabase_DeleteDocumentWithConcurrencyControl = ffi.Uint8
+    Function(
+  ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLDocument> document,
   ffi.Uint8 concurrency,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDocument_Delete = int Function(
+typedef _dart_CBLDatabase_DeleteDocumentWithConcurrencyControl = int Function(
+  ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLDocument> document,
   int concurrency,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDocument_Purge = ffi.Uint8 Function(
+typedef _c_CBLDatabase_PurgeDocument = ffi.Uint8 Function(
+  ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLDocument> document,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDocument_Purge = int Function(
+typedef _dart_CBLDatabase_PurgeDocument = int Function(
+  ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<CBLDocument> document,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabase_PurgeDocumentByID = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> database,
-  ffi.Pointer<ffi.Int8> docID,
-  ffi.Pointer<CBLError> error,
+  FLSlice docID,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_PurgeDocumentByID = int Function(
   ffi.Pointer<CBLDatabase> database,
-  ffi.Pointer<ffi.Int8> docID,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _c_CBLDatabase_PurgeDocumentByID_s = ffi.Uint8 Function(
-  ffi.Pointer<CBLDatabase> database,
   FLSlice docID,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _dart_CBLDatabase_PurgeDocumentByID_s = int Function(
-  ffi.Pointer<CBLDatabase> database,
-  FLSlice docID,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabase_GetMutableDocument = ffi.Pointer<CBLDocument> Function(
   ffi.Pointer<CBLDatabase> database,
-  ffi.Pointer<ffi.Int8> docID,
+  FLSlice docID,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_GetMutableDocument = ffi.Pointer<CBLDocument>
     Function(
   ffi.Pointer<CBLDatabase> database,
-  ffi.Pointer<ffi.Int8> docID,
+  FLSlice docID,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDatabase_GetMutableDocument_s = ffi.Pointer<CBLDocument> Function(
-  ffi.Pointer<CBLDatabase> database,
+typedef _c_CBLDocument_Create = ffi.Pointer<CBLDocument> Function();
+
+typedef _dart_CBLDocument_Create = ffi.Pointer<CBLDocument> Function();
+
+typedef _c_CBLDocument_CreateWithID = ffi.Pointer<CBLDocument> Function(
   FLSlice docID,
 );
 
-typedef _dart_CBLDatabase_GetMutableDocument_s = ffi.Pointer<CBLDocument>
-    Function(
-  ffi.Pointer<CBLDatabase> database,
-  FLSlice docID,
-);
-
-typedef _c_CBLDocument_New = ffi.Pointer<CBLDocument> Function(
-  ffi.Pointer<ffi.Int8> docID,
-);
-
-typedef _dart_CBLDocument_New = ffi.Pointer<CBLDocument> Function(
-  ffi.Pointer<ffi.Int8> docID,
-);
-
-typedef _c_CBLDocument_New_s = ffi.Pointer<CBLDocument> Function(
-  FLSlice docID,
-);
-
-typedef _dart_CBLDocument_New_s = ffi.Pointer<CBLDocument> Function(
+typedef _dart_CBLDocument_CreateWithID = ffi.Pointer<CBLDocument> Function(
   FLSlice docID,
 );
 
@@ -9248,19 +9361,19 @@ typedef _dart_CBLDocument_MutableCopy = ffi.Pointer<CBLDocument> Function(
   ffi.Pointer<CBLDocument> original,
 );
 
-typedef _c_CBLDocument_ID = ffi.Pointer<ffi.Int8> Function(
+typedef _c_CBLDocument_ID = FLSlice Function(
   ffi.Pointer<CBLDocument> arg0,
 );
 
-typedef _dart_CBLDocument_ID = ffi.Pointer<ffi.Int8> Function(
+typedef _dart_CBLDocument_ID = FLSlice Function(
   ffi.Pointer<CBLDocument> arg0,
 );
 
-typedef _c_CBLDocument_RevisionID = ffi.Pointer<ffi.Int8> Function(
+typedef _c_CBLDocument_RevisionID = FLSlice Function(
   ffi.Pointer<CBLDocument> arg0,
 );
 
-typedef _dart_CBLDocument_RevisionID = ffi.Pointer<ffi.Int8> Function(
+typedef _dart_CBLDocument_RevisionID = FLSlice Function(
   ffi.Pointer<CBLDocument> arg0,
 );
 
@@ -9298,108 +9411,62 @@ typedef _dart_CBLDocument_SetProperties = void Function(
   ffi.Pointer<FLDict> properties,
 );
 
-typedef _c_CBLDocument_CreateFleeceDoc = ffi.Pointer<FLDoc> Function(
+typedef _c_CBLDocument_CreateJSON = FLSliceResult Function(
   ffi.Pointer<CBLDocument> arg0,
 );
 
-typedef _dart_CBLDocument_CreateFleeceDoc = ffi.Pointer<FLDoc> Function(
+typedef _dart_CBLDocument_CreateJSON = FLSliceResult Function(
   ffi.Pointer<CBLDocument> arg0,
 );
 
-typedef _c_CBLDocument_PropertiesAsJSON = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<CBLDocument> arg0,
-);
-
-typedef _dart_CBLDocument_PropertiesAsJSON = ffi.Pointer<ffi.Int8> Function(
-  ffi.Pointer<CBLDocument> arg0,
-);
-
-typedef _c_CBLDocument_SetPropertiesAsJSON = ffi.Uint8 Function(
-  ffi.Pointer<CBLDocument> arg0,
-  ffi.Pointer<ffi.Int8> json,
-  ffi.Pointer<CBLError> arg2,
-);
-
-typedef _dart_CBLDocument_SetPropertiesAsJSON = int Function(
-  ffi.Pointer<CBLDocument> arg0,
-  ffi.Pointer<ffi.Int8> json,
-  ffi.Pointer<CBLError> arg2,
-);
-
-typedef _c_CBLDocument_SetPropertiesAsJSON_s = ffi.Uint8 Function(
+typedef _c_CBLDocument_SetJSON = ffi.Uint8 Function(
   ffi.Pointer<CBLDocument> arg0,
   FLSlice json,
-  ffi.Pointer<CBLError> arg2,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDocument_SetPropertiesAsJSON_s = int Function(
+typedef _dart_CBLDocument_SetJSON = int Function(
   ffi.Pointer<CBLDocument> arg0,
   FLSlice json,
-  ffi.Pointer<CBLError> arg2,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabase_GetDocumentExpiration = ffi.Int64 Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> docID,
-  ffi.Pointer<CBLError> error,
+  FLSlice docID,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_GetDocumentExpiration = int Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> docID,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _c_CBLDatabase_GetDocumentExpiration_s = ffi.Int64 Function(
-  ffi.Pointer<CBLDatabase> db,
   FLSlice docID,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _dart_CBLDatabase_GetDocumentExpiration_s = int Function(
-  ffi.Pointer<CBLDatabase> db,
-  FLSlice docID,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabase_SetDocumentExpiration = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> docID,
+  FLSlice docID,
   ffi.Int64 expiration,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_SetDocumentExpiration = int Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> docID,
-  int expiration,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _c_CBLDatabase_SetDocumentExpiration_s = ffi.Uint8 Function(
-  ffi.Pointer<CBLDatabase> db,
-  FLSlice docID,
-  ffi.Int64 expiration,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _dart_CBLDatabase_SetDocumentExpiration_s = int Function(
-  ffi.Pointer<CBLDatabase> db,
   FLSlice docID,
   int expiration,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef CBLDocumentChangeListener = ffi.Void Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLDatabase>,
-  ffi.Pointer<ffi.Int8>,
+  FLSlice,
 );
 
 typedef _c_CBLDatabase_AddDocumentChangeListener = ffi.Pointer<CBLListenerToken>
     Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> docID,
+  FLSlice docID,
   ffi.Pointer<ffi.NativeFunction<CBLDocumentChangeListener>> listener,
   ffi.Pointer<ffi.Void> context,
 );
@@ -9407,7 +9474,7 @@ typedef _c_CBLDatabase_AddDocumentChangeListener = ffi.Pointer<CBLListenerToken>
 typedef _dart_CBLDatabase_AddDocumentChangeListener
     = ffi.Pointer<CBLListenerToken> Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> docID,
+  FLSlice docID,
   ffi.Pointer<ffi.NativeFunction<CBLDocumentChangeListener>> listener,
   ffi.Pointer<ffi.Void> context,
 );
@@ -9424,13 +9491,13 @@ typedef _dart_CBL_Log = void Function(
   ffi.Pointer<ffi.Int8> format,
 );
 
-typedef _c_CBL_Log_s = ffi.Void Function(
+typedef _c_CBL_LogMessage = ffi.Void Function(
   ffi.Uint8 domain,
   ffi.Uint8 level,
   FLSlice message,
 );
 
-typedef _dart_CBL_Log_s = void Function(
+typedef _dart_CBL_LogMessage = void Function(
   int domain,
   int level,
   FLSlice message,
@@ -9448,20 +9515,22 @@ typedef _dart_CBLLog_SetConsoleLevel = void Function(
   int arg0,
 );
 
-typedef _c_CBLLog_WillLogToConsole = ffi.Uint8 Function(
-  ffi.Uint8 domain,
-  ffi.Uint8 level,
+typedef _c_CBLLog_CallbackLevel = ffi.Uint8 Function();
+
+typedef _dart_CBLLog_CallbackLevel = int Function();
+
+typedef _c_CBLLog_SetCallbackLevel = ffi.Void Function(
+  ffi.Uint8 arg0,
 );
 
-typedef _dart_CBLLog_WillLogToConsole = int Function(
-  int domain,
-  int level,
+typedef _dart_CBLLog_SetCallbackLevel = void Function(
+  int arg0,
 );
 
 typedef CBLLogCallback = ffi.Void Function(
   ffi.Uint8,
   ffi.Uint8,
-  ffi.Pointer<ffi.Int8>,
+  FLSlice,
 );
 
 typedef _c_CBLLog_Callback = ffi.Pointer<ffi.NativeFunction<CBLLogCallback>>
@@ -9483,44 +9552,30 @@ typedef _c_CBLLog_FileConfig = ffi.Pointer<CBLLogFileConfiguration> Function();
 typedef _dart_CBLLog_FileConfig = ffi.Pointer<CBLLogFileConfiguration>
     Function();
 
-typedef _c_CBLLog_SetFileConfig = ffi.Void Function(
+typedef _c_CBLLog_SetFileConfig = ffi.Uint8 Function(
   CBLLogFileConfiguration arg0,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLLog_SetFileConfig = void Function(
+typedef _dart_CBLLog_SetFileConfig = int Function(
   CBLLogFileConfiguration arg0,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLQuery_New = ffi.Pointer<CBLQuery> Function(
-  ffi.Pointer<CBLDatabase> db,
-  ffi.Uint32 language,
-  ffi.Pointer<ffi.Int8> queryString,
-  ffi.Pointer<ffi.Int32> outErrorPos,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _dart_CBLQuery_New = ffi.Pointer<CBLQuery> Function(
-  ffi.Pointer<CBLDatabase> db,
-  int language,
-  ffi.Pointer<ffi.Int8> queryString,
-  ffi.Pointer<ffi.Int32> outErrorPos,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _c_CBLQuery_New_s = ffi.Pointer<CBLQuery> Function(
+typedef _c_CBLDatabase_CreateQuery = ffi.Pointer<CBLQuery> Function(
   ffi.Pointer<CBLDatabase> db,
   ffi.Uint32 language,
   FLSlice queryString,
   ffi.Pointer<ffi.Int32> outErrorPos,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLQuery_New_s = ffi.Pointer<CBLQuery> Function(
+typedef _dart_CBLDatabase_CreateQuery = ffi.Pointer<CBLQuery> Function(
   ffi.Pointer<CBLDatabase> db,
   int language,
   FLSlice queryString,
   ffi.Pointer<ffi.Int32> outErrorPos,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLQuery_SetParameters = ffi.Void Function(
@@ -9541,34 +9596,14 @@ typedef _dart_CBLQuery_Parameters = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLQuery> query,
 );
 
-typedef _c_CBLQuery_SetParametersAsJSON = ffi.Uint8 Function(
-  ffi.Pointer<CBLQuery> query,
-  ffi.Pointer<ffi.Int8> json,
-);
-
-typedef _dart_CBLQuery_SetParametersAsJSON = int Function(
-  ffi.Pointer<CBLQuery> query,
-  ffi.Pointer<ffi.Int8> json,
-);
-
-typedef _c_CBLQuery_SetParametersAsJSON_s = ffi.Uint8 Function(
-  ffi.Pointer<CBLQuery> query,
-  FLSlice json,
-);
-
-typedef _dart_CBLQuery_SetParametersAsJSON_s = int Function(
-  ffi.Pointer<CBLQuery> query,
-  FLSlice json,
-);
-
 typedef _c_CBLQuery_Execute = ffi.Pointer<CBLResultSet> Function(
   ffi.Pointer<CBLQuery> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLQuery_Execute = ffi.Pointer<CBLResultSet> Function(
   ffi.Pointer<CBLQuery> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLQuery_Explain = FLSliceResult Function(
@@ -9617,37 +9652,27 @@ typedef _dart_CBLResultSet_ValueAtIndex = ffi.Pointer<FLValue> Function(
 
 typedef _c_CBLResultSet_ValueForKey = ffi.Pointer<FLValue> Function(
   ffi.Pointer<CBLResultSet> arg0,
-  ffi.Pointer<ffi.Int8> key,
+  FLSlice key,
 );
 
 typedef _dart_CBLResultSet_ValueForKey = ffi.Pointer<FLValue> Function(
   ffi.Pointer<CBLResultSet> arg0,
-  ffi.Pointer<ffi.Int8> key,
-);
-
-typedef _c_CBLResultSet_ValueForKey_s = ffi.Pointer<FLValue> Function(
-  ffi.Pointer<CBLResultSet> arg0,
   FLSlice key,
 );
 
-typedef _dart_CBLResultSet_ValueForKey_s = ffi.Pointer<FLValue> Function(
-  ffi.Pointer<CBLResultSet> arg0,
-  FLSlice key,
-);
-
-typedef _c_CBLResultSet_RowArray = ffi.Pointer<FLArray> Function(
+typedef _c_CBLResultSet_ResultArray = ffi.Pointer<FLArray> Function(
   ffi.Pointer<CBLResultSet> arg0,
 );
 
-typedef _dart_CBLResultSet_RowArray = ffi.Pointer<FLArray> Function(
+typedef _dart_CBLResultSet_ResultArray = ffi.Pointer<FLArray> Function(
   ffi.Pointer<CBLResultSet> arg0,
 );
 
-typedef _c_CBLResultSet_RowDict = ffi.Pointer<FLDict> Function(
+typedef _c_CBLResultSet_ResultDict = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLResultSet> arg0,
 );
 
-typedef _dart_CBLResultSet_RowDict = ffi.Pointer<FLDict> Function(
+typedef _dart_CBLResultSet_ResultDict = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLResultSet> arg0,
 );
 
@@ -9662,6 +9687,7 @@ typedef _dart_CBLResultSet_GetQuery = ffi.Pointer<CBLQuery> Function(
 typedef CBLQueryChangeListener = ffi.Void Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLQuery>,
+  ffi.Pointer<CBLListenerToken>,
 );
 
 typedef _c_CBLQuery_AddChangeListener = ffi.Pointer<CBLListenerToken> Function(
@@ -9680,76 +9706,68 @@ typedef _dart_CBLQuery_AddChangeListener = ffi.Pointer<CBLListenerToken>
 typedef _c_CBLQuery_CopyCurrentResults = ffi.Pointer<CBLResultSet> Function(
   ffi.Pointer<CBLQuery> query,
   ffi.Pointer<CBLListenerToken> listener,
-  ffi.Pointer<CBLError> error,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLQuery_CopyCurrentResults = ffi.Pointer<CBLResultSet> Function(
   ffi.Pointer<CBLQuery> query,
   ffi.Pointer<CBLListenerToken> listener,
-  ffi.Pointer<CBLError> error,
-);
-
-typedef _c_CBLDatabase_CreateIndex = ffi.Uint8 Function(
-  ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> name,
-  CBLIndexSpec arg2,
   ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDatabase_CreateIndex = int Function(
-  ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> name,
-  CBLIndexSpec arg2,
-  ffi.Pointer<CBLError> outError,
-);
-
-typedef _c_CBLDatabase_CreateIndex_s = ffi.Uint8 Function(
+typedef _c_CBLDatabase_CreateValueIndex = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> db,
   FLSlice name,
-  CBLIndexSpec_s arg2,
+  CBLValueIndexConfiguration config,
   ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLDatabase_CreateIndex_s = int Function(
+typedef _dart_CBLDatabase_CreateValueIndex = int Function(
   ffi.Pointer<CBLDatabase> db,
   FLSlice name,
-  CBLIndexSpec_s arg2,
+  CBLValueIndexConfiguration config,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLDatabase_CreateFullTextIndex = ffi.Uint8 Function(
+  ffi.Pointer<CBLDatabase> db,
+  FLSlice name,
+  CBLFullTextIndexConfiguration config,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLDatabase_CreateFullTextIndex = int Function(
+  ffi.Pointer<CBLDatabase> db,
+  FLSlice name,
+  CBLFullTextIndexConfiguration config,
   ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabase_DeleteIndex = ffi.Uint8 Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> name,
+  FLSlice name,
   ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLDatabase_DeleteIndex = int Function(
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> name,
+  FLSlice name,
   ffi.Pointer<CBLError> outError,
 );
 
-typedef _c_CBLDatabase_IndexNames = ffi.Pointer<FLArray> Function(
+typedef _c_CBLDatabase_GetIndexNames = ffi.Pointer<FLArray> Function(
   ffi.Pointer<CBLDatabase> db,
 );
 
-typedef _dart_CBLDatabase_IndexNames = ffi.Pointer<FLArray> Function(
+typedef _dart_CBLDatabase_GetIndexNames = ffi.Pointer<FLArray> Function(
   ffi.Pointer<CBLDatabase> db,
 );
 
-typedef _c_CBLEndpoint_NewWithURL = ffi.Pointer<CBLEndpoint> Function(
-  ffi.Pointer<ffi.Int8> url,
-);
-
-typedef _dart_CBLEndpoint_NewWithURL = ffi.Pointer<CBLEndpoint> Function(
-  ffi.Pointer<ffi.Int8> url,
-);
-
-typedef _c_CBLEndpoint_NewWithURL_s = ffi.Pointer<CBLEndpoint> Function(
+typedef _c_CBLEndpoint_CreateWithURL = ffi.Pointer<CBLEndpoint> Function(
   FLSlice url,
 );
 
-typedef _dart_CBLEndpoint_NewWithURL_s = ffi.Pointer<CBLEndpoint> Function(
+typedef _dart_CBLEndpoint_CreateWithURL = ffi.Pointer<CBLEndpoint> Function(
   FLSlice url,
 );
 
@@ -9761,42 +9779,22 @@ typedef _dart_CBLEndpoint_Free = void Function(
   ffi.Pointer<CBLEndpoint> arg0,
 );
 
-typedef _c_CBLAuth_NewBasic = ffi.Pointer<CBLAuthenticator> Function(
-  ffi.Pointer<ffi.Int8> username,
-  ffi.Pointer<ffi.Int8> password,
-);
-
-typedef _dart_CBLAuth_NewBasic = ffi.Pointer<CBLAuthenticator> Function(
-  ffi.Pointer<ffi.Int8> username,
-  ffi.Pointer<ffi.Int8> password,
-);
-
-typedef _c_CBLAuth_NewBasic_s = ffi.Pointer<CBLAuthenticator> Function(
+typedef _c_CBLAuth_CreatePassword = ffi.Pointer<CBLAuthenticator> Function(
   FLSlice username,
   FLSlice password,
 );
 
-typedef _dart_CBLAuth_NewBasic_s = ffi.Pointer<CBLAuthenticator> Function(
+typedef _dart_CBLAuth_CreatePassword = ffi.Pointer<CBLAuthenticator> Function(
   FLSlice username,
   FLSlice password,
 );
 
-typedef _c_CBLAuth_NewSession = ffi.Pointer<CBLAuthenticator> Function(
-  ffi.Pointer<ffi.Int8> sessionID,
-  ffi.Pointer<ffi.Int8> cookieName,
-);
-
-typedef _dart_CBLAuth_NewSession = ffi.Pointer<CBLAuthenticator> Function(
-  ffi.Pointer<ffi.Int8> sessionID,
-  ffi.Pointer<ffi.Int8> cookieName,
-);
-
-typedef _c_CBLAuth_NewSession_s = ffi.Pointer<CBLAuthenticator> Function(
+typedef _c_CBLAuth_CreateSession = ffi.Pointer<CBLAuthenticator> Function(
   FLSlice sessionID,
   FLSlice cookieName,
 );
 
-typedef _dart_CBLAuth_NewSession_s = ffi.Pointer<CBLAuthenticator> Function(
+typedef _dart_CBLAuth_CreateSession = ffi.Pointer<CBLAuthenticator> Function(
   FLSlice sessionID,
   FLSlice cookieName,
 );
@@ -9809,14 +9807,14 @@ typedef _dart_CBLAuth_Free = void Function(
   ffi.Pointer<CBLAuthenticator> arg0,
 );
 
-typedef _c_CBLReplicator_New = ffi.Pointer<CBLReplicator> Function(
+typedef _c_CBLReplicator_Create = ffi.Pointer<CBLReplicator> Function(
   ffi.Pointer<CBLReplicatorConfiguration> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
-typedef _dart_CBLReplicator_New = ffi.Pointer<CBLReplicator> Function(
+typedef _dart_CBLReplicator_Create = ffi.Pointer<CBLReplicator> Function(
   ffi.Pointer<CBLReplicatorConfiguration> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLReplicator_Config = ffi.Pointer<CBLReplicatorConfiguration>
@@ -9829,20 +9827,14 @@ typedef _dart_CBLReplicator_Config = ffi.Pointer<CBLReplicatorConfiguration>
   ffi.Pointer<CBLReplicator> arg0,
 );
 
-typedef _c_CBLReplicator_ResetCheckpoint = ffi.Void Function(
-  ffi.Pointer<CBLReplicator> arg0,
-);
-
-typedef _dart_CBLReplicator_ResetCheckpoint = void Function(
-  ffi.Pointer<CBLReplicator> arg0,
-);
-
 typedef _c_CBLReplicator_Start = ffi.Void Function(
-  ffi.Pointer<CBLReplicator> arg0,
+  ffi.Pointer<CBLReplicator> replicator,
+  ffi.Uint8 resetCheckpoint,
 );
 
 typedef _dart_CBLReplicator_Start = void Function(
-  ffi.Pointer<CBLReplicator> arg0,
+  ffi.Pointer<CBLReplicator> replicator,
+  int resetCheckpoint,
 );
 
 typedef _c_CBLReplicator_Stop = ffi.Void Function(
@@ -9883,12 +9875,12 @@ typedef _dart_CBLReplicator_Status = CBLReplicatorStatus Function(
 
 typedef _c_CBLReplicator_PendingDocumentIDs = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLReplicator> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLReplicator_PendingDocumentIDs = ffi.Pointer<FLDict> Function(
   ffi.Pointer<CBLReplicator> arg0,
-  ffi.Pointer<CBLError> arg1,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLReplicator_IsDocumentPending = ffi.Uint8 Function(
@@ -9923,7 +9915,7 @@ typedef _dart_CBLReplicator_AddChangeListener = ffi.Pointer<CBLListenerToken>
   ffi.Pointer<ffi.Void> context,
 );
 
-typedef CBLReplicatedDocumentListener = ffi.Void Function(
+typedef CBLDocumentReplicationListener = ffi.Void Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLReplicator>,
   ffi.Uint8,
@@ -9931,17 +9923,17 @@ typedef CBLReplicatedDocumentListener = ffi.Void Function(
   ffi.Pointer<CBLReplicatedDocument>,
 );
 
-typedef _c_CBLReplicator_AddDocumentListener = ffi.Pointer<CBLListenerToken>
-    Function(
+typedef _c_CBLReplicator_AddDocumentReplicationListener
+    = ffi.Pointer<CBLListenerToken> Function(
   ffi.Pointer<CBLReplicator> arg0,
-  ffi.Pointer<ffi.NativeFunction<CBLReplicatedDocumentListener>> arg1,
+  ffi.Pointer<ffi.NativeFunction<CBLDocumentReplicationListener>> arg1,
   ffi.Pointer<ffi.Void> context,
 );
 
-typedef _dart_CBLReplicator_AddDocumentListener = ffi.Pointer<CBLListenerToken>
-    Function(
+typedef _dart_CBLReplicator_AddDocumentReplicationListener
+    = ffi.Pointer<CBLListenerToken> Function(
   ffi.Pointer<CBLReplicator> arg0,
-  ffi.Pointer<ffi.NativeFunction<CBLReplicatedDocumentListener>> arg1,
+  ffi.Pointer<ffi.NativeFunction<CBLDocumentReplicationListener>> arg1,
   ffi.Pointer<ffi.Void> context,
 );
 
@@ -10050,83 +10042,71 @@ typedef _c_CBLDart_DatabaseChangeListener = ffi.Void Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDatabase> db,
   ffi.Uint32 numDocs,
-  ffi.Pointer<ffi.Pointer<ffi.Int8>> docIDs,
+  ffi.Pointer<FLSlice> docIDs,
 );
 
 typedef _dart_CBLDart_DatabaseChangeListener = void Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDatabase> db,
   int numDocs,
-  ffi.Pointer<ffi.Pointer<ffi.Int8>> docIDs,
+  ffi.Pointer<FLSlice> docIDs,
 );
 
 typedef _c_CBLDart_DocumentChangeListener = ffi.Void Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> docID,
+  FLSlice docID,
 );
 
 typedef _dart_CBLDart_DocumentChangeListener = void Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDatabase> db,
-  ffi.Pointer<ffi.Int8> docID,
+  FLSlice docID,
 );
 
 typedef _c_CBLDart_QueryChangeListener = ffi.Void Function(
   ffi.Pointer<ffi.Void> queryId,
   ffi.Pointer<CBLQuery> query,
+  ffi.Pointer<CBLListenerToken> token,
 );
 
 typedef _dart_CBLDart_QueryChangeListener = void Function(
   ffi.Pointer<ffi.Void> queryId,
   ffi.Pointer<CBLQuery> query,
+  ffi.Pointer<CBLListenerToken> token,
 );
 
-typedef _c_CBLDart_ReplicatorChangeListener = ffi.Void Function(
-  ffi.Pointer<ffi.Void> id,
-  ffi.Pointer<CBLReplicator> repl,
-  ffi.Pointer<CBLReplicatorStatus> status,
+typedef _typedefC_1 = ffi.Int32 Function(
+  ffi.Pointer<ffi.Void>,
 );
 
-typedef _dart_CBLDart_ReplicatorChangeListener = void Function(
-  ffi.Pointer<ffi.Void> id,
-  ffi.Pointer<CBLReplicator> repl,
-  ffi.Pointer<CBLReplicatorStatus> status,
+typedef _typedefC_2 = ffi.Int32 Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Pointer<ffi.Int8>,
+  ffi.Int32,
 );
 
-typedef _c_CBLDart_PushReplicationFilter = ffi.Uint8 Function(
-  ffi.Pointer<ffi.Void> context,
-  ffi.Pointer<CBLDocument> document,
-  ffi.Uint8 isDeleted,
+typedef _typedefC_3 = ffi.Int64 Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Int64,
+  ffi.Int32,
 );
 
-typedef _dart_CBLDart_PushReplicationFilter = int Function(
-  ffi.Pointer<ffi.Void> context,
-  ffi.Pointer<CBLDocument> document,
-  int isDeleted,
-);
-
-typedef _c_CBLDart_PullReplicationFilter = ffi.Uint8 Function(
-  ffi.Pointer<ffi.Void> context,
-  ffi.Pointer<CBLDocument> document,
-  ffi.Uint8 isDeleted,
-);
-
-typedef _dart_CBLDart_PullReplicationFilter = int Function(
-  ffi.Pointer<ffi.Void> context,
-  ffi.Pointer<CBLDocument> document,
-  int isDeleted,
+typedef _typedefC_4 = ffi.Int32 Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Pointer<ffi.Int8>,
+  ffi.Int32,
 );
 
 typedef CBLReplicationFilter = ffi.Uint8 Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLDocument>,
-  ffi.Uint8,
+  ffi.Uint32,
 );
 
 typedef CBLConflictResolver = ffi.Pointer<CBLDocument> Function(
   ffi.Pointer<ffi.Void>,
-  ffi.Pointer<ffi.Int8>,
+  FLSlice,
   ffi.Pointer<CBLDocument>,
   ffi.Pointer<CBLDocument>,
 );

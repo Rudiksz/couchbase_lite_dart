@@ -57,8 +57,15 @@ class Database {
   ///
   /// If [directory] is `null`, [name] must be an absolute or relative path to the database.
   static bool exists(String name, {String directory = ''}) {
-    return CBLC.CBL_DatabaseExists(
-        name.toNativeUtf8().cast(), directory.toNativeUtf8().cast());
+    final _c_name = FLSlice.fromString(name);
+    final _c_dir = FLSlice.fromString(directory);
+    final result = CBLC.CBL_DatabaseExists(
+      _c_name.slice,
+      _c_dir.slice,
+    );
+    _c_name.free();
+    _c_dir.free();
+    return result;
   }
 
   /// Copies a database file to a new location, and assigns it a new internal UUID to distinguish
@@ -70,16 +77,22 @@ class Database {
     final outError = calloc<cbl.CBLError>();
     final config = calloc<cbl.CBLDatabaseConfiguration>();
 
-    config.ref
-      ..directory = directory.toNativeUtf8().cast()
-      ..encryptionKey = nullptr;
+    final _c_dir = FLSlice.fromString(directory);
+    final _c_path = FLSlice.fromString(path);
+    final _c_toName = FLSlice.fromString(toName);
+
+    config.ref.directory = _c_dir.slice;
 
     final result = CBLC.CBL_CopyDatabase(
-      path.toNativeUtf8().cast(),
-      toName.toNativeUtf8().cast(),
+      _c_path.slice,
+      _c_toName.slice,
       config,
       outError,
     );
+
+    _c_dir.free();
+    _c_path.free();
+    _c_toName.free();
 
     validateError(outError);
 
@@ -106,13 +119,32 @@ class Database {
 
     final outError = calloc<cbl.CBLError>();
 
+    final _c_name = FLSlice.fromString(name);
+    final _c_dir = FLSlice.fromString(directory);
+
     final result = CBLC.CBL_DeleteDatabase(
-      name.toNativeUtf8().cast(),
-      directory.toNativeUtf8().cast(),
+      _c_name.slice,
+      _c_dir.slice,
       outError,
     );
 
+    _c_name.free();
+    _c_dir.free();
+
     validateError(outError);
+    return result;
+  }
+
+  /// Deletes a database file. If the database file is open, an error is returned.
+  /// * `name`  The database name (without the ".cblite2" extension.)
+  /// * `inDirectory` The directory containing the database. If NULL, `name` must be an
+  /// absolute or relative path to the database.
+  ///
+  /// Returns true if the database was deleted, false if it doesn't exist and throws `DatabaseException` if failed.
+  static Future<bool> DeleteAsync(String name, {String directory = ''}) async {
+    assert(name.isNotEmpty, 'Name cannot be empty');
+    final result =
+        await Future<bool>.microtask(() => Delete(name, directory: directory));
 
     return result;
   }
@@ -129,17 +161,21 @@ class Database {
     if (isOpen) return true;
     final error = calloc<cbl.CBLError>();
 
+    final _c_name = FLSlice.fromString(name);
+
     _db = CBLC.CBLDatabase_Open(
-      (_name).toNativeUtf8().cast(),
+      _c_name.slice,
       _config?.addressOf ?? nullptr, // TODO nullsafety
       error,
     );
+    _c_name.free();
 
     validateError(error);
 
     if (isOpen) {
-      final res = CBLC.CBLDatabase_Path(_db);
-      _path = res.cast<Utf8>().toDartString();
+      final _c_path = FLSlice.fromSliceResult(CBLC.CBLDatabase_Path(_db));
+      _path = _c_path.toString();
+      _c_path.free();
     }
 
     return isOpen;
@@ -154,18 +190,6 @@ class Database {
 
     validateError(error);
     _db = nullptr;
-
-    return result;
-  }
-
-  /// Compacts a database file. If the database is not open, it is a no-op.
-  bool compact() {
-    if (_db == nullptr) return true;
-
-    final error = calloc<cbl.CBLError>();
-    final result = CBLC.CBLDatabase_Compact(_db, error);
-
-    validateError(error);
 
     return result;
   }
@@ -194,7 +218,7 @@ class Database {
     if (_db == nullptr) return true;
 
     final error = calloc<cbl.CBLError>();
-    final result = CBLC.CBLDatabase_BeginBatch(_db, error);
+    final result = CBLC.CBLDatabase_BeginTransaction(_db, error);
 
     validateError(error);
 
@@ -206,7 +230,7 @@ class Database {
     if (_db == nullptr) return true;
 
     final error = calloc<cbl.CBLError>();
-    final result = CBLC.CBLDatabase_EndBatch(_db, error);
+    final result = CBLC.CBLDatabase_EndTransaction(_db, true, error);
 
     validateError(error);
 
@@ -224,7 +248,13 @@ class Database {
   Document getDocument(String id) {
     assert(id.isNotEmpty, 'ID cannot be empty');
 
-    final result = CBLC.CBLDatabase_GetDocument(_db, id.toNativeUtf8().cast());
+    final error = calloc<cbl.CBLError>();
+    final _c_id = FLSlice.fromString(id);
+
+    final result = CBLC.CBLDatabase_GetDocument(_db, _c_id.slice, error);
+
+    _c_id.free();
+    validateError(error);
 
     return result != nullptr
         ? Document.fromPointer(result, db: this)
@@ -233,10 +263,14 @@ class Database {
 
   ///  Reads a document from the database, in mutable form that can be updated and saved
   Document getMutableDocument(String id) {
+    final error = calloc<cbl.CBLError>();
+    final _c_id = FLSlice.fromString(id);
     assert(id.isNotEmpty, 'ID cannot be empty');
 
-    final result =
-        CBLC.CBLDatabase_GetMutableDocument(_db, id.toNativeUtf8().cast());
+    final result = CBLC.CBLDatabase_GetMutableDocument(_db, _c_id.slice, error);
+
+    _c_id.free();
+    validateError(error);
 
     return result != nullptr
         ? Document.fromPointer(result, db: this)
@@ -251,20 +285,18 @@ class Database {
   ///
   /// If you need finer-grained control, call [saveDocumentResolving] instead.
   /// Returns an updated Document reflecting the saved changes, or null on failure.
-  Document saveDocument(Document document,
+  bool saveDocument(Document document,
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SaveDocument(
       _db,
       document.doc,
-      concurrency.index,
       error,
     );
 
     validateError(error);
-    return result != nullptr
-        ? Document.fromPointer(result, db: this)
-        : Document.empty();
+    document.db = this;
+    return result;
   }
 
   /// Saves a (mutable) document to the database. This function is the same as
@@ -273,8 +305,10 @@ class Database {
   ///
   /// The handler should return true to overwrite the existing document, or false
   /// to cancel the save. If the handler rejects the save a [CouchbaseLiteException] will be thrown.
-  Document saveDocumentResolving(
-      Document document, SaveConflictHandler conflictHandler) {
+  bool saveDocumentWithConflictHandler(
+    Document document,
+    SaveConflictHandler conflictHandler,
+  ) {
     if (document._new) {
       throw CouchbaseLiteException(
         cbl.CBLDomain,
@@ -287,21 +321,21 @@ class Database {
     final token = Uuid().v1() + Uuid().v1();
     _saveConflictHandlers[token] = conflictHandler;
 
-    final conflictHandler_ = Pointer.fromFunction<cbl.CBLSaveConflictHandler>(
-        _saveConflictCallback, 1);
+    final conflictHandler_ =
+        Pointer.fromFunction<cbl.CBLConflictHandler>(_saveConflictCallback, 1);
 
     final error = calloc<cbl.CBLError>();
-    final result = CBLC.CBLDatabase_SaveDocumentResolving(
+    final result = CBLC.CBLDatabase_SaveDocumentWithConflictHandler(
       _db,
       document.doc,
       conflictHandler_,
       token.toNativeUtf8().cast(),
       error,
     );
+    _saveConflictHandlers.remove(token);
 
     validateError(error);
-    _saveConflictHandlers.remove(token);
-    return result != nullptr ? Document.fromPointer(result) : Document.empty();
+    return result;
   }
 
   /// The actual conflict filter handler. Calls the registered Dart listeners
@@ -329,13 +363,15 @@ class Database {
   bool purgeDocument(String id) {
     assert(id.isNotEmpty, 'ID cannot be empty');
 
+    final _c_id = FLSlice.fromString(id);
+
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_PurgeDocumentByID(
       _db,
-      id.toNativeUtf8().cast(),
+      _c_id.slice,
       error,
     );
-
+    _c_id.free();
     validateError(error);
     return result;
   }
@@ -347,13 +383,15 @@ class Database {
   ///
   /// Throws [CouchbaseLiteException] if the call failed.
   DateTime documentExpiration(String id) {
+    final _c_id = FLSlice.fromString(id);
+
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_GetDocumentExpiration(
       _db,
-      id.toNativeUtf8().cast(),
+      _c_id.slice,
       error,
     );
-
+    _c_id.free();
     validateError(error);
     return result != 0
         ? DateTime.fromMillisecondsSinceEpoch(result)
@@ -366,14 +404,16 @@ class Database {
   ///
   /// Throws [CouchbaseLiteException] if the call failed.
   bool setDocumentExpiration(String id, DateTime expiration) {
+    final _c_id = FLSlice.fromString(id);
+
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SetDocumentExpiration(
       _db,
-      id.toNativeUtf8().cast(),
+      _c_id.slice,
       expiration.millisecondsSinceEpoch,
       error,
     );
-
+    _c_id.free();
     validateError(error);
     return result;
   }
@@ -384,20 +424,21 @@ class Database {
   ///
   /// Returns a token to be passed to [removeChangeListener] when it's time to remove
   /// the listener.
-  String addChangeListener(Function(DatabaseChange) callback) =>
-      ChangeListeners.addChangeListener<DatabaseChange>(
-        addListener: (String token) => CBLC.CBLDatabase_AddChangeListener(
-          _db,
-          _CBLDart_DatabaseChangeListener_ptr,
-          token.toNativeUtf8().cast(), // TODO leak
-        ),
-        onListenerAdded: (Stream<DatabaseChange> stream, String token) {
-          _liveDatabases[token] = this;
-          return stream
-              .where((data) => data.database == this)
-              .listen((data) => callback(data));
-        },
-      );
+  String addChangeListener(Function(DatabaseChange) callback) {
+    return ChangeListeners.addChangeListener<DatabaseChange>(
+      addListener: (String token) => CBLC.CBLDatabase_AddChangeListener(
+        _db,
+        _CBLDart_DatabaseChangeListener_ptr,
+        token.toNativeUtf8().cast(), // TODO leak
+      ),
+      onListenerAdded: (Stream<DatabaseChange> stream, String token) {
+        _liveDatabases[token] = this;
+        return stream
+            .where((data) => data.database == this)
+            .listen((data) => callback(data));
+      },
+    );
+  }
 
   /// Removes a previously registered listener using a [token] returned
   /// by [addChangeListener]
@@ -428,22 +469,27 @@ class Database {
   /// Returns a token to be passed to [removeDocumentChangeListener] when it's time to remove
   /// the listener.
   String addDocumentChangeListener(
-          String id, Function(DocumentChange) callback) =>
-      ChangeListeners.addChangeListener<DocumentChange>(
-        addListener: (String token) =>
-            CBLC.CBLDatabase_AddDocumentChangeListener(
-          _db,
-          id.toNativeUtf8().cast(),
-          _CBLDart_DocumentChangeListener_ptr,
-          token.toNativeUtf8().cast(),
-        ),
-        onListenerAdded: (Stream<DocumentChange> stream, String token) {
-          _liveDatabases[token] = this;
-          return stream
-              .where((data) => data.database == this)
-              .listen((data) => callback(data));
-        },
-      );
+      String id, Function(DocumentChange) callback) {
+    final _c_id = FLSlice.fromString(id);
+
+    final token = ChangeListeners.addChangeListener<DocumentChange>(
+      addListener: (String token) => CBLC.CBLDatabase_AddDocumentChangeListener(
+        _db,
+        _c_id.slice,
+        _CBLDart_DocumentChangeListener_ptr,
+        token.toNativeUtf8().cast(), // TODO leak?
+      ),
+      onListenerAdded: (Stream<DocumentChange> stream, String token) {
+        _liveDatabases[token] = this;
+        return stream
+            .where((data) => data.database == this && data.documentID == id)
+            .listen((data) => callback(data));
+      },
+    );
+
+    _c_id.free();
+    return token;
+  }
 
   /// Removes a previously registered listener using a [token] returned
   /// by [addChangeListener]
@@ -461,7 +507,7 @@ class Database {
     ChangeListeners.stream<DocumentChange>()?.sink.add(
           DocumentChange(
             _liveDatabases[change['databaseId']]!, // TODO nullsafety
-            change['docID'] as String,
+            (change['documentId'] ?? '') as String,
           ),
         );
   }
@@ -520,30 +566,33 @@ class Database {
     String name,
     List<String> keyExpressions, {
     CBLIndexType type = CBLIndexType.valueIndex,
-    String language = '',
+    CBLQueryLanguage language = CBLQueryLanguage.n1ql,
     bool ignoreAccents = false,
   }) {
     assert(name.isNotEmpty, 'Name cannot be empty');
     assert(keyExpressions.isNotEmpty,
         'You must specify at least one key to index by');
 
-    final indexSpec = calloc<cbl.CBLIndexSpec>();
+    final _c_name = FLSlice.fromString(name);
+    final _c_expressions = FLSlice.fromString(keyExpressions.join(','));
 
+    final indexSpec = calloc<cbl.CBLValueIndexConfiguration>();
     indexSpec.ref
-      ..type = type.index
-      ..ignoreAccents = ignoreAccents ? 1 : 0
-      ..language =
-          language.isNotEmpty ? language.toNativeUtf8().cast() : nullptr
-      ..keyExpressionsJSON = jsonEncode(keyExpressions).toNativeUtf8().cast();
+      ..expressionLanguage = language.index
+      ..expressions = _c_expressions.slice;
 
     final error = calloc<cbl.CBLError>();
 
-    final result = CBLC.CBLDatabase_CreateIndex(
+    final result = CBLC.CBLDatabase_CreateValueIndex(
       _db,
-      name.toNativeUtf8().cast(),
+      _c_name.slice,
       indexSpec.ref,
       error,
     );
+
+    _c_name.free();
+    _c_expressions.free();
+    calloc.free(indexSpec);
 
     validateError(error);
 
@@ -554,22 +603,29 @@ class Database {
   bool deleteIndex(String name) {
     assert(name.isNotEmpty, 'Name cannot be empty');
 
+    final _c_name = FLSlice.fromString(name);
     final error = calloc<cbl.CBLError>();
 
     final result = CBLC.CBLDatabase_DeleteIndex(
       _db,
-      name.toNativeUtf8().cast(),
+      _c_name.slice,
       error,
     );
 
+    _c_name.free();
     validateError(error);
 
     return result;
   }
 
   /// Returns the names of the indexes on this database, as a Fleece array of strings.
-  FLArray indexNames() =>
-      FLArray.fromPointer(CBLC.CBLDatabase_IndexNames(_db).cast<cbl.FLArray>());
+  List<String> indexNames() {
+    final _c_indexes = FLArray.fromPointer(
+        CBLC.CBLDatabase_GetIndexNames(_db).cast<cbl.FLArray>());
+    final indexes = _c_indexes.map((e) => e.toString()).toList();
+    _c_indexes.dispose();
+    return indexes;
+  }
 }
 
 enum ConcurrencyControl { lastWriteWins, failOnConflict }
@@ -598,11 +654,9 @@ class DatabaseConfiguration {
 
   DatabaseConfiguration(this.directory, this.flags) {
     _cbl_config = calloc<cbl.CBLDatabaseConfiguration>();
+    final _c_dir = FLSlice.fromString(directory);
 
-    _cbl_config.ref
-      ..directory = directory.toNativeUtf8().cast()
-      ..flags = flags
-      ..encryptionKey = nullptr;
+    _cbl_config.ref.directory = _c_dir.slice;
   }
 }
 
@@ -635,6 +689,8 @@ enum CBLIndexType {
   fullTextIndex
 }
 
+enum CBLQueryLanguage { json, n1ql }
+
 /// A callback that can decide whether a [documentBeingSaved] should be saved in
 /// case of conflict.
 ///
@@ -657,7 +713,7 @@ typedef _c_CBLDart_DatabaseChangeListener = Void Function(
   Pointer<Void> context,
   Pointer<cbl.CBLDatabase> db,
   Uint32 numDocs,
-  Pointer<Pointer<Int8>> docIDs,
+  Pointer<cbl.FLSlice> docIDs,
 );
 
 late final _CBLDart_DocumentChangeListener_ptr = Cbl.dylib
@@ -667,5 +723,5 @@ late final _CBLDart_DocumentChangeListener_ptr = Cbl.dylib
 typedef _c_CBLDart_DocumentChangeListener = Void Function(
   Pointer<Void> context,
   Pointer<cbl.CBLDatabase> db,
-  Pointer<Int8> docID,
+  cbl.FLSlice docID,
 );

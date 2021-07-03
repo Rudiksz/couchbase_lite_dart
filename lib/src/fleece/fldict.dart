@@ -31,19 +31,19 @@ class FLDict extends IterableBase<FLValue> {
   FLDict.empty();
   FLDict.fromPointer(this._value);
 
-  FLDict.fromMap(Map<dynamic, dynamic> map) {
-    _fromData(jsonEncode(map));
+  FLDict.fromMap(Map<dynamic, dynamic> map, {bool retain = true}) {
+    _fromData(jsonEncode(map), retain: retain);
   }
 
-  FLDict.fromJson(String json) {
-    _fromData(json);
+  FLDict.fromJson(String json, {bool retain = true}) {
+    _fromData(json, retain: retain);
   }
 
-  void _fromData(String data) {
+  void _fromData(String data, {bool retain = true}) {
     final fldoc = FLDoc.fromJson(data);
     _value = fldoc.root.asMap.ref;
     error = fldoc.error;
-    retain();
+    if (retain) this.retain();
     CBLC.FLDoc_Release(fldoc._doc);
   }
 

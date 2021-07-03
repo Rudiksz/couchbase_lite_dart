@@ -182,15 +182,16 @@ class Replicator {
     this.sessionId = sessionId;
     this.cookieName = cookieName;
 
-    _c_endpoint = CBLC.CBLEndpoint_NewWithURL_s(_c_url.slice);
+    _c_endpoint = CBLC.CBLEndpoint_CreateWithURL(_c_url.slice);
 
     if (username.isNotEmpty) {
-      _c_authenticator = CBLC.CBLAuth_NewBasic_s(
+      print(_c_password.toString());
+      _c_authenticator = CBLC.CBLAuth_CreatePassword(
         _c_username.slice,
         _c_password.slice,
       );
     } else {
-      _c_authenticator = CBLC.CBLAuth_NewSession_s(
+      _c_authenticator = CBLC.CBLAuth_CreateSession(
         _c_sessionId.slice,
         _c_cookieName.slice,
       );
@@ -244,13 +245,14 @@ class Replicator {
     }
 
     final error = calloc<cbl.CBLError>();
-    repl = CBLC.CBLReplicator_New(config, error);
+    repl = CBLC.CBLReplicator_Create(config, error);
 
     validateError(error);
   }
 
   /// Starts a replicator, asynchronously. Does nothing if it's already started.
-  void start() => CBLC.CBLReplicator_Start(repl);
+  void start({bool resetCheckPoint = false}) =>
+      CBLC.CBLReplicator_Start(repl, resetCheckPoint);
 
   /// Stops a running replicator, asynchronously. Does nothing if it's not already stopped.
   ///
@@ -273,13 +275,6 @@ class Replicator {
   ///    * Setting it back to true will initiate an immediate retry.*/
   void setHostReachable(bool reachable) =>
       CBLC.CBLReplicator_SetHostReachable(repl, reachable);
-
-  /// Instructs the replicator to ignore existing checkpoints the next time it runs.
-  ///
-  /// This will cause it to scan through all the documents on the remote database, which takes
-  /// a lot longer, but it can resolve problems with missing documents if the client and
-  /// server have gotten out of sync somehow.
-  void resetCheckpoint() => CBLC.CBLReplicator_ResetCheckpoint(repl);
 
   // ++ Status and progress
 
@@ -415,6 +410,7 @@ class Replicator {
   void dispose() {
     CBLC.CBL_Release(repl.cast());
     repl = nullptr;
+    // TODO free all the _c fields here
   }
 }
 
@@ -431,24 +427,23 @@ class ReplicatorStatus {
         : ActivityLevel.offline;
 
     progress = ReplicatorProgress(
-      status.progress.fractionComplete,
+      status.progress.complete,
       status.progress.documentCount,
     );
 
     // Get the error message
     var errorMessage = '';
-    if (status.error.domain > 0 &&
-        status.error.domain < cbl.CBLMaxErrorDomainPlus1) {
+    if (status.error.domain > 0) {
       final error = calloc<cbl.CBLError>();
       error.ref
         ..code = status.error.code
         ..domain = status.error.domain
         ..internal_info = status.error.internal_info;
-      final res = CBLC.CBLError_Message(error);
+      final res = FLSlice.fromSliceResult(CBLC.CBLError_Message(error));
 
-      errorMessage = res.cast<Utf8>().toDartString();
+      errorMessage = res.toString();
       calloc.free(error);
-      calloc.free(res);
+      res.free();
     }
 
     error = CouchbaseLiteException(
@@ -481,7 +476,7 @@ class ReplicatorStatus {
   String toString() {
     return '''ID: $id,
     Activity: $activityLevel,
-    Progress: (${progress.fractionComplete}, ${progress.documentCount})
+    Progress: (${progress.complete}, ${progress.documentCount})
     Error: (${error?.code}, ${error?.message})
     ''';
   }
@@ -495,10 +490,10 @@ class ReplicatorStatus {
 }
 
 class ReplicatorProgress {
-  ReplicatorProgress(this.fractionComplete, this.documentCount);
+  ReplicatorProgress(this.complete, this.documentCount);
 
   /// Very-approximate completion, from 0.0 to 1.0
-  double fractionComplete;
+  double complete;
 
   /// Number of documents transferred so far
   int documentCount;
@@ -563,7 +558,7 @@ late final _CBLDart_PushReplicationFilter_ptr = Cbl.dylib
 typedef _c_CBLDart_PushReplicationFilter = Uint8 Function(
   Pointer<Void> context,
   Pointer<cbl.CBLDocument> document,
-  Uint8 isDeleted,
+  Uint32 isDeleted,
 );
 
 late final _CBLDart_PullReplicationFilter_ptr = Cbl.dylib
@@ -573,7 +568,7 @@ late final _CBLDart_PullReplicationFilter_ptr = Cbl.dylib
 typedef _c_CBLDart_PullReplicationFilter = Uint8 Function(
   Pointer<Void> context,
   Pointer<cbl.CBLDocument> document,
-  Uint8 isDeleted,
+  Uint32 isDeleted,
 );
 
 late final _CBLDart_conflictReplicationResolver_ptr = Cbl.dylib
@@ -583,7 +578,7 @@ late final _CBLDart_conflictReplicationResolver_ptr = Cbl.dylib
 typedef _c_CBLDart_conflictReplicationResolver = Pointer<cbl.CBLDocument>
     Function(
   Pointer<Void> id,
-  Pointer<Int8> documentID,
+  cbl.FLSlice documentID,
   Pointer<cbl.CBLDocument> localDocument,
   Pointer<cbl.CBLDocument> remoteDocument,
 );

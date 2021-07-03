@@ -20,7 +20,6 @@ void main() {
       expect(FLDoc.fromJson('{"foo": "bar"}').root.type, FLValueType.Dict);
     });
     test('root', () {
-      expect(FLDoc.fromJson('{"foo"}').root.asString, '');
       expect(FLDoc.fromJson('{"foo": "bar"}').root['foo'].asString, 'bar');
     });
   });

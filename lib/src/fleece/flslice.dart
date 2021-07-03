@@ -38,8 +38,9 @@ class FLSlice {
   cbl.FLSlice get slice => address.ref;
 
   @override
-  String toString() =>
-      address.ref.buf.cast<Utf8>().toDartString(length: address.ref.size);
+  String toString() => address.ref.buf != nullptr
+      ? address.ref.buf.cast<Utf8>().toDartString(length: address.ref.size)
+      : '';
 
   Pointer<cbl.FLSliceResult> get toSliceResult => address.cast();
 

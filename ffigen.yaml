@@ -1,12 +1,13 @@
+# dart run ffigen --config ffigen.yaml
 name: CblCBindings
 description: 'Bindings for CouchbaseLiteC'
 output: 'lib/src/native/bindings.dart'
+llvm-path:
+  - /usr/local/opt/llvm/bin/
 headers:
   entry-points:
     - 'include/cbl/CouchbaseLite.h'
     - 'include/cbl/Dart.h'
-
-array-workaround: true
 
 functions:
   include:

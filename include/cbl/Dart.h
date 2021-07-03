@@ -3,10 +3,13 @@
 #include "CBLBase.h"
 #include "CBLReplicator.h"
 #include "fleece/Fleece.h"
-#include "w:\flutter\bin\cache\dart-sdk\include\third_party\dart\dart_api.h"
-#include "w:\flutter\bin\cache\dart-sdk\include\third_party\dart\dart_native_api.h"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdocumentation"
+#include "/Users/rudolf.martincsek/flutter/bin/cache/dart-sdk/include/dart_api.h"
+#include "/Users/rudolf.martincsek/flutter/bin/cache/dart-sdk/include/dart_native_api.h"
+#pragma clang diagnostic pop
 
-typedef void (*Dart_Print_)(char *);
+CBL_CAPI_BEGIN
 
 typedef bool (*Dart_PostCObjectType)(Dart_Port port_id, Dart_CObject* message);
 
@@ -33,7 +36,7 @@ typedef CBL_ENUM(uint8_t, CBLReplicatorFilterType){
 typedef bool (*CBLDart_ReplicatorFilterCallback)(CBLReplicatorFilterType type, char *id,
                             CBLDocument *document, bool isDeleted);
 
-typedef const CBLDocument* (*CBLDart_ConflictResolverCallback)(const char *context,
+typedef const CBLDocument* _Nullable (*CBLDart_ConflictResolverCallback)(const char *context,
                             const char *documentID,
                             const CBLDocument *localDocument,
                             const CBLDocument *remoteDocument);
@@ -52,30 +55,42 @@ DART_EXPORT void CBLDart_RegisterPorts(
     CBLDart_ConflictResolverCallback replicator_conflict_callback
     );
 
-DART_EXPORT void CBLDart_ExecuteCallback(Work *work_ptr);
+typedef std::function<void()> Work;
+void CBLDart_ExecuteCallback(Work *work_ptr);
 
-DART_EXPORT void CBLDart_DatabaseChangeListener(void *context,
-                            const CBLDatabase* db _cbl_nonnull,
-                            unsigned numDocs,
-                            const char **docIDs _cbl_nonnull);
+
+DART_EXPORT void CBLDart_DatabaseChangeListener(void* _cbl_nullable context,
+                                                const CBLDatabase* db,
+                                                unsigned numDocs,
+                                                FLString docIDs[_cbl_nonnull]);
 
 DART_EXPORT void CBLDart_DocumentChangeListener(void *context,
-                            const CBLDatabase* db _cbl_nonnull,
-                            const char *docID _cbl_nonnull);
+                                                const CBLDatabase* db,
+                                                FLString docID);
 
-DART_EXPORT void CBLDart_QueryChangeListener(void *queryId, CBLQuery *query _cbl_nonnull);
+DART_EXPORT void CBLDart_QueryChangeListener(void *queryId, CBLQuery *query, CBLListenerToken* token);
 
-DART_EXPORT void CBLDart_ReplicatorChangeListener(void *id, 
-                            CBLReplicator *repl _cbl_nonnull,
-                            const CBLReplicatorStatus *status);
+//DART_EXPORT void CBLDart_ReplicatorChangeListener(void *id,
+//                                                  CBLReplicator *repl,
+//                                                  const CBLReplicatorStatus *status);
+//
+//DART_EXPORT bool CBLDart_PushReplicationFilter(void *context,
+//                                               CBLDocument *document,
+//                                               bool isDeleted);
+//
+//DART_EXPORT bool CBLDart_PullReplicationFilter(void *context,
+//                                               CBLDocument *document,
+//                                               bool isDeleted);
+//
+//DART_EXPORT const CBLDocument* CBLDart_conflictReplicationResolver(void *id,
+//                                                                   const char *documentID,
+//                                                                   const CBLDocument *localDocument,
+//                                                                   const CBLDocument *remoteDocument);
+//
+//extern "C" bool replicationFilter(CBLReplicatorFilterType type,
+//                                  void *id,
+//                                  CBLDocument *document,
+//                                  bool isDeleted);
 
-DART_EXPORT bool CBLDart_PushReplicationFilter(void *context, CBLDocument *document,
-                          bool isDeleted);
 
-DART_EXPORT bool CBLDart_PullReplicationFilter(void *context, CBLDocument *document,
-                          bool isDeleted);
-
-DART_EXPORT const CBLDocument* CBLDart_conflictReplicationResolver(void *id,
-                      const char *documentID,
-                      const CBLDocument *localDocument,
-                      const CBLDocument *remoteDocument)
+CBL_CAPI_END
