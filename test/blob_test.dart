@@ -106,7 +106,7 @@ void main() {
         'sha1-mW5ohOy6VMoWgH3xP6J0e0IBjlQ=');
 
     // Read back the content
-    var bl1 = Blob.fromValue(doc3.properties('blobs.blob').asMap);
+    var bl1 = Blob.fromValue(doc3.properties('blobs.blob').asDict);
     expect(await bl1.getContent(), data);
 
     addTearDown(() => db.close());

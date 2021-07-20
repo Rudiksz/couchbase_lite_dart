@@ -243,7 +243,6 @@ class Replicator {
       config.ref.conflictResolver = _CBLDart_conflictReplicationResolver_ptr;
     }
     config.ref.conflictResolver = CBLC.CBLDefaultConflictResolver;
-    print(config.ref.conflictResolver);
 
     final error = calloc<cbl.CBLError>();
     repl = CBLC.CBLReplicator_New(config, error);
@@ -466,13 +465,13 @@ class ReplicatorStatus {
         ? ActivityLevel.values[data['activity'].asInt]
         : ActivityLevel.offline;
 
-    final prog = data['progress'].asMap;
+    final prog = data['progress'].asDict;
     progress = ReplicatorProgress(
       prog['fractionComplete'].asDouble,
       prog['documentCount'].asInt,
     );
 
-    final err = data['error'].asMap;
+    final err = data['error'].asDict;
     error = CouchbaseLiteException(
       err['domain'].asInt,
       err['code'].asInt,

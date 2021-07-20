@@ -253,7 +253,6 @@ class Database {
   /// Returns an updated Document reflecting the saved changes, or null on failure.
   Document saveDocument(Document document,
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
-    print(concurrency.index);
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SaveDocument(
       _db,
@@ -283,15 +282,11 @@ class Database {
         or [saveDocument] can be saved with a conflict handler.''',
       );
     }
-    print(1);
     final token = Uuid().v1() + Uuid().v1();
     _saveConflictHandlers[token] = conflictHandler;
-    print(2);
     final conflictHandler_ = Pointer.fromFunction<cbl.CBLSaveConflictHandler>(
         _saveConflictCallback, 1);
-    print(3);
     final error = calloc<cbl.CBLError>();
-    print(document._doc);
     final result = CBLC.CBLDatabase_SaveDocumentResolving(
       _db,
       document._doc,
@@ -299,7 +294,6 @@ class Database {
       token.toNativeUtf8().cast(),
       error,
     );
-    print(4);
     validateError(error);
     _saveConflictHandlers.remove(token);
     return result != nullptr ? Document._fromPointer(result) : Document.empty();

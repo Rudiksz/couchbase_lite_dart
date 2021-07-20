@@ -237,9 +237,9 @@ void main() {
     expect(doc.properties['int'].asInt, 1);
     expect(doc.properties['string'].asString, 'text');
     expect(doc.properties['boolean'].asBool, true);
-    expect(doc.properties['list'].asList[0].asInt, 1);
-    expect(doc.properties['list'].asList[1].asInt, 2);
-    expect(doc.properties['map'].asMap['one'].asString, 'two');
+    expect(doc.properties['list'].asArray[0].asInt, 1);
+    expect(doc.properties['list'].asArray[1].asInt, 2);
+    expect(doc.properties['map'].asDict['one'].asString, 'two');
 
     doc.properties = FLDict();
     expect(doc.json, '{}');
@@ -354,7 +354,7 @@ void main() {
     expect(doc1.json, mutDoc.json);
 
     mutDoc.properties['foo'] = 'baz';
-    mutDoc.properties['name'].asMap['first'] = 'test0';
+    mutDoc.properties['name'].asDict['first'] = 'test0';
 
     expect(doc1.json, isNot(mutDoc.json));
     expect(mutDoc.properties['foo'].asString, 'baz');
