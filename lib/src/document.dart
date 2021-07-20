@@ -9,29 +9,26 @@ part of couchbase_lite_dart;
 class Document {
   Database? db;
 
-  String ID = '';
-
-  /// The revision ID, is a short opaque string that's guaranteed to be
-  /// unique to every change made to the document.
-  String revisionID = '';
-
-  /// The document's current sequence in the local database.
-  ///
-  /// This number increases every time the document is saved, and a more recently saved document
-  /// will have a greater sequence number than one saved earlier, so sequences may be used as an
-  /// abstract 'clock' to tell relative modification times.
-  int sequence = 0;
-
-  bool isMutable = false;
-
   bool _new = false;
 
-  /// Internal pointer to the C object
+  String get ID => _ID;
+  String _ID = '';
+
+  FLDict? _properties;
+
+  FLDict get properties =>
+      _properties ??= FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
+  set properties(FLDict props) {
+    CBLC.CBLDocument_SetProperties(_doc, props._value);
+    _properties = null;
+  }
+
+  /// Pointer to the C object backing this document
   Pointer<cbl.CBLDocument> _doc = nullptr;
-  Pointer<cbl.CBLDocument> get doc => _doc;
 
   Document.empty();
   bool get isEmpty => _doc == nullptr || ID.isEmpty;
+  bool get isNotEmpty => !isEmpty;
 
   /// Creates a document from a C pointer
   Document.fromPointer(this._doc, {this.isMutable = false, this.db}) {
@@ -51,12 +48,11 @@ class Document {
   /// Creates a new, empty document in memory. It will not be added to a
   /// database until saved.
   ///
-  /// [Data] can be any JSON encodable object
+  /// [Data] can be an [FLDict], JSON encodable [Map] or a JSON encoded [String]
   Document(
-    this.ID, {
+    this._ID, {
     dynamic data,
     this.db,
-    this.isMutable = true,
   }) {
     assert(ID.isNotEmpty, 'Document ID cannot be empty.');
     final _c_id = FLSlice.fromString(ID);
@@ -64,10 +60,13 @@ class Document {
     _c_id.free();
 
     _new = true;
+
     if (data is FLDict) {
       properties = data;
-    } else {
-      map = (data is String) ? jsonDecode(data) : (data ?? {});
+    } else if (data is Map) {
+      map = data;
+    } else if (data is String) {
+      json = data;
     }
   }
 
@@ -95,6 +94,8 @@ class Document {
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
   set json(String json) {
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return;
     final error = calloc<cbl.CBLError>();
     final _c_json = FLSlice.fromString(json);
 
@@ -153,6 +154,8 @@ class Document {
   /// If the document doesn't belong to any database, it's a noop
   DateTime get expiration {
     assert(db != null, 'This document doesn\'t belong to any database');
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return DateTime(0);
     return db?.documentExpiration(ID) ?? DateTime(0);
   }
 
@@ -165,6 +168,8 @@ class Document {
   /// If the document doesn't belong to any database, it's a noop
   set expiration(DateTime expiration) {
     assert(db != null, 'This document doesn\'t belong to any database');
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return;
     db?.setDocumentExpiration(ID, expiration);
   }
 
@@ -224,10 +229,24 @@ class Document {
   /// If the original document has unsaved changes, the new one will also start out with the same
   /// changes; but mutating one document thereafter will not affect the other.
   Document get mutableCopy {
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return Document.empty();
+
     final result = CBLC.CBLDocument_MutableCopy(_doc);
 
-    return result != nullptr
-        ? Document.fromPointer(result, isMutable: true, db: db)
-        : Document('');
+    if (result == nullptr) {
+      return Document.empty();
+    }
+
+    final mutDoc = Document._fromPointer(result, db: db);
+    // !Fix for (https://github.com/couchbaselabs/couchbase-lite-C/issues/88)
+    mutDoc.properties = mutDoc.properties.mutableCopy;
+    return mutDoc;
+  }
+
+  bool get disposed => _doc == nullptr;
+  void dispose() {
+    CBLC.CBL_Release(_doc.cast());
+    _doc = nullptr;
   }
 }

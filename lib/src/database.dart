@@ -257,7 +257,7 @@ class Database {
     validateError(error);
 
     return result != nullptr
-        ? Document.fromPointer(result, db: this)
+        ? Document._fromPointer(result, db: this)
         : Document.empty();
   }
 
@@ -273,7 +273,7 @@ class Database {
     validateError(error);
 
     return result != nullptr
-        ? Document.fromPointer(result, db: this)
+        ? Document._fromPointer(result, db: this)
         : Document.empty();
   }
 
@@ -287,13 +287,13 @@ class Database {
   /// Returns an updated Document reflecting the saved changes, or null on failure.
   bool saveDocument(Document document,
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
+    print(concurrency.index);
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SaveDocument(
       _db,
       document.doc,
       error,
     );
-
     validateError(error);
     document.db = this;
     return result;
@@ -317,7 +317,7 @@ class Database {
         or [saveDocument] can be saved with a conflict handler.''',
       );
     }
-
+    print(1);
     final token = Uuid().v1() + Uuid().v1();
     _saveConflictHandlers[token] = conflictHandler;
 
@@ -327,7 +327,7 @@ class Database {
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SaveDocumentWithConflictHandler(
       _db,
-      document.doc,
+      document._doc,
       conflictHandler_,
       token.toNativeUtf8().cast(),
       error,
@@ -348,8 +348,8 @@ class Database {
     final callback = _saveConflictHandlers[saveId.cast<Utf8>().toDartString()];
 
     final result = callback?.call(
-      Document.fromPointer(documentBeingSaved),
-      Document.fromPointer(conflictingDocument),
+      Document._fromPointer(documentBeingSaved),
+      Document._fromPointer(conflictingDocument),
     );
 
     return (result ?? false) ? 1 : 0;

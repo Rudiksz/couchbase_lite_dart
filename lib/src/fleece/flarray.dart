@@ -15,10 +15,7 @@ class FLArray extends IterableBase<FLValue> {
   /// True if the current value was retained beyond it's scope
   bool _retained = false;
 
-  // final error = pffi.allocate<ffi.Uint8>();
   FLError error = FLError.noError;
-
-  FLArrayIterator? _iter;
 
   FLArray.empty();
   FLArray() : _value = CBLC.FLMutableArray_New().cast<cbl.FLArray>();
@@ -35,7 +32,7 @@ class FLArray extends IterableBase<FLValue> {
 
   void _fromData(String data, {bool retain = true}) {
     final fldoc = FLDoc.fromJson(data);
-    _value = fldoc.root.asList.ref;
+    _value = fldoc.root.asArray.ref;
     error = fldoc.error;
     if (retain) this.retain();
     CBLC.FLDoc_Release(fldoc._doc);
@@ -50,13 +47,15 @@ class FLArray extends IterableBase<FLValue> {
   FLArray get mutable => FLArray.fromPointer(CBLC.FLArray_MutableCopy(
         _value,
         cbl.FLCopyFlags.kFLDefaultCopy,
-      ).cast<cbl.FLArray>());
+      ).cast<cbl.FLArray>())
+        .._retained = true;
 
   /// Creates a deep (recursive) mutable copy of this dictionary
   FLArray get mutableCopy => FLArray.fromPointer(CBLC.FLArray_MutableCopy(
         _value,
         cbl.FLCopyFlags.kFLDeepCopyImmutables,
-      ).cast<cbl.FLArray>());
+      ).cast<cbl.FLArray>())
+        .._retained = true;
 
   bool get changed => isMutable && CBLC.FLMutableDict_IsChanged(_value.cast());
 
@@ -90,7 +89,7 @@ class FLArray extends IterableBase<FLValue> {
     final _keyPath = FLSlice.fromString(keyPath);
 
     final val = CBLC.FLKeyPath_EvalOnce(
-      _keyPath.slice,
+      _keyPath.slice.ref,
       _value.cast(),
       outError,
     );
@@ -104,6 +103,15 @@ class FLArray extends IterableBase<FLValue> {
         ? FLValue.fromPointer(val)
         : FLValue.empty();
   }
+
+  /// Two FLArrays are equal if they point to the same memory.
+  /// This is a shallow comparison.
+  @override
+  bool operator ==(Object other) => other is FLArray && other._value == _value;
+
+  /// A deep recursive comparison of two values
+  bool equals(FLArray other) =>
+      CBLC.FLValue_IsEqual(_value.cast(), other._value.cast());
 
   /// Returns an value at an array index, or NULL if the index is out of range.
   FLValue operator [](int index) =>
@@ -146,7 +154,7 @@ class FLArray extends IterableBase<FLValue> {
         break;
       case String:
         final _value = FLSlice.fromString(value);
-        CBLC.FLSlot_SetString(slot, _value.slice);
+        CBLC.FLSlot_SetString(slot, _value.slice.ref);
         _value.free();
         break;
       default:
@@ -154,6 +162,7 @@ class FLArray extends IterableBase<FLValue> {
         final valueDoc = FLDoc.fromJson(jsonEncode(value));
         if (valueDoc.error != FLError.noError) return;
         CBLC.FLSlot_SetValue(slot, valueDoc.root.ref);
+        valueDoc.dispose();
     }
   }
 
@@ -171,19 +180,16 @@ class FLArray extends IterableBase<FLValue> {
     }
     _value = nullptr;
     _retained = false;
-    _iter?.end();
-    _iter = null;
   }
 
   @override
-  Iterator<FLValue> get iterator => _iter ??= FLArrayIterator(this);
+  Iterator<FLValue> get iterator => FLArrayIterator(this);
 }
 
 class FLArrayIterator implements Iterator<FLValue> {
   Pointer<cbl.FLArrayIterator> _iter = nullptr;
   final FLArray _array;
   bool first = true;
-  int count = 0;
 
   FLArrayIterator(this._array) {
     if (_iter == nullptr) {
@@ -215,13 +221,13 @@ class FLArrayIterator implements Iterator<FLValue> {
 
     // Release the C iterator
     if (!next) end();
-
     return next;
   }
 
   /// Releases the C iterator
   void end() {
     //CBLC.FLArrayIterator_End(_iter); // TODO bindings
+    calloc.free(_iter);
     _iter = nullptr;
   }
 }

@@ -17,15 +17,24 @@ part of couchbase_lite_dart;
 /// as well as FLValue. The result will be a default value of that type, e.g. false or 0
 /// or NULL, unless otherwise specified.
 class FLValue {
-  FLValue.empty() : _value = nullptr;
-
   /// The C pointer to the FLValue
-  final Pointer<cbl.FLValue> _value;
+  Pointer<cbl.FLValue> _value = nullptr;
   Pointer<cbl.FLValue> get ref => _value;
+
+  FLDoc? _fldoc;
 
   int error = 0;
 
+  FLValue.empty() : _value = nullptr;
+
   FLValue.fromPointer(this._value);
+
+  /// Create a value from a JSON string. You must call [dispose] when you are done
+  /// with this object.
+  FLValue.fromJson(String json) {
+    _fldoc = FLDoc.fromJson(json);
+    _value = _fldoc!.root.ref;
+  }
 
   /// Encodes a Fleece value as JSON (or a JSON fragment.)
   /// Any Data values will become base64-encoded JSON strings.
@@ -57,7 +66,7 @@ class FLValue {
     final _keyPath = FLSlice.fromString(keyPath);
 
     final val = CBLC.FLKeyPath_EvalOnce(
-      _keyPath.slice,
+      _keyPath.slice.ref,
       _value,
       outError,
     );
@@ -118,40 +127,41 @@ class FLValue {
 
   /// Returns the exact contents of a string value, or null for all other types.
   String get asString {
-    final cstr = CBLC.FLValue_AsString(_value);
-    final slice = FLSlice.fromSlice(cstr);
-    final result = slice.toString();
-    slice.free();
-    // TODO - free cstr?
-    return result;
+    final _c_str = CBLC.FLValue_AsString(_value);
+    return _c_str.buf.cast<Utf8>().toDartString(length: _c_str.size);
   }
 
   /// If a FLValue represents an FLArray, returns it cast to FLArray, else NULL.
-  FLArray get asList => type == FLValueType.Array
+  FLArray get asArray => type == FLValueType.Array
       ? FLArray.fromPointer(CBLC.FLValue_AsArray(_value))
-      : FLArray();
+      : FLArray.empty();
+
+  @Deprecated('Use FLValue.asArray instead')
+  FLArray get asList => asArray;
 
   /// If a FLValue represents an map, returns it cast to FLDict, else NULL.
-  FLDict get asMap => type == FLValueType.Dict
+  FLDict get asDict => type == FLValueType.Dict
       ? FLDict.fromPointer(CBLC.FLValue_AsDict(_value))
-      : FLDict();
+      : FLDict.empty();
+
+  @Deprecated('Use FLValue.asDict instead')
+  FLDict get asMap => asDict;
 
   /// Returns a string representation of any scalar value. Data values are returned in raw form.
   /// Arrays and dictionaries don't have a representation and will return NULL.
   @override
-  String toString() {
-    final cstr = CBLC.FLValue_ToString(_value);
-    final slice = FLSlice.fromSliceResult(cstr);
-    final result = slice.toString();
-    slice.free();
-    // TODO - free cstr?
-    return result;
-  }
+  String toString() => json;
 
   /// Compares two values for equality. This is a deep recursive comparison.
   @override
   bool operator ==(other) =>
       other is FLValue && CBLC.FLValue_IsEqual(_value, other._value);
+
+  void dispose() {
+    if (_fldoc != null) {
+      CBLC.FLDoc_Release(_fldoc!._doc);
+    }
+  }
 }
 
 enum FLCopyFlags {

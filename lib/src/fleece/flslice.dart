@@ -5,44 +5,50 @@
 part of couchbase_lite_dart;
 
 class FLSlice {
-  Pointer<cbl.FLSlice> address = nullptr;
-
+  Pointer<cbl.FLSlice> _slice = nullptr;
+  cbl.FLSliceResult? sliceResult;
   FLSlice.empty();
 
+  /// Create a slice from a string. You must call [free] when you are done using it.
   FLSlice.fromString([String string = '']) {
-    address = calloc<cbl.FLSlice>();
+    _slice = calloc<cbl.FLSlice>();
     final nativeString = string.toNativeUtf8();
-    address.ref
+    _slice.ref
       ..buf = nativeString.cast()
       ..size = nativeString.length;
   }
 
-  FLSlice.fromSlice(cbl.FLSlice slice) {
-    address = calloc<cbl.FLSlice>();
-    address.ref
-      ..buf = slice.buf.cast()
-      ..size = slice.size;
+  /// Create a slice from an FLSlice pointer returned by the C api methods.
+  /// Calling [free] will free the memory, and invalidate the [slice] pointer.
+  /// You should call [free] or otherwise free up the [slice] when done using it.
+  FLSlice.fromSlice(Pointer<cbl.FLSlice> slice) {
+    _slice = slice;
+    _slice.ref.size = slice.ref.size;
   }
 
-  FLSlice.fromSliceResult(cbl.FLSliceResult slice) {
-    address = calloc<cbl.FLSlice>();
-    address.ref
-      ..buf = slice.buf.cast()
-      ..size = slice.size;
-  }
+  /// Create a slice from an FLSliceResult pointer returned by C api methods.
+  /// You must call [free] when you are done using it.
+  FLSlice.fromSliceResult(this.sliceResult);
 
-  FLSlice.fromPointer(this.address, int length) {
-    address.ref.size = length;
-  }
+  Pointer<cbl.FLSlice> get slice =>
+      Pointer<cbl.FLSlice>.fromAddress(_slice.address);
 
-  cbl.FLSlice get slice => address.ref;
+  int get _size => sliceResult?.size ?? _slice.ref.size;
 
   @override
-  String toString() => address.ref.buf != nullptr
-      ? address.ref.buf.cast<Utf8>().toDartString(length: address.ref.size)
-      : '';
+  String toString() => (sliceResult?.buf ?? _slice.ref.buf)
+      .cast<Utf8>()
+      .toDartString(length: _size);
 
-  Pointer<cbl.FLSliceResult> get toSliceResult => address.cast();
+  Pointer<cbl.FLSliceResult> get toSliceResult => _slice.cast();
 
-  void free() => calloc.free(address);
+  void free() {
+    if (_slice != nullptr) {
+      calloc.free(_slice.ref.buf);
+      calloc.free(_slice);
+    } else if (sliceResult != null) {
+      CBLC.FLBuf_Release(sliceResult!.buf);
+      // FLSliceResult_Release(sliceResult!);
+    }
+  }
 }

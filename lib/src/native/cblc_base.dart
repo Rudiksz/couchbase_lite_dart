@@ -10,6 +10,7 @@ CblCBindings get CBLC => _CBLC!;
 class Cbl {
   static late DynamicLibrary dylib;
   static void init() => initializeCblC();
+  static int get instanceCount => CBLC.CBL_InstanceCount();
 }
 
 void initializeCblC({Map<String, String> dylibs = const {}}) {
@@ -29,20 +30,21 @@ void initializeCblC({Map<String, String> dylibs = const {}}) {
     libName = 'CouchbaseLiteC.dll';
   } else if (Platform.isLinux) {
     throw Exception('Linux support is still work in progress');
+    //libName = 'CouchbaseLiteC.so';
   }
 
   try {
     try {
       if (Platform.isIOS) {
         throw Exception('iOS support is still work in progress');
-        // dylib = DynamicLibrary.process();
+        //dylib = DynamicLibrary.process();
       } else {
         dylib = DynamicLibrary.open(dylibPath + libName);
       }
     } catch (e) {
       if (Platform.isIOS) {
         throw Exception('iOS support is still work in progress');
-        // dylib = DynamicLibrary.process();
+        //dylib = DynamicLibrary.process();
       } else {
         dylib = DynamicLibrary.open(libName);
       }
