@@ -18,14 +18,9 @@ class FLDict extends IterableBase<FLValue> {
 
   FLError error = FLError.noError;
 
-  Pointer<cbl.FLDictIterator> _c_iter = nullptr;
-  Iterator<FLValue>? _iter;
-  FLDictValues? _values;
-  FLDictKeys? _keys;
-  FLDictEntries? _entries;
-
   FLDict() {
     _value = CBLC.FLMutableDict_New().cast<cbl.FLDict>();
+    _retained = true;
   }
 
   FLDict.empty();
@@ -41,7 +36,7 @@ class FLDict extends IterableBase<FLValue> {
 
   void _fromData(String data) {
     final fldoc = FLDoc.fromJson(data);
-    _value = fldoc.root.asMap.ref;
+    _value = fldoc.root.asDict.ref;
     error = fldoc.error;
     retain();
     CBLC.FLDoc_Release(fldoc._doc);
@@ -57,7 +52,7 @@ class FLDict extends IterableBase<FLValue> {
           _value,
           cbl.FLCopyFlags.kFLDefaultCopy,
         ).cast<cbl.FLDict>(),
-      );
+      ).._retained = true;
 
   /// Creates a deep (recursive) mutable copy of this value
   FLDict get mutableCopy => FLDict.fromPointer(
@@ -65,7 +60,7 @@ class FLDict extends IterableBase<FLValue> {
           _value,
           cbl.FLCopyFlags.kFLDeepCopyImmutables,
         ).cast<cbl.FLDict>(),
-      );
+      ).._retained = true;
 
   bool get changed => isMutable && CBLC.FLMutableDict_IsChanged(_value.cast());
 
@@ -99,7 +94,7 @@ class FLDict extends IterableBase<FLValue> {
     final _keyPath = FLSlice.fromString(keyPath);
 
     final val = CBLC.FLKeyPath_EvalOnce(
-      _keyPath.slice,
+      _keyPath.slice.ref,
       _value.cast(),
       outError,
     );
@@ -114,11 +109,20 @@ class FLDict extends IterableBase<FLValue> {
         : FLValue.empty();
   }
 
+  /// Two FLDicts are equal if they point to the same memory.
+  /// This is a shallow comparison.
+  @override
+  bool operator ==(Object other) => other is FLArray && other._value == _value;
+
+  /// A deep recursive comparison of two values
+  bool equals(FLDict other) =>
+      CBLC.FLValue_IsEqual(_value.cast(), other._value.cast());
+
   FLValue operator [](String key) {
     final _key = FLSlice.fromString(key);
     final value = FLValue.fromPointer(CBLC.FLDict_Get(
       _value.cast(),
-      _key.slice,
+      _key.slice.ref,
     ));
     _key.free();
     return value;
@@ -139,11 +143,11 @@ class FLDict extends IterableBase<FLValue> {
 
     // !fix for: https://forums.couchbase.com/t/27825
     final _index = FLSlice.fromString(index);
-    CBLC.FLDict_Get(_value, _index.slice);
+    CBLC.FLDict_Get(_value, _index.slice.ref);
 
     final slot = CBLC.FLMutableDict_Set(
       _value.cast<cbl.FLDict>(),
-      _index.slice,
+      _index.slice.ref,
     );
     _index.free();
 
@@ -166,7 +170,7 @@ class FLDict extends IterableBase<FLValue> {
         break;
       case String:
         final _value = FLSlice.fromString(value);
-        CBLC.FLSlot_SetString(slot, _value.slice);
+        CBLC.FLSlot_SetString(slot, _value.slice.ref);
         _value.free();
         break;
       default:
@@ -174,6 +178,7 @@ class FLDict extends IterableBase<FLValue> {
         final valueDoc = FLDoc.fromJson(jsonEncode(value));
         if (valueDoc.error != FLError.noError) return;
         CBLC.FLSlot_SetValue(slot, valueDoc.root.ref);
+        valueDoc.dispose();
     }
   }
 
@@ -194,66 +199,65 @@ class FLDict extends IterableBase<FLValue> {
   }
 
   @override
-  Iterator<FLValue> get iterator => _iter ??= FLDictValueIterator(this);
+  Iterator<FLValue> get iterator => FLDictValueIterator(this);
 
-  FLDictValues get values => _values ??= FLDictValues(this);
+  FLDictValues get values => FLDictValues(this);
 
-  FLDictKeys get keys => _keys ??= FLDictKeys(this);
+  FLDictKeys get keys => FLDictKeys(this);
 
-  FLDictEntries get entries => _entries ??= FLDictEntries(this);
+  FLDictEntries get entries => FLDictEntries(this);
 }
 
 class FLDictValues extends IterableBase<FLValue> {
   final FLDict dict;
-  Iterator<FLValue>? _iter;
 
   FLDictValues(this.dict);
 
   @override
-  Iterator<FLValue> get iterator => _iter ??= FLDictValueIterator(dict);
+  Iterator<FLValue> get iterator => FLDictValueIterator(dict);
 }
 
 class FLDictKeys extends IterableBase<String> {
   final FLDict dict;
-  Iterator<String>? _iter;
 
   FLDictKeys(this.dict);
 
   @override
-  Iterator<String> get iterator => _iter ??= FLDictKeyIterator(dict);
+  Iterator<String> get iterator => FLDictKeyIterator(dict);
 }
 
-class FLDictEntries extends IterableBase<MapEntry<String, FLValue>> {
+class FLDictEntries extends IterableBase<MapEntry<FLValue, FLValue>> {
   final FLDict dict;
-  Iterator<MapEntry<String, FLValue>>? _iter;
 
   FLDictEntries(this.dict);
 
   @override
-  Iterator<MapEntry<String, FLValue>> get iterator =>
-      _iter ??= FLDictEntryIterator(dict);
+  Iterator<MapEntry<FLValue, FLValue>> get iterator =>
+      FLDictEntryIterator(dict);
 }
 
 // -- FLDictValueIterator
 
 class FLDictValueIterator implements Iterator<FLValue> {
+  Pointer<cbl.FLDictIterator> _iter = nullptr;
   final FLDict _dict;
   bool first = true;
 
   FLDictValueIterator(this._dict) {
-    if (_dict._c_iter == nullptr) {
-      _dict._c_iter = calloc<cbl.FLDictIterator>();
-      CBLC.FLDictIterator_Begin(_dict._value, _dict._c_iter);
+    if (_iter == nullptr) {
+      _iter = calloc<cbl.FLDictIterator>();
+      CBLC.FLDictIterator_Begin(_dict._value, _iter);
     }
   }
 
-  // Note: The FLArrayIterator_Begin method positions the iterator at the first element,
+  // Note: The FLDictIterator_Begin method positions the iterator at the first element,
   // as opposed to Dart which expects new iterators to be 'before' the first elemen.
   // This causes for loops to skip the first element, unless we "lazy" initialize the
   // FLArrayIterator
   @override
   FLValue get current {
-    return FLValue.fromPointer(CBLC.FLDictIterator_GetValue(_dict._c_iter));
+    if (_dict.isEmpty || _iter == nullptr) return FLValue.empty();
+    return FLValue.fromPointer(CBLC.FLDictIterator_GetValue(_iter));
   }
 
   @override
@@ -264,28 +268,30 @@ class FLDictValueIterator implements Iterator<FLValue> {
       return true;
     }
 
-    final next = CBLC.FLDictIterator_Next(_dict._c_iter);
+    final next = CBLC.FLDictIterator_Next(_iter);
     if (!next) end();
     return next;
   }
 
   /// Releases the C iterator
   void end() {
-    CBLC.FLDictIterator_End(_dict._c_iter);
-    _dict._c_iter = nullptr;
+    CBLC.FLDictIterator_End(_iter);
+    calloc.free(_iter);
+    _iter = nullptr;
   }
 }
 
 // -- FLDictKeyInterator
 
 class FLDictKeyIterator implements Iterator<String> {
+  Pointer<cbl.FLDictIterator> _iter = nullptr;
   final FLDict _dict;
   bool first = true;
 
   FLDictKeyIterator(this._dict) {
-    if (_dict._c_iter == nullptr) {
-      _dict._c_iter = calloc<cbl.FLDictIterator>();
-      CBLC.FLDictIterator_Begin(_dict._value, _dict._c_iter);
+    if (_iter == nullptr) {
+      _iter = calloc<cbl.FLDictIterator>();
+      CBLC.FLDictIterator_Begin(_dict._value, _iter);
     }
   }
 
@@ -295,8 +301,7 @@ class FLDictKeyIterator implements Iterator<String> {
   // FLArrayIterator
   @override
   String get current {
-    return FLValue.fromPointer(CBLC.FLDictIterator_GetKey(_dict._c_iter))
-        .asString;
+    return FLValue.fromPointer(CBLC.FLDictIterator_GetKey(_iter)).asString;
   }
 
   @override
@@ -307,28 +312,30 @@ class FLDictKeyIterator implements Iterator<String> {
       return true;
     }
 
-    final next = CBLC.FLDictIterator_Next(_dict._c_iter);
+    final next = CBLC.FLDictIterator_Next(_iter);
     if (!next) end();
     return next;
   }
 
   /// Releases the C iterator
   void end() {
-    CBLC.FLDictIterator_End(_dict._c_iter);
-    _dict._c_iter = nullptr;
+    CBLC.FLDictIterator_End(_iter);
+    calloc.free(_iter);
+    _iter = nullptr;
   }
 }
 
 // -- FLDictEntryIterator
 
-class FLDictEntryIterator implements Iterator<MapEntry<String, FLValue>> {
+class FLDictEntryIterator implements Iterator<MapEntry<FLValue, FLValue>> {
+  Pointer<cbl.FLDictIterator> _iter = nullptr;
   final FLDict _dict;
   bool first = true;
 
   FLDictEntryIterator(this._dict) {
-    if (_dict._c_iter == nullptr) {
-      _dict._c_iter = calloc<cbl.FLDictIterator>();
-      CBLC.FLDictIterator_Begin(_dict._value, _dict._c_iter);
+    if (_iter == nullptr) {
+      _iter = calloc<cbl.FLDictIterator>();
+      CBLC.FLDictIterator_Begin(_dict._value, _iter);
     }
   }
 
@@ -337,15 +344,14 @@ class FLDictEntryIterator implements Iterator<MapEntry<String, FLValue>> {
   // This causes for loops to skip the first element, unless we "lazy" initialize the
   // FLArrayIterator
   @override
-  MapEntry<String, FLValue> get current {
-    final keyPointer = CBLC.FLDictIterator_GetKeyString(_dict._c_iter);
-    final _key = FLSlice.fromSlice(keyPointer);
+  MapEntry<FLValue, FLValue> get current {
+    // final keyPointer = CBLC.FLDictIterator_GetKeyString(_iter);
+    final keyPointer = CBLC.FLDictIterator_GetKey(_iter);
 
-    final entry = MapEntry<String, FLValue>(
-      _key.toString(),
-      FLValue.fromPointer(CBLC.FLDictIterator_GetValue(_dict._c_iter)),
+    final entry = MapEntry<FLValue, FLValue>(
+      FLValue.fromPointer(keyPointer),
+      FLValue.fromPointer(CBLC.FLDictIterator_GetValue(_iter)),
     );
-    _key.free();
 
     return entry;
   }
@@ -358,14 +364,15 @@ class FLDictEntryIterator implements Iterator<MapEntry<String, FLValue>> {
       return true;
     }
 
-    final next = CBLC.FLDictIterator_Next(_dict._c_iter);
+    final next = CBLC.FLDictIterator_Next(_iter);
     if (!next) end();
     return next;
   }
 
   /// Releases the C iterator
   void end() {
-    CBLC.FLDictIterator_End(_dict._c_iter);
-    _dict._c_iter = nullptr;
+    CBLC.FLDictIterator_End(_iter);
+    calloc.free(_iter);
+    _iter = nullptr;
   }
 }

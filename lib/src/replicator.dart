@@ -130,7 +130,7 @@ class Replicator {
 
   /// Optional set of document IDs to replicate.
   Map<String, String> get headers => <String, String>{
-        for (final c in _c_headers.entries) c.key: c.value.asString
+        for (final c in _c_headers.entries) c.key.asString: c.value.asString
       };
   set headers(Map<String, String> headers) {
     _c_headers.dispose();
@@ -182,17 +182,17 @@ class Replicator {
     this.sessionId = sessionId;
     this.cookieName = cookieName;
 
-    _c_endpoint = CBLC.CBLEndpoint_NewWithURL_s(_c_url.slice);
+    _c_endpoint = CBLC.CBLEndpoint_NewWithURL_s(_c_url.slice.ref);
 
     if (username.isNotEmpty) {
       _c_authenticator = CBLC.CBLAuth_NewBasic_s(
-        _c_username.slice,
-        _c_password.slice,
+        _c_username.slice.ref,
+        _c_password.slice.ref,
       );
     } else {
       _c_authenticator = CBLC.CBLAuth_NewSession_s(
-        _c_sessionId.slice,
-        _c_cookieName.slice,
+        _c_sessionId.slice.ref,
+        _c_cookieName.slice.ref,
       );
     }
 
@@ -221,12 +221,12 @@ class Replicator {
 
     if (pinnedServerCertificate.isNotEmpty) {
       this.pinnedServerCertificate = pinnedServerCertificate;
-      config.ref.pinnedServerCertificate = _c_pinnedServerCertificate.slice;
+      config.ref.pinnedServerCertificate = _c_pinnedServerCertificate.slice.ref;
     }
 
     if (trustedRootCertificates.isNotEmpty) {
       this.trustedRootCertificates = trustedRootCertificates;
-      config.ref.trustedRootCertificates = _c_trustedRootCertificates.slice;
+      config.ref.trustedRootCertificates = _c_trustedRootCertificates.slice.ref;
     }
 
     if (pullFilter != null) {
@@ -242,6 +242,8 @@ class Replicator {
       _conflictResolvers[_id] = conflictResolver!;
       config.ref.conflictResolver = _CBLDart_conflictReplicationResolver_ptr;
     }
+    config.ref.conflictResolver = CBLC.CBLDefaultConflictResolver;
+    print(config.ref.conflictResolver);
 
     final error = calloc<cbl.CBLError>();
     repl = CBLC.CBLReplicator_New(config, error);
@@ -359,7 +361,8 @@ class Replicator {
     final error = calloc<cbl.CBLError>();
     final pid = FLSlice.fromString(id);
 
-    final result = CBLC.CBLReplicator_IsDocumentPending(repl, pid.slice, error);
+    final result =
+        CBLC.CBLReplicator_IsDocumentPending(repl, pid.slice.ref, error);
     pid.free();
     validateError(error);
     return result;
@@ -381,7 +384,7 @@ class Replicator {
             : _pullReplicatorFilters[replicatorId.cast<Utf8>().toDartString()];
 
     final result =
-        callback?.call(Document.fromPointer(document), isDeleted != 0);
+        callback?.call(Document._fromPointer(document), isDeleted != 0);
 
     return (result ?? false) ? 1 : 0;
   }
@@ -405,8 +408,8 @@ class Replicator {
 
     final result = callback(
       documentId.cast<Utf8>().toDartString(),
-      Document.fromPointer(localDocument),
-      Document.fromPointer(remoteDocument),
+      Document._fromPointer(localDocument),
+      Document._fromPointer(remoteDocument),
     );
 
     return result._doc;

@@ -174,10 +174,8 @@ void main() {
 
   test('saveDocument', () {
     var db = Database('savedoc', directory: '_tmp');
-    expect(
-      db.saveDocument(Document('testdoc', data: {'foo': 'bar'})),
-      predicate<Document>((doc) => doc.ID == 'testdoc'),
-    );
+    final doc = db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
+    expect(doc.ID, 'testdoc');
     addTearDown(() => db.close());
   });
 

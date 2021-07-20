@@ -227,7 +227,7 @@ class Database {
     final result = CBLC.CBLDatabase_GetDocument(_db, id.toNativeUtf8().cast());
 
     return result != nullptr
-        ? Document.fromPointer(result, db: this)
+        ? Document._fromPointer(result, db: this)
         : Document.empty();
   }
 
@@ -239,7 +239,7 @@ class Database {
         CBLC.CBLDatabase_GetMutableDocument(_db, id.toNativeUtf8().cast());
 
     return result != nullptr
-        ? Document.fromPointer(result, db: this)
+        ? Document._fromPointer(result, db: this)
         : Document.empty();
   }
 
@@ -253,17 +253,17 @@ class Database {
   /// Returns an updated Document reflecting the saved changes, or null on failure.
   Document saveDocument(Document document,
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
+    print(concurrency.index);
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SaveDocument(
       _db,
-      document.doc,
+      document._doc,
       concurrency.index,
       error,
     );
-
     validateError(error);
     return result != nullptr
-        ? Document.fromPointer(result, db: this)
+        ? Document._fromPointer(result, db: this)
         : Document.empty();
   }
 
@@ -283,25 +283,26 @@ class Database {
         or [saveDocument] can be saved with a conflict handler.''',
       );
     }
-
+    print(1);
     final token = Uuid().v1() + Uuid().v1();
     _saveConflictHandlers[token] = conflictHandler;
-
+    print(2);
     final conflictHandler_ = Pointer.fromFunction<cbl.CBLSaveConflictHandler>(
         _saveConflictCallback, 1);
-
+    print(3);
     final error = calloc<cbl.CBLError>();
+    print(document._doc);
     final result = CBLC.CBLDatabase_SaveDocumentResolving(
       _db,
-      document.doc,
+      document._doc,
       conflictHandler_,
       token.toNativeUtf8().cast(),
       error,
     );
-
+    print(4);
     validateError(error);
     _saveConflictHandlers.remove(token);
-    return result != nullptr ? Document.fromPointer(result) : Document.empty();
+    return result != nullptr ? Document._fromPointer(result) : Document.empty();
   }
 
   /// The actual conflict filter handler. Calls the registered Dart listeners
@@ -314,8 +315,8 @@ class Database {
     final callback = _saveConflictHandlers[saveId.cast<Utf8>().toDartString()];
 
     final result = callback?.call(
-      Document.fromPointer(documentBeingSaved),
-      Document.fromPointer(conflictingDocument),
+      Document._fromPointer(documentBeingSaved),
+      Document._fromPointer(conflictingDocument),
     );
 
     return (result ?? false) ? 1 : 0;

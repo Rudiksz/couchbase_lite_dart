@@ -13,6 +13,8 @@ functions:
     - CBL.*
     - FL.*
     - CBLDart.*
+    - _FLBuf_Release
+    - _FLBuf_Retain
   rename:
     '_(.*)': '$1'
 
@@ -30,4 +32,5 @@ enums:
 
 globals:
   include:
+    - CBLDefaultConflictResolver
     - kCBL.*

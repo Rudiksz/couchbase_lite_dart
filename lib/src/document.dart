@@ -9,104 +9,88 @@ part of couchbase_lite_dart;
 class Document {
   Database? db;
 
-  String ID = '';
-
-  /// The revision ID, is a short opaque string that's guaranteed to be
-  /// unique to every change made to the document.
-  String revisionID = '';
-
-  /// The document's current sequence in the local database.
-  ///
-  /// This number increases every time the document is saved, and a more recently saved document
-  /// will have a greater sequence number than one saved earlier, so sequences may be used as an
-  /// abstract 'clock' to tell relative modification times.
-  int sequence = 0;
-
-  bool isMutable = false;
-
   bool _new = false;
 
-  /// Internal pointer to the C object
-  Pointer<cbl.CBLDocument> _doc = nullptr;
-  Pointer<cbl.CBLDocument> get doc => _doc;
+  String get ID => _ID;
+  String _ID = '';
 
-  FLDict _properties = FLDict.empty();
+  FLDict? _properties;
 
-  Document.empty();
-  bool get isEmpty => _doc == nullptr || ID.isEmpty;
-
-  /// Creates a document from a C pointer
-  Document.fromPointer(this._doc, {this.isMutable = false, this.db}) {
-    if (_doc != nullptr) {
-      final id = CBLC.CBLDocument_ID(_doc);
-      ID = id.cast<Utf8>().toDartString();
-
-      final rev = CBLC.CBLDocument_RevisionID(_doc);
-      revisionID = rev.cast<Utf8>().toDartString();
-
-      sequence = CBLC.CBLDocument_Sequence(_doc);
-
-      _properties = FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
-
-      // !Fix for (https://github.com/couchbaselabs/couchbase-lite-C/issues/88)
-      if (isMutable) {
-        properties = _properties.mutableCopy;
-      }
-    }
-  }
-
-  /// Creates a new, empty document in memory. It will not be added to a
-  /// database until saved.
-  ///
-  /// [Data] can be any JSON encodable object
-  Document(
-    this.ID, {
-    dynamic data,
-    this.db,
-    this.isMutable = true,
-  }) {
-    assert(ID.isNotEmpty, 'Document ID cannot be empty.');
-    _doc = CBLC.CBLDocument_New(ID.toNativeUtf8().cast());
-    _new = true;
-    if (data is FLDict) {
-      properties = data;
-    } else {
-      map = (data is String) ? jsonDecode(data) : (data ?? {});
-    }
-  }
-
-  /// Returns a document's properties as a dictionary.
-  ///
-  /// This dictionary _reference_ is immutable, but if the document is mutable the
-  /// underlying dictionary itself is mutable. You can obtain a mutable
-  /// reference via [Document.mutableCopy].
-  FLDict get properties => _properties;
+  FLDict get properties =>
+      _properties ??= FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
   set properties(FLDict props) {
     CBLC.CBLDocument_SetProperties(_doc, props._value);
-    _properties = props;
+    _properties = null;
+  }
+
+  /// Pointer to the C object backing this document
+  Pointer<cbl.CBLDocument> _doc = nullptr;
+
+  /// Creates a document from a C pointer
+  Document._fromPointer(this._doc, {this.db}) {
+    _ID = CBLC.CBLDocument_ID(_doc).cast<Utf8>().toDartString();
+  }
+
+  /// The empty value. Use it to initialize non-nullable variables that you
+  /// later want to set. All operations are noop.
+  ///
+  /// Application logic should use [isEmpty] or [isNotEmpty] in place of null checks.
+  Document.empty();
+  bool get isEmpty => _doc == nullptr || ID.isEmpty;
+  bool get isNotEmpty => !isEmpty;
+
+  /// Creates a new document in memory. It will not be added to a database until saved.
+  ///
+  /// [Data] can be an [FLDict], JSON encodable [Map] or a JSON encoded [String]
+  Document(
+    this._ID, {
+    dynamic data,
+    this.db,
+  }) {
+    assert(ID.isNotEmpty, 'Document ID cannot be empty.');
+    final _c_id = ID.toNativeUtf8();
+    _doc = CBLC.CBLDocument_New(_c_id.cast());
+    calloc.free(_c_id);
+
+    _new = true;
+
+    if (data is FLDict) {
+      properties = data;
+    } else if (data is Map) {
+      map = data;
+    } else if (data is String) {
+      json = data;
+    }
   }
 
   /// Returns the properties as JSON string.
   ///
   /// The same as `properties.json`
-  String get json => _properties.json;
+  String get json {
+    final _c_json = CBLC.CBLDocument_PropertiesAsJSON(_doc);
+    final _json = _c_json.cast<Utf8>().toDartString();
+    calloc.free(_c_json);
+    return _json;
+  }
 
   /// Set properties using a JSON string.
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
   set json(String json) {
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return;
     final error = calloc<cbl.CBLError>();
-    ;
+
+    final _c_json = json.toNativeUtf8();
 
     CBLC.CBLDocument_SetPropertiesAsJSON(
       _doc,
-      json.toNativeUtf8().cast(),
+      _c_json.cast(),
       error,
     );
+    calloc.free(_c_json);
 
     validateError(error);
-
-    _properties = FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
   }
 
   /// Get the properties as a map.
@@ -115,19 +99,7 @@ class Document {
   /// Set properties using a JSON encodable value.
   ///
   /// Throws a [DatabaseError] in case of invalid JSON.
-  set map(Map<dynamic, dynamic> data) {
-    final error = calloc<cbl.CBLError>();
-
-    CBLC.CBLDocument_SetPropertiesAsJSON(
-      _doc,
-      jsonEncode(data).toNativeUtf8().cast(),
-      error,
-    );
-
-    validateError(error);
-
-    _properties = FLDict.fromPointer(CBLC.CBLDocument_Properties(_doc));
-  }
+  set map(Map<dynamic, dynamic> data) => json = jsonEncode(data);
 
   /// Saves the document.
   ///
@@ -141,6 +113,8 @@ class Document {
   /// If the document doesn't belong to any database, it's a noop
   Document save() {
     assert(db != null, 'This document doesn\'t belong to any database');
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return Document.empty();
     return db?.saveDocument(this) ?? Document.empty();
   }
 
@@ -154,6 +128,8 @@ class Document {
   /// If the document doesn't belong to any database, it's a noop
   Document saveResolving(SaveConflictHandler conflictHandler) {
     assert(db != null, 'This document doesn\'t belong to any database');
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return Document.empty();
     return db?.saveDocumentResolving(this, conflictHandler) ?? Document.empty();
   }
 
@@ -167,6 +143,8 @@ class Document {
   /// If the document doesn't belong to any database, it's a noop
   DateTime get expiration {
     assert(db != null, 'This document doesn\'t belong to any database');
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return DateTime(0);
     return db?.documentExpiration(ID) ?? DateTime(0);
   }
 
@@ -179,6 +157,8 @@ class Document {
   /// If the document doesn't belong to any database, it's a noop
   set expiration(DateTime expiration) {
     assert(db != null, 'This document doesn\'t belong to any database');
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return;
     db?.setDocumentExpiration(ID, expiration);
   }
 
@@ -187,7 +167,8 @@ class Document {
   ///  Returns true if the document was deleted, throws [CouchbaseLiteException] if an error occurred.
   bool delete(
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
-    if (_doc == nullptr) return false;
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return false;
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDocument_Delete(
       _doc,
@@ -207,7 +188,8 @@ class Document {
   ///
   ///  Returns true if the document was purged, false if it doesn't exists and throws [CouchbaseLiteException] if the purge failed.
   bool purge() {
-    if (_doc == nullptr) return false;
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return false;
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDocument_Purge(_doc, error);
 
@@ -220,10 +202,24 @@ class Document {
   /// If the original document has unsaved changes, the new one will also start out with the same
   /// changes; but mutating one document thereafter will not affect the other.
   Document get mutableCopy {
+    assert(!disposed, 'Documents cannot be used after beeing disposed.');
+    if (disposed) return Document.empty();
+
     final result = CBLC.CBLDocument_MutableCopy(_doc);
 
-    return result != nullptr
-        ? Document.fromPointer(result, isMutable: true, db: db)
-        : Document('');
+    if (result == nullptr) {
+      return Document.empty();
+    }
+
+    final mutDoc = Document._fromPointer(result, db: db);
+    // !Fix for (https://github.com/couchbaselabs/couchbase-lite-C/issues/88)
+    mutDoc.properties = mutDoc.properties.mutableCopy;
+    return mutDoc;
+  }
+
+  bool get disposed => _doc == nullptr;
+  void dispose() {
+    CBLC.CBL_Release(_doc.cast());
+    _doc = nullptr;
   }
 }

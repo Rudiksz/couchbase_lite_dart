@@ -12,18 +12,18 @@ const TESTDIR = '_tmp';
 void main() {
   initializeCblC();
 
-  group('FLDoc', () {
-    test('fromJson', () {
-      expect(FLDoc.fromJson('{"foo"}').error, FLError.jsonError);
-      expect(FLDoc.fromJson('{"foo"}').root.type, FLValueType.Undefined);
-      expect(FLDoc.fromJson('{"foo": "bar"}').error, FLError.noError);
-      expect(FLDoc.fromJson('{"foo": "bar"}').root.type, FLValueType.Dict);
-    });
-    test('root', () {
-      expect(FLDoc.fromJson('{"foo"}').root.asString, '');
-      expect(FLDoc.fromJson('{"foo": "bar"}').root['foo'].asString, 'bar');
-    });
-  });
+  // group('FLDoc', () {
+  //   test('fromJson', () {
+  //     expect(FLDoc.fromJson('{"foo"}').error, FLError.jsonError);
+  //     expect(FLDoc.fromJson('{"foo"}').root.type, FLValueType.Undefined);
+  //     expect(FLDoc.fromJson('{"foo": "bar"}').error, FLError.noError);
+  //     expect(FLDoc.fromJson('{"foo": "bar"}').root.type, FLValueType.Dict);
+  //   });
+  //   test('root', () {
+  //     expect(FLDoc.fromJson('{"foo"}').root.asString, '');
+  //     expect(FLDoc.fromJson('{"foo": "bar"}').root['foo'].asString, 'bar');
+  //   });
+  // });
 
   group('FLValue', () {
     final doc = FLDict.fromMap({

@@ -81,6 +81,32 @@ class CblCBindings {
   late final _dart_FLSlice_Copy _FLSlice_Copy =
       _FLSlice_Copy_ptr.asFunction<_dart_FLSlice_Copy>();
 
+  void FLBuf_Retain(
+    ffi.Pointer<ffi.Void> arg0,
+  ) {
+    return _FLBuf_Retain(
+      arg0,
+    );
+  }
+
+  late final _FLBuf_Retain_ptr =
+      _lookup<ffi.NativeFunction<_c_FLBuf_Retain>>('_FLBuf_Retain');
+  late final _dart_FLBuf_Retain _FLBuf_Retain =
+      _FLBuf_Retain_ptr.asFunction<_dart_FLBuf_Retain>();
+
+  void FLBuf_Release(
+    ffi.Pointer<ffi.Void> arg0,
+  ) {
+    return _FLBuf_Release(
+      arg0,
+    );
+  }
+
+  late final _FLBuf_Release_ptr =
+      _lookup<ffi.NativeFunction<_c_FLBuf_Release>>('_FLBuf_Release');
+  late final _dart_FLBuf_Release _FLBuf_Release =
+      _FLBuf_Release_ptr.asFunction<_dart_FLBuf_Release>();
+
   /// Returns a message describing an error.
   /// @note  It is the caller's responsibility to free the returned C string by calling `free`.
   ffi.Pointer<ffi.Int8> CBLError_Message(
@@ -4952,6 +4978,19 @@ class CblCBindings {
   late final _dart_CBLAuth_Free _CBLAuth_Free =
       _CBLAuth_Free_ptr.asFunction<_dart_CBLAuth_Free>();
 
+  /// Default conflict resolver. This always returns `localDocument`.
+  late final ffi.Pointer<ffi.Pointer<ffi.NativeFunction<CBLConflictResolver>>>
+      _CBLDefaultConflictResolver =
+      _lookup<ffi.Pointer<ffi.NativeFunction<CBLConflictResolver>>>(
+          'CBLDefaultConflictResolver');
+
+  ffi.Pointer<ffi.NativeFunction<CBLConflictResolver>>
+      get CBLDefaultConflictResolver => _CBLDefaultConflictResolver.value;
+
+  set CBLDefaultConflictResolver(
+          ffi.Pointer<ffi.NativeFunction<CBLConflictResolver>> value) =>
+      _CBLDefaultConflictResolver.value = value;
+
   /// Creates a replicator with the given configuration.
   ffi.Pointer<CBLReplicator> CBLReplicator_New(
     ffi.Pointer<CBLReplicatorConfiguration> arg0,
@@ -5191,7 +5230,7 @@ class CblCBindings {
       _CBLReplicator_AddDocumentListener_ptr.asFunction<
           _dart_CBLReplicator_AddDocumentListener>();
 
-  void CBLDart_PostCObject(
+  int CBLDart_PostCObject(
     ffi.Pointer<ffi.NativeFunction<Dart_PostCObjectType>> function_pointer,
   ) {
     return _CBLDart_PostCObject(
@@ -5205,8 +5244,8 @@ class CblCBindings {
   late final _dart_CBLDart_PostCObject _CBLDart_PostCObject =
       _CBLDart_PostCObject_ptr.asFunction<_dart_CBLDart_PostCObject>();
 
-  void CBLDart_NewNativePort(
-    ffi.Pointer<ffi.NativeFunction<Dart_NewNativePortType>> function_pointer,
+  int CBLDart_NewNativePort(
+    int function_pointer,
   ) {
     return _CBLDart_NewNativePort(
       function_pointer,
@@ -5219,7 +5258,7 @@ class CblCBindings {
   late final _dart_CBLDart_NewNativePort _CBLDart_NewNativePort =
       _CBLDart_NewNativePort_ptr.asFunction<_dart_CBLDart_NewNativePort>();
 
-  void CBLDart_CloseNativePort(
+  int CBLDart_CloseNativePort(
     ffi.Pointer<ffi.NativeFunction<Dart_CloseNativePortType>> function_pointer,
   ) {
     return _CBLDart_CloseNativePort(
@@ -5233,7 +5272,7 @@ class CblCBindings {
   late final _dart_CBLDart_CloseNativePort _CBLDart_CloseNativePort =
       _CBLDart_CloseNativePort_ptr.asFunction<_dart_CBLDart_CloseNativePort>();
 
-  void CBLDart_RegisterPorts(
+  int CBLDart_RegisterPorts(
     int database_listener_port,
     int document_listener_port,
     int query_listener_port,
@@ -5266,7 +5305,7 @@ class CblCBindings {
   late final _dart_CBLDart_RegisterPorts _CBLDart_RegisterPorts =
       _CBLDart_RegisterPorts_ptr.asFunction<_dart_CBLDart_RegisterPorts>();
 
-  void CBLDart_ExecuteCallback(
+  int CBLDart_ExecuteCallback(
     ffi.Pointer<ffi.Int32> work_ptr,
   ) {
     return _CBLDart_ExecuteCallback(
@@ -5280,7 +5319,7 @@ class CblCBindings {
   late final _dart_CBLDart_ExecuteCallback _CBLDart_ExecuteCallback =
       _CBLDart_ExecuteCallback_ptr.asFunction<_dart_CBLDart_ExecuteCallback>();
 
-  void CBLDart_DatabaseChangeListener(
+  int CBLDart_DatabaseChangeListener(
     ffi.Pointer<ffi.Void> context,
     ffi.Pointer<CBLDatabase> db,
     int numDocs,
@@ -5301,7 +5340,7 @@ class CblCBindings {
       _CBLDart_DatabaseChangeListener = _CBLDart_DatabaseChangeListener_ptr
           .asFunction<_dart_CBLDart_DatabaseChangeListener>();
 
-  void CBLDart_DocumentChangeListener(
+  int CBLDart_DocumentChangeListener(
     ffi.Pointer<ffi.Void> context,
     ffi.Pointer<CBLDatabase> db,
     ffi.Pointer<ffi.Int8> docID,
@@ -5320,7 +5359,7 @@ class CblCBindings {
       _CBLDart_DocumentChangeListener = _CBLDart_DocumentChangeListener_ptr
           .asFunction<_dart_CBLDart_DocumentChangeListener>();
 
-  void CBLDart_QueryChangeListener(
+  int CBLDart_QueryChangeListener(
     ffi.Pointer<ffi.Void> queryId,
     ffi.Pointer<CBLQuery> query,
   ) {
@@ -5337,7 +5376,7 @@ class CblCBindings {
       _CBLDart_QueryChangeListener_ptr.asFunction<
           _dart_CBLDart_QueryChangeListener>();
 
-  void CBLDart_ReplicatorChangeListener(
+  int CBLDart_ReplicatorChangeListener(
     ffi.Pointer<ffi.Void> id,
     ffi.Pointer<CBLReplicator> repl,
     ffi.Pointer<CBLReplicatorStatus> status,
@@ -5356,17 +5395,16 @@ class CblCBindings {
       _CBLDart_ReplicatorChangeListener = _CBLDart_ReplicatorChangeListener_ptr
           .asFunction<_dart_CBLDart_ReplicatorChangeListener>();
 
-  bool CBLDart_PushReplicationFilter(
+  int CBLDart_PushReplicationFilter(
     ffi.Pointer<ffi.Void> context,
     ffi.Pointer<CBLDocument> document,
     bool isDeleted,
   ) {
     return _CBLDart_PushReplicationFilter(
-          context,
-          document,
-          isDeleted ? 1 : 0,
-        ) !=
-        0;
+      context,
+      document,
+      isDeleted ? 1 : 0,
+    );
   }
 
   late final _CBLDart_PushReplicationFilter_ptr =
@@ -5376,17 +5414,16 @@ class CblCBindings {
       _CBLDart_PushReplicationFilter = _CBLDart_PushReplicationFilter_ptr
           .asFunction<_dart_CBLDart_PushReplicationFilter>();
 
-  bool CBLDart_PullReplicationFilter(
+  int CBLDart_PullReplicationFilter(
     ffi.Pointer<ffi.Void> context,
     ffi.Pointer<CBLDocument> document,
     bool isDeleted,
   ) {
     return _CBLDart_PullReplicationFilter(
-          context,
-          document,
-          isDeleted ? 1 : 0,
-        ) !=
-        0;
+      context,
+      document,
+      isDeleted ? 1 : 0,
+    );
   }
 
   late final _CBLDart_PullReplicationFilter_ptr =
@@ -6141,8 +6178,6 @@ class CBLReplicatedDocument extends ffi.Struct {
   external CBLError error;
 }
 
-class Dart_CObject extends ffi.Opaque {}
-
 const int CBLDomain = 1;
 
 const int CBLPOSIXDomain = 2;
@@ -6316,14 +6351,6 @@ const int kCBLReplicatorBusy = 4;
 const int kCBLDocumentFlagsDeleted = 1;
 
 const int kCBLDocumentFlagsAccessRemoved = 2;
-
-const int kNativeArgNumberPos = 0;
-
-const int kNativeArgNumberSize = 8;
-
-const int kNativeArgTypePos = 8;
-
-const int kNativeArgTypeSize = 8;
 
 const int kCBLReplicatorFilterTypePush = 0;
 
@@ -6863,354 +6890,6 @@ const int SYS_OPEN = 20;
 
 const int FLTimestampNone = -9223372036854775808;
 
-const String PRId8 = 'hhd';
-
-const String PRId16 = 'hd';
-
-const String PRId32 = 'd';
-
-const String PRId64 = 'lld';
-
-const String PRIdLEAST8 = 'hhd';
-
-const String PRIdLEAST16 = 'hd';
-
-const String PRIdLEAST32 = 'd';
-
-const String PRIdLEAST64 = 'lld';
-
-const String PRIdFAST8 = 'hhd';
-
-const String PRIdFAST16 = 'd';
-
-const String PRIdFAST32 = 'd';
-
-const String PRIdFAST64 = 'lld';
-
-const String PRIdMAX = 'lld';
-
-const String PRIdPTR = 'lld';
-
-const String PRIi8 = 'hhi';
-
-const String PRIi16 = 'hi';
-
-const String PRIi32 = 'i';
-
-const String PRIi64 = 'lli';
-
-const String PRIiLEAST8 = 'hhi';
-
-const String PRIiLEAST16 = 'hi';
-
-const String PRIiLEAST32 = 'i';
-
-const String PRIiLEAST64 = 'lli';
-
-const String PRIiFAST8 = 'hhi';
-
-const String PRIiFAST16 = 'i';
-
-const String PRIiFAST32 = 'i';
-
-const String PRIiFAST64 = 'lli';
-
-const String PRIiMAX = 'lli';
-
-const String PRIiPTR = 'lli';
-
-const String PRIo8 = 'hho';
-
-const String PRIo16 = 'ho';
-
-const String PRIo32 = 'o';
-
-const String PRIo64 = 'llo';
-
-const String PRIoLEAST8 = 'hho';
-
-const String PRIoLEAST16 = 'ho';
-
-const String PRIoLEAST32 = 'o';
-
-const String PRIoLEAST64 = 'llo';
-
-const String PRIoFAST8 = 'hho';
-
-const String PRIoFAST16 = 'o';
-
-const String PRIoFAST32 = 'o';
-
-const String PRIoFAST64 = 'llo';
-
-const String PRIoMAX = 'llo';
-
-const String PRIoPTR = 'llo';
-
-const String PRIu8 = 'hhu';
-
-const String PRIu16 = 'hu';
-
-const String PRIu32 = 'u';
-
-const String PRIu64 = 'llu';
-
-const String PRIuLEAST8 = 'hhu';
-
-const String PRIuLEAST16 = 'hu';
-
-const String PRIuLEAST32 = 'u';
-
-const String PRIuLEAST64 = 'llu';
-
-const String PRIuFAST8 = 'hhu';
-
-const String PRIuFAST16 = 'u';
-
-const String PRIuFAST32 = 'u';
-
-const String PRIuFAST64 = 'llu';
-
-const String PRIuMAX = 'llu';
-
-const String PRIuPTR = 'llu';
-
-const String PRIx8 = 'hhx';
-
-const String PRIx16 = 'hx';
-
-const String PRIx32 = 'x';
-
-const String PRIx64 = 'llx';
-
-const String PRIxLEAST8 = 'hhx';
-
-const String PRIxLEAST16 = 'hx';
-
-const String PRIxLEAST32 = 'x';
-
-const String PRIxLEAST64 = 'llx';
-
-const String PRIxFAST8 = 'hhx';
-
-const String PRIxFAST16 = 'x';
-
-const String PRIxFAST32 = 'x';
-
-const String PRIxFAST64 = 'llx';
-
-const String PRIxMAX = 'llx';
-
-const String PRIxPTR = 'llx';
-
-const String PRIX8 = 'hhX';
-
-const String PRIX16 = 'hX';
-
-const String PRIX32 = 'X';
-
-const String PRIX64 = 'llX';
-
-const String PRIXLEAST8 = 'hhX';
-
-const String PRIXLEAST16 = 'hX';
-
-const String PRIXLEAST32 = 'X';
-
-const String PRIXLEAST64 = 'llX';
-
-const String PRIXFAST8 = 'hhX';
-
-const String PRIXFAST16 = 'X';
-
-const String PRIXFAST32 = 'X';
-
-const String PRIXFAST64 = 'llX';
-
-const String PRIXMAX = 'llX';
-
-const String PRIXPTR = 'llX';
-
-const String SCNd8 = 'hhd';
-
-const String SCNd16 = 'hd';
-
-const String SCNd32 = 'd';
-
-const String SCNd64 = 'lld';
-
-const String SCNdLEAST8 = 'hhd';
-
-const String SCNdLEAST16 = 'hd';
-
-const String SCNdLEAST32 = 'd';
-
-const String SCNdLEAST64 = 'lld';
-
-const String SCNdFAST8 = 'hhd';
-
-const String SCNdFAST16 = 'd';
-
-const String SCNdFAST32 = 'd';
-
-const String SCNdFAST64 = 'lld';
-
-const String SCNdMAX = 'lld';
-
-const String SCNdPTR = 'lld';
-
-const String SCNi8 = 'hhi';
-
-const String SCNi16 = 'hi';
-
-const String SCNi32 = 'i';
-
-const String SCNi64 = 'lli';
-
-const String SCNiLEAST8 = 'hhi';
-
-const String SCNiLEAST16 = 'hi';
-
-const String SCNiLEAST32 = 'i';
-
-const String SCNiLEAST64 = 'lli';
-
-const String SCNiFAST8 = 'hhi';
-
-const String SCNiFAST16 = 'i';
-
-const String SCNiFAST32 = 'i';
-
-const String SCNiFAST64 = 'lli';
-
-const String SCNiMAX = 'lli';
-
-const String SCNiPTR = 'lli';
-
-const String SCNo8 = 'hho';
-
-const String SCNo16 = 'ho';
-
-const String SCNo32 = 'o';
-
-const String SCNo64 = 'llo';
-
-const String SCNoLEAST8 = 'hho';
-
-const String SCNoLEAST16 = 'ho';
-
-const String SCNoLEAST32 = 'o';
-
-const String SCNoLEAST64 = 'llo';
-
-const String SCNoFAST8 = 'hho';
-
-const String SCNoFAST16 = 'o';
-
-const String SCNoFAST32 = 'o';
-
-const String SCNoFAST64 = 'llo';
-
-const String SCNoMAX = 'llo';
-
-const String SCNoPTR = 'llo';
-
-const String SCNu8 = 'hhu';
-
-const String SCNu16 = 'hu';
-
-const String SCNu32 = 'u';
-
-const String SCNu64 = 'llu';
-
-const String SCNuLEAST8 = 'hhu';
-
-const String SCNuLEAST16 = 'hu';
-
-const String SCNuLEAST32 = 'u';
-
-const String SCNuLEAST64 = 'llu';
-
-const String SCNuFAST8 = 'hhu';
-
-const String SCNuFAST16 = 'u';
-
-const String SCNuFAST32 = 'u';
-
-const String SCNuFAST64 = 'llu';
-
-const String SCNuMAX = 'llu';
-
-const String SCNuPTR = 'llu';
-
-const String SCNx8 = 'hhx';
-
-const String SCNx16 = 'hx';
-
-const String SCNx32 = 'x';
-
-const String SCNx64 = 'llx';
-
-const String SCNxLEAST8 = 'hhx';
-
-const String SCNxLEAST16 = 'hx';
-
-const String SCNxLEAST32 = 'x';
-
-const String SCNxLEAST64 = 'llx';
-
-const String SCNxFAST8 = 'hhx';
-
-const String SCNxFAST16 = 'x';
-
-const String SCNxFAST32 = 'x';
-
-const String SCNxFAST64 = 'llx';
-
-const String SCNxMAX = 'llx';
-
-const String SCNxPTR = 'llx';
-
-const int DART_FLAGS_CURRENT_VERSION = 12;
-
-const int DART_INITIALIZE_PARAMS_CURRENT_VERSION = 4;
-
-const int ILLEGAL_PORT = 0;
-
-const String DART_KERNEL_ISOLATE_NAME = 'kernel-service';
-
-const String DART_VM_SERVICE_ISOLATE_NAME = 'vm-service';
-
-const String kSnapshotBuildIdCSymbol = '_kDartSnapshotBuildId';
-
-const String kVmSnapshotDataCSymbol = '_kDartVmSnapshotData';
-
-const String kVmSnapshotInstructionsCSymbol = '_kDartVmSnapshotInstructions';
-
-const String kVmSnapshotBssCSymbol = '_kDartVmSnapshotBss';
-
-const String kIsolateSnapshotDataCSymbol = '_kDartIsolateSnapshotData';
-
-const String kIsolateSnapshotInstructionsCSymbol =
-    '_kDartIsolateSnapshotInstructions';
-
-const String kIsolateSnapshotBssCSymbol = '_kDartIsolateSnapshotBss';
-
-const String kSnapshotBuildIdAsmSymbol = '_kDartSnapshotBuildId';
-
-const String kVmSnapshotDataAsmSymbol = '_kDartVmSnapshotData';
-
-const String kVmSnapshotInstructionsAsmSymbol = '_kDartVmSnapshotInstructions';
-
-const String kVmSnapshotBssAsmSymbol = '_kDartVmSnapshotBss';
-
-const String kIsolateSnapshotDataAsmSymbol = '_kDartIsolateSnapshotData';
-
-const String kIsolateSnapshotInstructionsAsmSymbol =
-    '_kDartIsolateSnapshotInstructions';
-
-const String kIsolateSnapshotBssAsmSymbol = '_kDartIsolateSnapshotBss';
-
 typedef _c_FLSlice_Equal = ffi.Uint8 Function(
   FLSlice a,
   FLSlice b,
@@ -7245,6 +6924,22 @@ typedef _c_FLSlice_Copy = FLSliceResult Function(
 
 typedef _dart_FLSlice_Copy = FLSliceResult Function(
   FLSlice arg0,
+);
+
+typedef _c_FLBuf_Retain = ffi.Void Function(
+  ffi.Pointer<ffi.Void> arg0,
+);
+
+typedef _dart_FLBuf_Retain = void Function(
+  ffi.Pointer<ffi.Void> arg0,
+);
+
+typedef _c_FLBuf_Release = ffi.Void Function(
+  ffi.Pointer<ffi.Void> arg0,
+);
+
+typedef _dart_FLBuf_Release = void Function(
+  ffi.Pointer<ffi.Void> arg0,
 );
 
 typedef _c_CBLError_Message = ffi.Pointer<ffi.Int8> Function(
@@ -9809,6 +9504,13 @@ typedef _dart_CBLAuth_Free = void Function(
   ffi.Pointer<CBLAuthenticator> arg0,
 );
 
+typedef CBLConflictResolver = ffi.Pointer<CBLDocument> Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Pointer<ffi.Int8>,
+  ffi.Pointer<CBLDocument>,
+  ffi.Pointer<CBLDocument>,
+);
+
 typedef _c_CBLReplicator_New = ffi.Pointer<CBLReplicator> Function(
   ffi.Pointer<CBLReplicatorConfiguration> arg0,
   ffi.Pointer<CBLError> arg1,
@@ -9946,46 +9648,39 @@ typedef _dart_CBLReplicator_AddDocumentListener = ffi.Pointer<CBLListenerToken>
 );
 
 typedef Dart_PostCObjectType = ffi.Uint8 Function(
-  ffi.Int64,
-  ffi.Pointer<Dart_CObject>,
+  ffi.Int32,
+  ffi.Pointer<ffi.Int32>,
 );
 
-typedef _c_CBLDart_PostCObject = ffi.Void Function(
+typedef _c_CBLDart_PostCObject = ffi.Int32 Function(
   ffi.Pointer<ffi.NativeFunction<Dart_PostCObjectType>> function_pointer,
 );
 
-typedef _dart_CBLDart_PostCObject = void Function(
+typedef _dart_CBLDart_PostCObject = int Function(
   ffi.Pointer<ffi.NativeFunction<Dart_PostCObjectType>> function_pointer,
 );
 
-typedef Dart_NativeMessageHandler = ffi.Void Function(
-  ffi.Int64,
-  ffi.Pointer<Dart_CObject>,
+typedef _c_CBLDart_NewNativePort = ffi.Int32 Function(
+  ffi.Int32 function_pointer,
 );
 
-typedef Dart_NewNativePortType = ffi.Int64 Function(
-  ffi.Pointer<ffi.Int8>,
-  ffi.Pointer<ffi.NativeFunction<Dart_NativeMessageHandler>>,
-  ffi.Uint8,
+typedef _dart_CBLDart_NewNativePort = int Function(
+  int function_pointer,
 );
 
-typedef _c_CBLDart_NewNativePort = ffi.Void Function(
-  ffi.Pointer<ffi.NativeFunction<Dart_NewNativePortType>> function_pointer,
-);
-
-typedef _dart_CBLDart_NewNativePort = void Function(
-  ffi.Pointer<ffi.NativeFunction<Dart_NewNativePortType>> function_pointer,
+typedef Dart_Port = ffi.Int32 Function(
+  ffi.Pointer<ffi.Int32>,
 );
 
 typedef Dart_CloseNativePortType = ffi.Uint8 Function(
-  ffi.Int64,
+  ffi.Pointer<ffi.NativeFunction<Dart_Port>>,
 );
 
-typedef _c_CBLDart_CloseNativePort = ffi.Void Function(
+typedef _c_CBLDart_CloseNativePort = ffi.Int32 Function(
   ffi.Pointer<ffi.NativeFunction<Dart_CloseNativePortType>> function_pointer,
 );
 
-typedef _dart_CBLDart_CloseNativePort = void Function(
+typedef _dart_CBLDart_CloseNativePort = int Function(
   ffi.Pointer<ffi.NativeFunction<Dart_CloseNativePortType>> function_pointer,
 );
 
@@ -10008,7 +9703,7 @@ typedef CBLDart_ConflictResolverCallback = ffi.Pointer<CBLDocument> Function(
   ffi.Pointer<CBLDocument>,
 );
 
-typedef _c_CBLDart_RegisterPorts = ffi.Void Function(
+typedef _c_CBLDart_RegisterPorts = ffi.Int32 Function(
   ffi.Uint64 database_listener_port,
   ffi.Uint64 document_listener_port,
   ffi.Uint64 query_listener_port,
@@ -10023,7 +9718,7 @@ typedef _c_CBLDart_RegisterPorts = ffi.Void Function(
       replicator_conflict_callback,
 );
 
-typedef _dart_CBLDart_RegisterPorts = void Function(
+typedef _dart_CBLDart_RegisterPorts = int Function(
   int database_listener_port,
   int document_listener_port,
   int query_listener_port,
@@ -10038,63 +9733,63 @@ typedef _dart_CBLDart_RegisterPorts = void Function(
       replicator_conflict_callback,
 );
 
-typedef _c_CBLDart_ExecuteCallback = ffi.Void Function(
+typedef _c_CBLDart_ExecuteCallback = ffi.Int32 Function(
   ffi.Pointer<ffi.Int32> work_ptr,
 );
 
-typedef _dart_CBLDart_ExecuteCallback = void Function(
+typedef _dart_CBLDart_ExecuteCallback = int Function(
   ffi.Pointer<ffi.Int32> work_ptr,
 );
 
-typedef _c_CBLDart_DatabaseChangeListener = ffi.Void Function(
+typedef _c_CBLDart_DatabaseChangeListener = ffi.Int32 Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDatabase> db,
   ffi.Uint32 numDocs,
   ffi.Pointer<ffi.Pointer<ffi.Int8>> docIDs,
 );
 
-typedef _dart_CBLDart_DatabaseChangeListener = void Function(
+typedef _dart_CBLDart_DatabaseChangeListener = int Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDatabase> db,
   int numDocs,
   ffi.Pointer<ffi.Pointer<ffi.Int8>> docIDs,
 );
 
-typedef _c_CBLDart_DocumentChangeListener = ffi.Void Function(
+typedef _c_CBLDart_DocumentChangeListener = ffi.Int32 Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<ffi.Int8> docID,
 );
 
-typedef _dart_CBLDart_DocumentChangeListener = void Function(
+typedef _dart_CBLDart_DocumentChangeListener = int Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDatabase> db,
   ffi.Pointer<ffi.Int8> docID,
 );
 
-typedef _c_CBLDart_QueryChangeListener = ffi.Void Function(
+typedef _c_CBLDart_QueryChangeListener = ffi.Int32 Function(
   ffi.Pointer<ffi.Void> queryId,
   ffi.Pointer<CBLQuery> query,
 );
 
-typedef _dart_CBLDart_QueryChangeListener = void Function(
+typedef _dart_CBLDart_QueryChangeListener = int Function(
   ffi.Pointer<ffi.Void> queryId,
   ffi.Pointer<CBLQuery> query,
 );
 
-typedef _c_CBLDart_ReplicatorChangeListener = ffi.Void Function(
+typedef _c_CBLDart_ReplicatorChangeListener = ffi.Int32 Function(
   ffi.Pointer<ffi.Void> id,
   ffi.Pointer<CBLReplicator> repl,
   ffi.Pointer<CBLReplicatorStatus> status,
 );
 
-typedef _dart_CBLDart_ReplicatorChangeListener = void Function(
+typedef _dart_CBLDart_ReplicatorChangeListener = int Function(
   ffi.Pointer<ffi.Void> id,
   ffi.Pointer<CBLReplicator> repl,
   ffi.Pointer<CBLReplicatorStatus> status,
 );
 
-typedef _c_CBLDart_PushReplicationFilter = ffi.Uint8 Function(
+typedef _c_CBLDart_PushReplicationFilter = ffi.Int32 Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDocument> document,
   ffi.Uint8 isDeleted,
@@ -10106,7 +9801,7 @@ typedef _dart_CBLDart_PushReplicationFilter = int Function(
   int isDeleted,
 );
 
-typedef _c_CBLDart_PullReplicationFilter = ffi.Uint8 Function(
+typedef _c_CBLDart_PullReplicationFilter = ffi.Int32 Function(
   ffi.Pointer<ffi.Void> context,
   ffi.Pointer<CBLDocument> document,
   ffi.Uint8 isDeleted,
@@ -10122,11 +9817,4 @@ typedef CBLReplicationFilter = ffi.Uint8 Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLDocument>,
   ffi.Uint8,
-);
-
-typedef CBLConflictResolver = ffi.Pointer<CBLDocument> Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Pointer<ffi.Int8>,
-  ffi.Pointer<CBLDocument>,
-  ffi.Pointer<CBLDocument>,
 );

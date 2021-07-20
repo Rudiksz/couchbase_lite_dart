@@ -10,4 +10,6 @@
 build/
 plugintest.cblite2/
 dynlib/
+vendor/
 *.so
+_tmp*

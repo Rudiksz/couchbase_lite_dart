@@ -1,3 +1,10 @@
+## 0.6.0-nullsafety.1
+* **(*)** `Documents` can now be disposed. Operations on disposed documents raise an exception in debug mode, and are noop in release mode.
+* **(!)** Renamed FLValue `asList` and `asMap` to `asArray` and `asDict` to make it clearer that they return Fleece objects instead of Dart Lists and Maps. The old methods are deprecatede and will be removed.
+* **(!)** Make `FLDict` entries iterator return `MapEntry<FLValue, FLValue>` instead of `MapEntry<String, FLValue>`
+* **(+)** Added `FLArray.equals` and `FLDict.equals` method that do a deep recursive comparison of two FLArrays or FLDicts respectively.
+* Added memory tests for almost everything and squashed a lot of memory leaks.
+* Added benchmarks for the most common features
 ## 0.5.0-nullsafety.3
 * **(!)** Moved dynamic libraries to `vendor/cblite` folder
 * Added Android support

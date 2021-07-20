@@ -12,6 +12,7 @@ dependencies:
   path: ^1.7.0
 
 dev_dependencies:
+  benchmark_harness: 
   test: ^1.5.3
   pedantic: ^1.0.0
   ffigen: ^2.4.1
