@@ -125,26 +125,26 @@ void main() {
       expect(doc['map'].asString, '');
     });
 
-    test('asList', () {
-      expect(doc['list'].asList.runtimeType, FLArray);
-      expect(doc['list'].asList.json, '[1,2]');
+    test('asArray', () {
+      expect(doc['list'].asArray.runtimeType, FLArray);
+      expect(doc['list'].asArray.json, '[1,2]');
 
-      expect(doc['int'].asList, FLArray());
-      expect(doc['double'].asList, FLArray());
-      expect(doc['string'].asList, FLArray());
-      expect(doc['boolean'].asList, FLArray());
-      expect(doc['map'].asList, FLArray());
+      expect(doc['int'].asArray, FLArray());
+      expect(doc['double'].asArray, FLArray());
+      expect(doc['string'].asArray, FLArray());
+      expect(doc['boolean'].asArray, FLArray());
+      expect(doc['map'].asArray, FLArray());
     });
 
-    test('asMap', () {
-      expect(doc['map'].asMap.runtimeType, FLDict);
-      expect(doc['map'].asMap.json, '{"one":"two"}');
+    test('asDict', () {
+      expect(doc['map'].asDict.runtimeType, FLDict);
+      expect(doc['map'].asDict.json, '{"one":"two"}');
 
-      expect(doc['int'].asMap, FLDict());
-      expect(doc['double'].asMap, FLDict());
-      expect(doc['string'].asMap, FLDict());
-      expect(doc['boolean'].asMap, FLDict());
-      expect(doc['list'].asMap, FLDict());
+      expect(doc['int'].asDict, FLDict());
+      expect(doc['double'].asDict, FLDict());
+      expect(doc['string'].asDict, FLDict());
+      expect(doc['boolean'].asDict, FLDict());
+      expect(doc['list'].asDict, FLDict());
     });
 
     test('toString', () {
@@ -254,13 +254,13 @@ void main() {
     test('mutable', () {
       expect(dict.isMutable, false);
       expect(dict.mutable.isMutable, true);
-      expect(dict.mutable['map'].asMap.isMutable, false);
+      expect(dict.mutable['map'].asDict.isMutable, false);
     });
 
     test('mutableCopy', () {
       expect(dict.isMutable, false);
       expect(dict.mutableCopy.isMutable, true);
-      expect(dict.mutableCopy['map'].asMap.isMutable, true);
+      expect(dict.mutableCopy['map'].asDict.isMutable, true);
     });
 
     test('isMutable', () {
@@ -269,8 +269,8 @@ void main() {
 
     test('key access - []', () {
       expect(dict['int'].asInt, 1);
-      expect(dict['list'].asList[0].asInt, 1);
-      expect(dict['map'].asMap['one'].asString, '1');
+      expect(dict['list'].asArray[0].asInt, 1);
+      expect(dict['map'].asDict['one'].asString, '1');
     });
 
     test('key access - []=', () {
@@ -301,10 +301,10 @@ void main() {
       mutDict['value'] = mutDict['int'];
       expect(mutDict['value'].asInt, 1);
       // 5. FLDict
-      mutDict['value'] = mutDict['map'].asMap;
+      mutDict['value'] = mutDict['map'].asDict;
       expect(mutDict['value'].json, '{"one":"1","two":2}');
       // 6. FLArray
-      mutDict['value'] = mutDict['list'].asList;
+      mutDict['value'] = mutDict['list'].asArray;
       expect(mutDict['value'].json, '[1,2]');
       // 7. json-encodable objetc
       mutDict['value'] = {
@@ -316,10 +316,10 @@ void main() {
     });
 
     test('keypath - ()', () {
-      expect(dict('list[0]').asString, dict['list'].asList[0].asString);
-      expect(dict('list[-1]').asString, dict['list'].asList[1].asString);
-      expect(dict('list[-1]').asString, dict['list'].asList[-1].asString);
-      expect(dict('map.one').asString, dict['map'].asMap['one'].asString);
+      expect(dict('list[0]').asString, dict['list'].asArray[0].asString);
+      expect(dict('list[-1]').asString, dict['list'].asArray[1].asString);
+      expect(dict('list[-1]').asString, dict['list'].asArray[-1].asString);
+      expect(dict('map.one').asString, dict['map'].asDict['one'].asString);
     });
 
     test('iterator', () {
@@ -347,7 +347,7 @@ void main() {
       expect(dict.entries, isA<FLDictEntries>());
       for (var entry in dict.entries) {
         expect(entry, isA<MapEntry<String, FLValue>>());
-        expect(dict[entry.key].json, entry.value.json);
+        expect(dict[entry.key.asString].json, entry.value.json);
       }
     });
   });
@@ -387,13 +387,13 @@ void main() {
     test('mutable', () {
       expect(list.isMutable, false);
       expect(list.mutable.isMutable, true);
-      expect(list.mutable[5].asMap.isMutable, false);
+      expect(list.mutable[5].asDict.isMutable, false);
     });
 
     test('mutableCopy', () {
       expect(list.isMutable, false);
       expect(list.mutableCopy.isMutable, true);
-      expect(list.mutableCopy[5].asMap.isMutable, true);
+      expect(list.mutableCopy[5].asDict.isMutable, true);
     });
 
     test('isMutable', () {
@@ -402,8 +402,8 @@ void main() {
 
     test('key access - []', () {
       expect(list[0].asInt, 1);
-      expect(list[4].asList[0].asInt, 1);
-      expect(list[5].asMap['one'].asString, '1');
+      expect(list[4].asArray[0].asInt, 1);
+      expect(list[5].asDict['one'].asString, '1');
     });
 
     test('key access - []=', () {
@@ -434,10 +434,10 @@ void main() {
       mutList[6] = mutList[0];
       expect(mutList[6].asInt, 1);
       // 5. FLDict
-      mutList[6] = mutList[5].asMap;
+      mutList[6] = mutList[5].asDict;
       expect(mutList[6].json, '{"one":"1","two":2}');
       // 6. FLArray
-      mutList[6] = mutList[4].asList;
+      mutList[6] = mutList[4].asArray;
       expect(mutList[6].json, '[1,2]');
       // 7. json-encodable objetc
       mutList[6] = {
@@ -449,9 +449,9 @@ void main() {
     });
 
     test('keypath - ()', () {
-      expect(list('[4][0]').asString, list[4].asList[0].asString);
-      expect(list('[4][-1]').asString, list[4].asList[1].asString);
-      expect(list('[-1].one').asString, list[5].asMap['one'].asString);
+      expect(list('[4][0]').asString, list[4].asArray[0].asString);
+      expect(list('[4][-1]').asString, list[4].asArray[1].asString);
+      expect(list('[-1].one').asString, list[5].asDict['one'].asString);
     });
 
     test('iterator', () {

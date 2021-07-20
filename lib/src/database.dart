@@ -287,7 +287,6 @@ class Database {
   /// Returns an updated Document reflecting the saved changes, or null on failure.
   bool saveDocument(Document document,
       {ConcurrencyControl concurrency = ConcurrencyControl.lastWriteWins}) {
-    print(concurrency.index);
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SaveDocument(
       _db,
@@ -317,7 +316,6 @@ class Database {
         or [saveDocument] can be saved with a conflict handler.''',
       );
     }
-    print(1);
     final token = Uuid().v1() + Uuid().v1();
     _saveConflictHandlers[token] = conflictHandler;
 
