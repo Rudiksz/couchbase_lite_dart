@@ -60,8 +60,8 @@ class Database {
     final _c_name = FLSlice.fromString(name);
     final _c_dir = FLSlice.fromString(directory);
     final result = CBLC.CBL_DatabaseExists(
-      _c_name.slice,
-      _c_dir.slice,
+      _c_name.slice.ref,
+      _c_dir.slice.ref,
     );
     _c_name.free();
     _c_dir.free();
@@ -81,11 +81,11 @@ class Database {
     final _c_path = FLSlice.fromString(path);
     final _c_toName = FLSlice.fromString(toName);
 
-    config.ref.directory = _c_dir.slice;
+    //config.directory = _c_dir.slice.ref;
 
     final result = CBLC.CBL_CopyDatabase(
-      _c_path.slice,
-      _c_toName.slice,
+      _c_path.slice.ref,
+      _c_toName.slice.ref,
       config,
       outError,
     );
@@ -123,8 +123,8 @@ class Database {
     final _c_dir = FLSlice.fromString(directory);
 
     final result = CBLC.CBL_DeleteDatabase(
-      _c_name.slice,
-      _c_dir.slice,
+      _c_name.slice.ref,
+      _c_dir.slice.ref,
       outError,
     );
 
@@ -164,7 +164,7 @@ class Database {
     final _c_name = FLSlice.fromString(name);
 
     _db = CBLC.CBLDatabase_Open(
-      _c_name.slice,
+      _c_name.slice.ref,
       _config?.addressOf ?? nullptr, // TODO nullsafety
       error,
     );
@@ -173,8 +173,8 @@ class Database {
     validateError(error);
 
     if (isOpen) {
-      final _c_path = FLSlice.fromSliceResult(CBLC.CBLDatabase_Path(_db));
-      _path = _c_path.toString();
+      final _c_path = CBLC.CBLDatabase_Path(_db);
+      _path = _c_path.asString();
       _c_path.free();
     }
 
@@ -251,14 +251,12 @@ class Database {
     final error = calloc<cbl.CBLError>();
     final _c_id = FLSlice.fromString(id);
 
-    final result = CBLC.CBLDatabase_GetDocument(_db, _c_id.slice, error);
+    final result = CBLC.CBLDatabase_GetDocument(_db, _c_id.slice.ref, error);
 
     _c_id.free();
     validateError(error);
 
-    return result != nullptr
-        ? Document._fromPointer(result, db: this)
-        : Document.empty();
+    return result != nullptr ? Document.fromPointer(result) : Document.empty();
   }
 
   ///  Reads a document from the database, in mutable form that can be updated and saved
@@ -267,14 +265,13 @@ class Database {
     final _c_id = FLSlice.fromString(id);
     assert(id.isNotEmpty, 'ID cannot be empty');
 
-    final result = CBLC.CBLDatabase_GetMutableDocument(_db, _c_id.slice, error);
+    final result =
+        CBLC.CBLDatabase_GetMutableDocument(_db, _c_id.slice.ref, error);
 
     _c_id.free();
     validateError(error);
 
-    return result != nullptr
-        ? Document._fromPointer(result, db: this)
-        : Document.empty();
+    return result != nullptr ? Document.fromPointer(result) : Document.empty();
   }
 
   /// Saves a (mutable) [document] to the database.
@@ -290,11 +287,10 @@ class Database {
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SaveDocument(
       _db,
-      document.doc,
+      document._doc,
       error,
     );
     validateError(error);
-    document.db = this;
     return result;
   }
 
@@ -310,13 +306,13 @@ class Database {
   ) {
     if (document._new) {
       throw CouchbaseLiteException(
-        cbl.CBLDomain,
-        cbl.CBLErrorConflict,
+        cbl.kCBLDomain,
+        cbl.kCBLErrorConflict,
         '''Only documents returned by the methods [getDocument], [getMutableDocument] 
         or [saveDocument] can be saved with a conflict handler.''',
       );
     }
-    final token = Uuid().v1() + Uuid().v1();
+    final token = Uuid().v1();
     _saveConflictHandlers[token] = conflictHandler;
 
     final conflictHandler_ =
@@ -346,11 +342,25 @@ class Database {
     final callback = _saveConflictHandlers[saveId.cast<Utf8>().toDartString()];
 
     final result = callback?.call(
-      Document._fromPointer(documentBeingSaved),
-      Document._fromPointer(conflictingDocument),
+      Document.fromPointer(documentBeingSaved),
+      Document.fromPointer(conflictingDocument),
     );
 
     return (result ?? false) ? 1 : 0;
+  }
+
+  /// Deletes a document with a given [id].
+  bool deleteDocument(Document doc) {
+    assert(doc.isNotEmpty, 'Document cannot be empty');
+
+    final error = calloc<cbl.CBLError>();
+    final result = CBLC.CBLDatabase_DeleteDocument(
+      _db,
+      doc._doc,
+      error,
+    );
+    validateError(error);
+    return result;
   }
 
   ///  Purges a document with a given [id]. This removes all traces of the document from the database.
@@ -366,7 +376,7 @@ class Database {
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_PurgeDocumentByID(
       _db,
-      _c_id.slice,
+      _c_id.slice.ref,
       error,
     );
     _c_id.free();
@@ -386,7 +396,7 @@ class Database {
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_GetDocumentExpiration(
       _db,
-      _c_id.slice,
+      _c_id.slice.ref,
       error,
     );
     _c_id.free();
@@ -407,7 +417,7 @@ class Database {
     final error = calloc<cbl.CBLError>();
     final result = CBLC.CBLDatabase_SetDocumentExpiration(
       _db,
-      _c_id.slice,
+      _c_id.slice.ref,
       expiration.millisecondsSinceEpoch,
       error,
     );
@@ -473,7 +483,7 @@ class Database {
     final token = ChangeListeners.addChangeListener<DocumentChange>(
       addListener: (String token) => CBLC.CBLDatabase_AddDocumentChangeListener(
         _db,
-        _c_id.slice,
+        _c_id.slice.ref,
         _CBLDart_DocumentChangeListener_ptr,
         token.toNativeUtf8().cast(), // TODO leak?
       ),
@@ -554,7 +564,18 @@ class Database {
   /// Immediately issues all pending notifications for this database, by calling their listener callbacks.
   void sendNotifications() => CBLC.CBLDatabase_SendNotifications(_db);
 
-  // -- INDEXES
+  // -- QUERY and INDEXES
+
+  /// Creates a new query by compiling the input string.
+  ///
+  /// This is fast, but not instantaneous. If you need to run the same query many times, keep the
+  /// [Query] around instead of compiling it each time. If you need to run related queries
+  /// with only some values different, create one query with placeholder parameter(s), and substitute
+  /// the desired value(s) with [setParameters] each time you run the query.
+  ///
+  /// You must [dispose] the [Query] when you're finished with it.
+  Query query(String query) => Query(query, db: this);
+
   /// Creates a database index.
   ///
   /// Indexes are persistent.
@@ -575,15 +596,15 @@ class Database {
     final _c_expressions = FLSlice.fromString(keyExpressions.join(','));
 
     final indexSpec = calloc<cbl.CBLValueIndexConfiguration>();
-    indexSpec.ref
-      ..expressionLanguage = language.index
-      ..expressions = _c_expressions.slice;
+    // indexSpec
+    //   ..expressionLanguage = language.index
+    //   ..expressions = _c_expressions.slice.ref;
 
     final error = calloc<cbl.CBLError>();
 
     final result = CBLC.CBLDatabase_CreateValueIndex(
       _db,
-      _c_name.slice,
+      _c_name.slice.ref,
       indexSpec.ref,
       error,
     );
@@ -606,7 +627,7 @@ class Database {
 
     final result = CBLC.CBLDatabase_DeleteIndex(
       _db,
-      _c_name.slice,
+      _c_name.slice.ref,
       error,
     );
 
@@ -654,7 +675,7 @@ class DatabaseConfiguration {
     _cbl_config = calloc<cbl.CBLDatabaseConfiguration>();
     final _c_dir = FLSlice.fromString(directory);
 
-    _cbl_config.ref.directory = _c_dir.slice;
+    //_cbl_config.directory = _c_dir.slice.ref;
   }
 }
 

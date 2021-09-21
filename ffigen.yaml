@@ -6,8 +6,8 @@ llvm-path:
   - /usr/local/opt/llvm/bin/
 headers:
   entry-points:
-    - 'include/cbl/CouchbaseLite.h'
-    - 'include/cbl/Dart.h'
+    - 'lib/src/native/headers/CouchbaseLite.h'
+    - 'lib/src/native/headers/Dart.h'
 
 functions:
   include:

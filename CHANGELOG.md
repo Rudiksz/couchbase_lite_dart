@@ -1,7 +1,11 @@
 ## 0.6.0-nullsafety.1
-* **(*)** `Documents` can now be disposed. Operations on disposed documents raise an exception in debug mode, and are noop in release mode.
-* **(!)** Renamed FLValue `asList` and `asMap` to `asArray` and `asDict` to make it clearer that they return Fleece objects instead of Dart Lists and Maps. The old methods are deprecatede and will be removed.
+
+* **(!!)** `Document` does not hold a reference to the database object anymore and the methods that need it were removed. List of methods removed: `save`, `saveWithConflictHandler`,  `delete`, `deleteWithConcurrencyControl`, `purge` ,`expiration`.  These were just shortcuts to the same methods on the Database object, which should be used to read/write documents to the database. Having these on the Document object duplicated code in the library and can lead to antipatterns and bad practices. IE: UI code that has access to the Document manipulating said document in the database directly.
+* **(!!)** Changed default `Query` constructor to `Query(queryString, db: db)`. This is more idiomatic Dart.
+* **(!)** Renamed FLValue `asList` and `asMap` to `asArray` and `asDict` to make it clearer that they return Fleece objects instead of Dart Lists and Maps. The old methods are deprecated and will be removed.
 * **(!)** Make `FLDict` entries iterator return `MapEntry<FLValue, FLValue>` instead of `MapEntry<String, FLValue>`
+* **(+)** `Documents` can and should be disposed. Operations on disposed documents raise an exception in debug mode, but are noop in release mode. Application logic should use `isEmpty` or `isNotEmmpty` to check the document state, if needed.
+* **(+)** Added `db.query(queryString)` method which is a shortcut for `Query(queryString, db: db)`. 
 * **(+)** Added `FLArray.equals` and `FLDict.equals` method that do a deep recursive comparison of two FLArrays or FLDicts respectively.
 * Added memory tests for almost everything and squashed a lot of memory leaks.
 * Added benchmarks for the most common features

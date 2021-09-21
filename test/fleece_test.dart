@@ -114,9 +114,8 @@ void main() {
     });
 
     test('asString', () {
-      expect(doc['string'].asString.runtimeType, String);
+      // expect(doc['string'].asString.runtimeType, String);
       expect(doc['string'].asString, 'text');
-
       expect(doc['int'].asString, '');
       expect(doc['double'].asString, '');
       expect(doc['boolean'].asString, '');
@@ -228,8 +227,8 @@ void main() {
     test('fromJson', () {
       expect(FLDict.fromJson('{"foo":"bar"').error, FLError.jsonError);
       expect(FLDict.fromJson('{"foo":"bar"}').json, '{"foo":"bar"}');
-      expect(FLDict.fromJson('[1,2]').value.type, FLValueType.Dict);
-      expect(FLDict.fromJson('[1,2]').value.json, '{}');
+      expect(FLDict.fromJson('[1,2]').value.type, FLValueType.Undefined);
+      expect(FLDict.fromJson('[1,2]').value.json, '');
     });
 
     test('dispose', () {
@@ -346,7 +345,7 @@ void main() {
     test('entries', () {
       expect(dict.entries, isA<FLDictEntries>());
       for (var entry in dict.entries) {
-        expect(entry, isA<MapEntry<String, FLValue>>());
+        expect(entry, isA<MapEntry<FLValue, FLValue>>());
         expect(dict[entry.key.asString].json, entry.value.json);
       }
     });
@@ -370,8 +369,8 @@ void main() {
     test('fromJson', () {
       expect(FLArray.fromJson('[1, 2').error, FLError.jsonError);
       expect(FLArray.fromJson('[1,2]').json, '[1,2]');
-      expect(FLArray.fromJson('{"1": 2}').value.type, FLValueType.Array);
-      expect(FLArray.fromJson('{"1": 2}').value.json, '[]');
+      expect(FLArray.fromJson('{"1": 2}').value.type, FLValueType.Undefined);
+      expect(FLArray.fromJson('{"1": 2}').value.json, '');
     });
 
     test('length', () {

@@ -53,6 +53,45 @@ class CblCBindings {
   late final _dart_FLSlice_Compare _FLSlice_Compare =
       _FLSlice_Compare_ptr.asFunction<_dart_FLSlice_Compare>();
 
+  /// Computes a 32-bit hash of a slice's data, suitable for use in hash tables.
+  int FLSlice_Hash(
+    FLSlice s,
+  ) {
+    return _FLSlice_Hash(
+      s,
+    );
+  }
+
+  late final _FLSlice_Hash_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlice_Hash>>('FLSlice_Hash');
+  late final _dart_FLSlice_Hash _FLSlice_Hash =
+      _FLSlice_Hash_ptr.asFunction<_dart_FLSlice_Hash>();
+
+  /// Copies a slice to a buffer, adding a trailing zero byte to make it a valid C string.
+  /// If there is not enough capacity the slice will be truncated, but the trailing zero byte is
+  /// always written.
+  /// @param s  The FLSlice to copy.
+  /// @param buffer  Where to copy the bytes. At least `capacity` bytes must be available.
+  /// @param capacity  The maximum number of bytes to copy (including the trailing 0.)
+  /// @return  True if the entire slice was copied, false if it was truncated.
+  bool FLSlice_ToCString(
+    FLSlice s,
+    ffi.Pointer<ffi.Int8> buffer,
+    int capacity,
+  ) {
+    return _FLSlice_ToCString(
+          s,
+          buffer,
+          capacity,
+        ) !=
+        0;
+  }
+
+  late final _FLSlice_ToCString_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlice_ToCString>>('FLSlice_ToCString');
+  late final _dart_FLSlice_ToCString _FLSlice_ToCString =
+      _FLSlice_ToCString_ptr.asFunction<_dart_FLSlice_ToCString>();
+
   /// Allocates an FLSliceResult of the given size, without initializing the buffer.
   FLSliceResult FLSliceResult_New(
     int arg0,
@@ -80,6 +119,50 @@ class CblCBindings {
       _lookup<ffi.NativeFunction<_c_FLSlice_Copy>>('FLSlice_Copy');
   late final _dart_FLSlice_Copy _FLSlice_Copy =
       _FLSlice_Copy_ptr.asFunction<_dart_FLSlice_Copy>();
+
+  void FLBuf_Retain(
+    ffi.Pointer<ffi.Void> arg0,
+  ) {
+    return _FLBuf_Retain(
+      arg0,
+    );
+  }
+
+  late final _FLBuf_Retain_ptr =
+      _lookup<ffi.NativeFunction<_c_FLBuf_Retain>>('_FLBuf_Retain');
+  late final _dart_FLBuf_Retain _FLBuf_Retain =
+      _FLBuf_Retain_ptr.asFunction<_dart_FLBuf_Retain>();
+
+  void FLBuf_Release(
+    ffi.Pointer<ffi.Void> arg0,
+  ) {
+    return _FLBuf_Release(
+      arg0,
+    );
+  }
+
+  late final _FLBuf_Release_ptr =
+      _lookup<ffi.NativeFunction<_c_FLBuf_Release>>('_FLBuf_Release');
+  late final _dart_FLBuf_Release _FLBuf_Release =
+      _FLBuf_Release_ptr.asFunction<_dart_FLBuf_Release>();
+
+  /// Writes zeroes to `size` bytes of memory starting at `dst`.
+  /// Unlike a call to `memset`, these writes cannot be optimized away by the compiler.
+  /// This is useful for securely removing traces of passwords or encryption keys.
+  void FL_WipeMemory(
+    ffi.Pointer<ffi.Void> dst,
+    int size,
+  ) {
+    return _FL_WipeMemory(
+      dst,
+      size,
+    );
+  }
+
+  late final _FL_WipeMemory_ptr =
+      _lookup<ffi.NativeFunction<_c_FL_WipeMemory>>('FL_WipeMemory');
+  late final _dart_FL_WipeMemory _FL_WipeMemory =
+      _FL_WipeMemory_ptr.asFunction<_dart_FL_WipeMemory>();
 
   /// Returns a message describing an error.
   /// @note  You are responsible for releasing the result by calling \ref FLSliceResult_Release.
@@ -726,6 +809,21 @@ class CblCBindings {
   late final _dart_FLValue_IsEqual _FLValue_IsEqual =
       _FLValue_IsEqual_ptr.asFunction<_dart_FLValue_IsEqual>();
 
+  /// Returns true if the value is mutable.
+  bool FLValue_IsMutable(
+    ffi.Pointer<FLValue> arg0,
+  ) {
+    return _FLValue_IsMutable(
+          arg0,
+        ) !=
+        0;
+  }
+
+  late final _FLValue_IsMutable_ptr =
+      _lookup<ffi.NativeFunction<_c_FLValue_IsMutable>>('FLValue_IsMutable');
+  late final _dart_FLValue_IsMutable _FLValue_IsMutable =
+      _FLValue_IsMutable_ptr.asFunction<_dart_FLValue_IsMutable>();
+
   /// If this value is mutable (and thus heap-based) its ref-count is incremented.
   /// Otherwise, this call does nothing.
   ffi.Pointer<FLValue> FLValue_Retain(
@@ -757,139 +855,37 @@ class CblCBindings {
   late final _dart_FLValue_Release _FLValue_Release =
       _FLValue_Release_ptr.asFunction<_dart_FLValue_Release>();
 
-  /// ///// VALUE SLOT
-  void FLSlot_SetNull(
-    ffi.Pointer<FLSlot> arg0,
+  /// Allocates a string value on the heap. This is rarely needed -- usually you'd just add a string
+  /// to a mutable Array or Dict directly using one of their "...SetString" or "...AppendString"
+  /// methods.
+  ffi.Pointer<FLValue> FLValue_NewString(
+    FLSlice arg0,
   ) {
-    return _FLSlot_SetNull(
+    return _FLValue_NewString(
       arg0,
     );
   }
 
-  late final _FLSlot_SetNull_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetNull>>('FLSlot_SetNull');
-  late final _dart_FLSlot_SetNull _FLSlot_SetNull =
-      _FLSlot_SetNull_ptr.asFunction<_dart_FLSlot_SetNull>();
+  late final _FLValue_NewString_ptr =
+      _lookup<ffi.NativeFunction<_c_FLValue_NewString>>('FLValue_NewString');
+  late final _dart_FLValue_NewString _FLValue_NewString =
+      _FLValue_NewString_ptr.asFunction<_dart_FLValue_NewString>();
 
-  void FLSlot_SetBool(
-    ffi.Pointer<FLSlot> arg0,
-    bool arg1,
+  /// Allocates a data/blob value on the heap. This is rarely needed -- usually you'd just add data
+  /// to a mutable Array or Dict directly using one of their "...SetData or "...AppendData"
+  /// methods.
+  ffi.Pointer<FLValue> FLValue_NewData(
+    FLSlice arg0,
   ) {
-    return _FLSlot_SetBool(
+    return _FLValue_NewData(
       arg0,
-      arg1 ? 1 : 0,
     );
   }
 
-  late final _FLSlot_SetBool_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetBool>>('FLSlot_SetBool');
-  late final _dart_FLSlot_SetBool _FLSlot_SetBool =
-      _FLSlot_SetBool_ptr.asFunction<_dart_FLSlot_SetBool>();
-
-  void FLSlot_SetInt(
-    ffi.Pointer<FLSlot> arg0,
-    int arg1,
-  ) {
-    return _FLSlot_SetInt(
-      arg0,
-      arg1,
-    );
-  }
-
-  late final _FLSlot_SetInt_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetInt>>('FLSlot_SetInt');
-  late final _dart_FLSlot_SetInt _FLSlot_SetInt =
-      _FLSlot_SetInt_ptr.asFunction<_dart_FLSlot_SetInt>();
-
-  void FLSlot_SetUInt(
-    ffi.Pointer<FLSlot> arg0,
-    int arg1,
-  ) {
-    return _FLSlot_SetUInt(
-      arg0,
-      arg1,
-    );
-  }
-
-  late final _FLSlot_SetUInt_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetUInt>>('FLSlot_SetUInt');
-  late final _dart_FLSlot_SetUInt _FLSlot_SetUInt =
-      _FLSlot_SetUInt_ptr.asFunction<_dart_FLSlot_SetUInt>();
-
-  void FLSlot_SetFloat(
-    ffi.Pointer<FLSlot> arg0,
-    double arg1,
-  ) {
-    return _FLSlot_SetFloat(
-      arg0,
-      arg1,
-    );
-  }
-
-  late final _FLSlot_SetFloat_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetFloat>>('FLSlot_SetFloat');
-  late final _dart_FLSlot_SetFloat _FLSlot_SetFloat =
-      _FLSlot_SetFloat_ptr.asFunction<_dart_FLSlot_SetFloat>();
-
-  void FLSlot_SetDouble(
-    ffi.Pointer<FLSlot> arg0,
-    double arg1,
-  ) {
-    return _FLSlot_SetDouble(
-      arg0,
-      arg1,
-    );
-  }
-
-  late final _FLSlot_SetDouble_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetDouble>>('FLSlot_SetDouble');
-  late final _dart_FLSlot_SetDouble _FLSlot_SetDouble =
-      _FLSlot_SetDouble_ptr.asFunction<_dart_FLSlot_SetDouble>();
-
-  void FLSlot_SetString(
-    ffi.Pointer<FLSlot> arg0,
-    FLSlice arg1,
-  ) {
-    return _FLSlot_SetString(
-      arg0,
-      arg1,
-    );
-  }
-
-  late final _FLSlot_SetString_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetString>>('FLSlot_SetString');
-  late final _dart_FLSlot_SetString _FLSlot_SetString =
-      _FLSlot_SetString_ptr.asFunction<_dart_FLSlot_SetString>();
-
-  void FLSlot_SetData(
-    ffi.Pointer<FLSlot> arg0,
-    FLSlice arg1,
-  ) {
-    return _FLSlot_SetData(
-      arg0,
-      arg1,
-    );
-  }
-
-  late final _FLSlot_SetData_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetData>>('FLSlot_SetData');
-  late final _dart_FLSlot_SetData _FLSlot_SetData =
-      _FLSlot_SetData_ptr.asFunction<_dart_FLSlot_SetData>();
-
-  void FLSlot_SetValue(
-    ffi.Pointer<FLSlot> arg0,
-    ffi.Pointer<FLValue> arg1,
-  ) {
-    return _FLSlot_SetValue(
-      arg0,
-      arg1,
-    );
-  }
-
-  late final _FLSlot_SetValue_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSlot_SetValue>>('FLSlot_SetValue');
-  late final _dart_FLSlot_SetValue _FLSlot_SetValue =
-      _FLSlot_SetValue_ptr.asFunction<_dart_FLSlot_SetValue>();
+  late final _FLValue_NewData_ptr =
+      _lookup<ffi.NativeFunction<_c_FLValue_NewData>>('FLValue_NewData');
+  late final _dart_FLValue_NewData _FLValue_NewData =
+      _FLValue_NewData_ptr.asFunction<_dart_FLValue_NewData>();
 
   /// Returns the number of items in an array, or 0 if the pointer is NULL.
   int FLArray_Count(
@@ -1106,38 +1102,23 @@ class CblCBindings {
       _FLMutableArray_IsChanged_ptr.asFunction<
           _dart_FLMutableArray_IsChanged>();
 
-  /// Lets you store a value into a MutableArray, by returning a \ref FLSlot that you can call
-  /// a function like \ref FLSlot_SetInt on.
-  ffi.Pointer<FLSlot> FLMutableArray_Set(
+  /// Sets or clears the mutable Array's "changed" flag.
+  void FLMutableArray_SetChanged(
     ffi.Pointer<FLArray> arg0,
-    int index,
+    bool arg1,
   ) {
-    return _FLMutableArray_Set(
+    return _FLMutableArray_SetChanged(
       arg0,
-      index,
+      arg1 ? 1 : 0,
     );
   }
 
-  late final _FLMutableArray_Set_ptr =
-      _lookup<ffi.NativeFunction<_c_FLMutableArray_Set>>('FLMutableArray_Set');
-  late final _dart_FLMutableArray_Set _FLMutableArray_Set =
-      _FLMutableArray_Set_ptr.asFunction<_dart_FLMutableArray_Set>();
-
-  /// Appends a null value to a MutableArray and returns a \ref FLSlot that you can call
-  /// to store something else in the new value.
-  ffi.Pointer<FLSlot> FLMutableArray_Append(
-    ffi.Pointer<FLArray> arg0,
-  ) {
-    return _FLMutableArray_Append(
-      arg0,
-    );
-  }
-
-  late final _FLMutableArray_Append_ptr =
-      _lookup<ffi.NativeFunction<_c_FLMutableArray_Append>>(
-          'FLMutableArray_Append');
-  late final _dart_FLMutableArray_Append _FLMutableArray_Append =
-      _FLMutableArray_Append_ptr.asFunction<_dart_FLMutableArray_Append>();
+  late final _FLMutableArray_SetChanged_ptr =
+      _lookup<ffi.NativeFunction<_c_FLMutableArray_SetChanged>>(
+          'FLMutableArray_SetChanged');
+  late final _dart_FLMutableArray_SetChanged _FLMutableArray_SetChanged =
+      _FLMutableArray_SetChanged_ptr.asFunction<
+          _dart_FLMutableArray_SetChanged>();
 
   /// Inserts a contiguous range of JSON `null` values into the array.
   /// @param array  The array to operate on.
@@ -1535,22 +1516,23 @@ class CblCBindings {
   late final _dart_FLMutableDict_IsChanged _FLMutableDict_IsChanged =
       _FLMutableDict_IsChanged_ptr.asFunction<_dart_FLMutableDict_IsChanged>();
 
-  /// Returns the Slot storing the key's value, adding a new one if needed (with a null value.)
-  /// To set the value itself, call one of the FLSlot functions, e.g. \ref FLSlot_SetInt.
-  ffi.Pointer<FLSlot> FLMutableDict_Set(
-    ffi.Pointer<FLDict> FL_NONNULL,
-    FLSlice key,
+  /// Sets or clears the mutable Dict's "changed" flag.
+  void FLMutableDict_SetChanged(
+    ffi.Pointer<FLDict> arg0,
+    bool arg1,
   ) {
-    return _FLMutableDict_Set(
-      FL_NONNULL,
-      key,
+    return _FLMutableDict_SetChanged(
+      arg0,
+      arg1 ? 1 : 0,
     );
   }
 
-  late final _FLMutableDict_Set_ptr =
-      _lookup<ffi.NativeFunction<_c_FLMutableDict_Set>>('FLMutableDict_Set');
-  late final _dart_FLMutableDict_Set _FLMutableDict_Set =
-      _FLMutableDict_Set_ptr.asFunction<_dart_FLMutableDict_Set>();
+  late final _FLMutableDict_SetChanged_ptr =
+      _lookup<ffi.NativeFunction<_c_FLMutableDict_SetChanged>>(
+          'FLMutableDict_SetChanged');
+  late final _dart_FLMutableDict_SetChanged _FLMutableDict_SetChanged =
+      _FLMutableDict_SetChanged_ptr.asFunction<
+          _dart_FLMutableDict_SetChanged>();
 
   /// Removes the value for a key.
   void FLMutableDict_Remove(
@@ -1673,7 +1655,23 @@ class CblCBindings {
   late final _dart_FLDeepIterator_GetValue _FLDeepIterator_GetValue =
       _FLDeepIterator_GetValue_ptr.asFunction<_dart_FLDeepIterator_GetValue>();
 
-  /// Returns the key of the current value, or an empty slice if not in a dictionary.
+  /// Returns the parent/container of the current value, or NULL at the end of iteration.
+  ffi.Pointer<FLValue> FLDeepIterator_GetParent(
+    ffi.Pointer<FLDeepIterator> arg0,
+  ) {
+    return _FLDeepIterator_GetParent(
+      arg0,
+    );
+  }
+
+  late final _FLDeepIterator_GetParent_ptr =
+      _lookup<ffi.NativeFunction<_c_FLDeepIterator_GetParent>>(
+          'FLDeepIterator_GetParent');
+  late final _dart_FLDeepIterator_GetParent _FLDeepIterator_GetParent =
+      _FLDeepIterator_GetParent_ptr.asFunction<
+          _dart_FLDeepIterator_GetParent>();
+
+  /// Returns the key of the current value in its parent, or an empty slice if not in a dictionary.
   FLSlice FLDeepIterator_GetKey(
     ffi.Pointer<FLDeepIterator> arg0,
   ) {
@@ -1688,7 +1686,7 @@ class CblCBindings {
   late final _dart_FLDeepIterator_GetKey _FLDeepIterator_GetKey =
       _FLDeepIterator_GetKey_ptr.asFunction<_dart_FLDeepIterator_GetKey>();
 
-  /// Returns the array index of the current value, or 0 if not in an array.
+  /// Returns the array index of the current value in its parent, or 0 if not in an array.
   int FLDeepIterator_GetIndex(
     ffi.Pointer<FLDeepIterator> arg0,
   ) {
@@ -1867,62 +1865,87 @@ class CblCBindings {
   late final _dart_FLKeyPath_EvalOnce _FLKeyPath_EvalOnce =
       _FLKeyPath_EvalOnce_ptr.asFunction<_dart_FLKeyPath_EvalOnce>();
 
-  /// @} */
-  /// /** \defgroup FLSharedKeys   Shared Keys
-  /// @{
-  ffi.Pointer<FLSharedKeys> FLSharedKeys_Create() {
-    return _FLSharedKeys_Create();
-  }
-
-  late final _FLSharedKeys_Create_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSharedKeys_Create>>(
-          'FLSharedKeys_Create');
-  late final _dart_FLSharedKeys_Create _FLSharedKeys_Create =
-      _FLSharedKeys_Create_ptr.asFunction<_dart_FLSharedKeys_Create>();
-
-  ffi.Pointer<FLSharedKeys> FLSharedKeys_Retain(
-    ffi.Pointer<FLSharedKeys> arg0,
+  /// Returns a path in string form.
+  FLSliceResult FLKeyPath_ToString(
+    ffi.Pointer<FLKeyPath> path,
   ) {
-    return _FLSharedKeys_Retain(
-      arg0,
+    return _FLKeyPath_ToString(
+      path,
     );
   }
 
-  late final _FLSharedKeys_Retain_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSharedKeys_Retain>>(
-          'FLSharedKeys_Retain');
-  late final _dart_FLSharedKeys_Retain _FLSharedKeys_Retain =
-      _FLSharedKeys_Retain_ptr.asFunction<_dart_FLSharedKeys_Retain>();
+  late final _FLKeyPath_ToString_ptr =
+      _lookup<ffi.NativeFunction<_c_FLKeyPath_ToString>>('FLKeyPath_ToString');
+  late final _dart_FLKeyPath_ToString _FLKeyPath_ToString =
+      _FLKeyPath_ToString_ptr.asFunction<_dart_FLKeyPath_ToString>();
 
-  void FLSharedKeys_Release(
-    ffi.Pointer<FLSharedKeys> arg0,
+  /// Equality test.
+  bool FLKeyPath_Equals(
+    ffi.Pointer<FLKeyPath> path1,
+    ffi.Pointer<FLKeyPath> path2,
   ) {
-    return _FLSharedKeys_Release(
+    return _FLKeyPath_Equals(
+          path1,
+          path2,
+        ) !=
+        0;
+  }
+
+  late final _FLKeyPath_Equals_ptr =
+      _lookup<ffi.NativeFunction<_c_FLKeyPath_Equals>>('FLKeyPath_Equals');
+  late final _dart_FLKeyPath_Equals _FLKeyPath_Equals =
+      _FLKeyPath_Equals_ptr.asFunction<_dart_FLKeyPath_Equals>();
+
+  /// Returns an element of a path, either a key or an array index.
+  bool FLKeyPath_GetElement(
+    ffi.Pointer<FLKeyPath> arg0,
+    int i,
+    ffi.Pointer<FLSlice> outDictKey,
+    ffi.Pointer<ffi.Int32> outArrayIndex,
+  ) {
+    return _FLKeyPath_GetElement(
+          arg0,
+          i,
+          outDictKey,
+          outArrayIndex,
+        ) !=
+        0;
+  }
+
+  late final _FLKeyPath_GetElement_ptr =
+      _lookup<ffi.NativeFunction<_c_FLKeyPath_GetElement>>(
+          'FLKeyPath_GetElement');
+  late final _dart_FLKeyPath_GetElement _FLKeyPath_GetElement =
+      _FLKeyPath_GetElement_ptr.asFunction<_dart_FLKeyPath_GetElement>();
+
+  /// Creates a new empty FLSharedKeys object, which must eventually be released.
+  ffi.Pointer<FLSharedKeys> FLSharedKeys_New() {
+    return _FLSharedKeys_New();
+  }
+
+  late final _FLSharedKeys_New_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeys_New>>('FLSharedKeys_New');
+  late final _dart_FLSharedKeys_New _FLSharedKeys_New =
+      _FLSharedKeys_New_ptr.asFunction<_dart_FLSharedKeys_New>();
+
+  ffi.Pointer<FLSharedKeys> FLSharedKeys_NewWithRead(
+    ffi.Pointer<ffi.NativeFunction<FLSharedKeysReadCallback>> arg0,
+    ffi.Pointer<ffi.Void> context,
+  ) {
+    return _FLSharedKeys_NewWithRead(
       arg0,
+      context,
     );
   }
 
-  late final _FLSharedKeys_Release_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSharedKeys_Release>>(
-          'FLSharedKeys_Release');
-  late final _dart_FLSharedKeys_Release _FLSharedKeys_Release =
-      _FLSharedKeys_Release_ptr.asFunction<_dart_FLSharedKeys_Release>();
+  late final _FLSharedKeys_NewWithRead_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeys_NewWithRead>>(
+          'FLSharedKeys_NewWithRead');
+  late final _dart_FLSharedKeys_NewWithRead _FLSharedKeys_NewWithRead =
+      _FLSharedKeys_NewWithRead_ptr.asFunction<
+          _dart_FLSharedKeys_NewWithRead>();
 
-  ffi.Pointer<FLSharedKeys> FLSharedKeys_CreateFromStateData(
-    FLSlice arg0,
-  ) {
-    return _FLSharedKeys_CreateFromStateData(
-      arg0,
-    );
-  }
-
-  late final _FLSharedKeys_CreateFromStateData_ptr =
-      _lookup<ffi.NativeFunction<_c_FLSharedKeys_CreateFromStateData>>(
-          'FLSharedKeys_CreateFromStateData');
-  late final _dart_FLSharedKeys_CreateFromStateData
-      _FLSharedKeys_CreateFromStateData = _FLSharedKeys_CreateFromStateData_ptr
-          .asFunction<_dart_FLSharedKeys_CreateFromStateData>();
-
+  /// Returns a data blob containing the current state (all the keys and their integers.)
   FLSliceResult FLSharedKeys_GetStateData(
     ffi.Pointer<FLSharedKeys> arg0,
   ) {
@@ -1938,6 +1961,67 @@ class CblCBindings {
       _FLSharedKeys_GetStateData_ptr.asFunction<
           _dart_FLSharedKeys_GetStateData>();
 
+  /// Updates an FLSharedKeys with saved state data created by \ref FLSharedKeys_GetStateData.
+  bool FLSharedKeys_LoadStateData(
+    ffi.Pointer<FLSharedKeys> arg0,
+    FLSlice arg1,
+  ) {
+    return _FLSharedKeys_LoadStateData(
+          arg0,
+          arg1,
+        ) !=
+        0;
+  }
+
+  late final _FLSharedKeys_LoadStateData_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeys_LoadStateData>>(
+          'FLSharedKeys_LoadStateData');
+  late final _dart_FLSharedKeys_LoadStateData _FLSharedKeys_LoadStateData =
+      _FLSharedKeys_LoadStateData_ptr.asFunction<
+          _dart_FLSharedKeys_LoadStateData>();
+
+  /// Writes the current state to a Fleece encoder as a single value,
+  /// which can later be decoded and passed to \ref FLSharedKeys_LoadState.
+  void FLSharedKeys_WriteState(
+    ffi.Pointer<FLSharedKeys> arg0,
+    ffi.Pointer<FLEncoder> arg1,
+  ) {
+    return _FLSharedKeys_WriteState(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final _FLSharedKeys_WriteState_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeys_WriteState>>(
+          'FLSharedKeys_WriteState');
+  late final _dart_FLSharedKeys_WriteState _FLSharedKeys_WriteState =
+      _FLSharedKeys_WriteState_ptr.asFunction<_dart_FLSharedKeys_WriteState>();
+
+  /// Updates an FLSharedKeys object with saved state, a Fleece value previously written by
+  /// \ref FLSharedKeys_WriteState.
+  bool FLSharedKeys_LoadState(
+    ffi.Pointer<FLSharedKeys> arg0,
+    ffi.Pointer<FLValue> arg1,
+  ) {
+    return _FLSharedKeys_LoadState(
+          arg0,
+          arg1,
+        ) !=
+        0;
+  }
+
+  late final _FLSharedKeys_LoadState_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeys_LoadState>>(
+          'FLSharedKeys_LoadState');
+  late final _dart_FLSharedKeys_LoadState _FLSharedKeys_LoadState =
+      _FLSharedKeys_LoadState_ptr.asFunction<_dart_FLSharedKeys_LoadState>();
+
+  /// Maps a key string to a number in the range [0...2047], or returns -1 if it isn't mapped.
+  /// If the key doesn't already have a mapping, and the `add` flag is true,
+  /// a new mapping is assigned and returned.
+  /// However, the `add` flag has no effect if the key is unmappable (is longer than 16 bytes
+  /// or contains non-identifier characters), or if all available integers have been assigned.
   int FLSharedKeys_Encode(
     ffi.Pointer<FLSharedKeys> arg0,
     FLSlice arg1,
@@ -1956,6 +2040,7 @@ class CblCBindings {
   late final _dart_FLSharedKeys_Encode _FLSharedKeys_Encode =
       _FLSharedKeys_Encode_ptr.asFunction<_dart_FLSharedKeys_Encode>();
 
+  /// Returns the key string that maps to the given integer `key`, else NULL.
   FLSlice FLSharedKeys_Decode(
     ffi.Pointer<FLSharedKeys> arg0,
     int key,
@@ -1972,6 +2057,8 @@ class CblCBindings {
   late final _dart_FLSharedKeys_Decode _FLSharedKeys_Decode =
       _FLSharedKeys_Decode_ptr.asFunction<_dart_FLSharedKeys_Decode>();
 
+  /// Returns the number of keys in the mapping. This number increases whenever the mapping
+  /// is changed, and never decreases.
   int FLSharedKeys_Count(
     ffi.Pointer<FLSharedKeys> arg0,
   ) {
@@ -1984,6 +2071,85 @@ class CblCBindings {
       _lookup<ffi.NativeFunction<_c_FLSharedKeys_Count>>('FLSharedKeys_Count');
   late final _dart_FLSharedKeys_Count _FLSharedKeys_Count =
       _FLSharedKeys_Count_ptr.asFunction<_dart_FLSharedKeys_Count>();
+
+  /// Reverts an FLSharedKeys by "forgetting" any keys added since it had the count `oldCount`.
+  void FLSharedKeys_RevertToCount(
+    ffi.Pointer<FLSharedKeys> arg0,
+    int oldCount,
+  ) {
+    return _FLSharedKeys_RevertToCount(
+      arg0,
+      oldCount,
+    );
+  }
+
+  late final _FLSharedKeys_RevertToCount_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeys_RevertToCount>>(
+          'FLSharedKeys_RevertToCount');
+  late final _dart_FLSharedKeys_RevertToCount _FLSharedKeys_RevertToCount =
+      _FLSharedKeys_RevertToCount_ptr.asFunction<
+          _dart_FLSharedKeys_RevertToCount>();
+
+  /// Increments the reference count of an FLSharedKeys.
+  ffi.Pointer<FLSharedKeys> FLSharedKeys_Retain(
+    ffi.Pointer<FLSharedKeys> arg0,
+  ) {
+    return _FLSharedKeys_Retain(
+      arg0,
+    );
+  }
+
+  late final _FLSharedKeys_Retain_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeys_Retain>>(
+          'FLSharedKeys_Retain');
+  late final _dart_FLSharedKeys_Retain _FLSharedKeys_Retain =
+      _FLSharedKeys_Retain_ptr.asFunction<_dart_FLSharedKeys_Retain>();
+
+  /// Decrements the reference count of an FLSharedKeys, freeing it when it reaches zero.
+  void FLSharedKeys_Release(
+    ffi.Pointer<FLSharedKeys> arg0,
+  ) {
+    return _FLSharedKeys_Release(
+      arg0,
+    );
+  }
+
+  late final _FLSharedKeys_Release_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeys_Release>>(
+          'FLSharedKeys_Release');
+  late final _dart_FLSharedKeys_Release _FLSharedKeys_Release =
+      _FLSharedKeys_Release_ptr.asFunction<_dart_FLSharedKeys_Release>();
+
+  ffi.Pointer<FLSharedKeyScope> FLSharedKeyScope_WithRange(
+    FLSlice range,
+    ffi.Pointer<FLSharedKeys> arg1,
+  ) {
+    return _FLSharedKeyScope_WithRange(
+      range,
+      arg1,
+    );
+  }
+
+  late final _FLSharedKeyScope_WithRange_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeyScope_WithRange>>(
+          'FLSharedKeyScope_WithRange');
+  late final _dart_FLSharedKeyScope_WithRange _FLSharedKeyScope_WithRange =
+      _FLSharedKeyScope_WithRange_ptr.asFunction<
+          _dart_FLSharedKeyScope_WithRange>();
+
+  void FLSharedKeyScope_Free(
+    ffi.Pointer<FLSharedKeyScope> arg0,
+  ) {
+    return _FLSharedKeyScope_Free(
+      arg0,
+    );
+  }
+
+  late final _FLSharedKeyScope_Free_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSharedKeyScope_Free>>(
+          'FLSharedKeyScope_Free');
+  late final _dart_FLSharedKeyScope_Free _FLSharedKeyScope_Free =
+      _FLSharedKeyScope_Free_ptr.asFunction<_dart_FLSharedKeyScope_Free>();
 
   /// Creates a new encoder, for generating Fleece data. Call FLEncoder_Free when done.
   ffi.Pointer<FLEncoder> FLEncoder_New() {
@@ -2568,6 +2734,61 @@ class CblCBindings {
   late final _dart_FLEncoder_WriteValue _FLEncoder_WriteValue =
       _FLEncoder_WriteValue_ptr.asFunction<_dart_FLEncoder_WriteValue>();
 
+  /// Returns an opaque reference to the last complete value written to the encoder, if possible.
+  /// Fails (returning 0) if nothing has been written, or if the value is inline and can't be
+  /// referenced this way -- that only happens with small scalars or empty collections.
+  int FLEncoder_LastValueWritten(
+    ffi.Pointer<FLEncoder> e,
+  ) {
+    return _FLEncoder_LastValueWritten(
+      e,
+    );
+  }
+
+  late final _FLEncoder_LastValueWritten_ptr =
+      _lookup<ffi.NativeFunction<_c_FLEncoder_LastValueWritten>>(
+          'FLEncoder_LastValueWritten');
+  late final _dart_FLEncoder_LastValueWritten _FLEncoder_LastValueWritten =
+      _FLEncoder_LastValueWritten_ptr.asFunction<
+          _dart_FLEncoder_LastValueWritten>();
+
+  /// Writes another reference (a "pointer") to an already-written value, given a reference previously
+  /// returned from \ref FLEncoder_LastValueWritten. The effect is exactly the same as if you wrote the
+  /// entire value again, except that the size of the encoded data only grows by 4 bytes.
+  void FLEncoder_WriteValueAgain(
+    ffi.Pointer<FLEncoder> e,
+    int preWrittenValue,
+  ) {
+    return _FLEncoder_WriteValueAgain(
+      e,
+      preWrittenValue,
+    );
+  }
+
+  late final _FLEncoder_WriteValueAgain_ptr =
+      _lookup<ffi.NativeFunction<_c_FLEncoder_WriteValueAgain>>(
+          'FLEncoder_WriteValueAgain');
+  late final _dart_FLEncoder_WriteValueAgain _FLEncoder_WriteValueAgain =
+      _FLEncoder_WriteValueAgain_ptr.asFunction<
+          _dart_FLEncoder_WriteValueAgain>();
+
+  /// Returns the data written so far as a standalone Fleece document, whose root is the last
+  /// value written. You can continue writing, and the final output returned by \ref FLEncoder_Finish will
+  /// consist of everything after this point. That second part can be used in the future by loading it
+  /// as an `FLDoc` with the first part as its `extern` reference.
+  FLSliceResult FLEncoder_Snip(
+    ffi.Pointer<FLEncoder> e,
+  ) {
+    return _FLEncoder_Snip(
+      e,
+    );
+  }
+
+  late final _FLEncoder_Snip_ptr =
+      _lookup<ffi.NativeFunction<_c_FLEncoder_Snip>>('FLEncoder_Snip');
+  late final _dart_FLEncoder_Snip _FLEncoder_Snip =
+      _FLEncoder_Snip_ptr.asFunction<_dart_FLEncoder_Snip>();
+
   /// Parses JSON data and writes the object(s) to the encoder. (This acts as a single write,
   /// like WriteInt; it's just that the value written is likely to be an entire dictionary of
   /// array.)
@@ -2768,6 +2989,195 @@ class CblCBindings {
   late final _dart_FLEncodeApplyingJSONDelta _FLEncodeApplyingJSONDelta =
       _FLEncodeApplyingJSONDelta_ptr.asFunction<
           _dart_FLEncodeApplyingJSONDelta>();
+
+  /// Returns an FLSlot that refers to the given index of the given array.
+  /// You store a value to it by calling one of the nine `FLSlot_Set...` functions.
+  /// \warning You should immediately store a value into the `FLSlot`. Do not keep it around;
+  /// any changes to the array invalidate it.
+  ffi.Pointer<FLSlot> FLMutableArray_Set(
+    ffi.Pointer<FLArray> arg0,
+    int index,
+  ) {
+    return _FLMutableArray_Set(
+      arg0,
+      index,
+    );
+  }
+
+  late final _FLMutableArray_Set_ptr =
+      _lookup<ffi.NativeFunction<_c_FLMutableArray_Set>>('FLMutableArray_Set');
+  late final _dart_FLMutableArray_Set _FLMutableArray_Set =
+      _FLMutableArray_Set_ptr.asFunction<_dart_FLMutableArray_Set>();
+
+  /// Appends a null value to the array and returns an `FLSLot` that refers to that position.
+  /// You store a value to it by calling one of the nine `FLSlot_Set...` functions.
+  /// \warning You should immediately store a value into the `FLSlot`. Do not keep it around;
+  /// any changes to the array invalidate it.
+  ffi.Pointer<FLSlot> FLMutableArray_Append(
+    ffi.Pointer<FLArray> arg0,
+  ) {
+    return _FLMutableArray_Append(
+      arg0,
+    );
+  }
+
+  late final _FLMutableArray_Append_ptr =
+      _lookup<ffi.NativeFunction<_c_FLMutableArray_Append>>(
+          'FLMutableArray_Append');
+  late final _dart_FLMutableArray_Append _FLMutableArray_Append =
+      _FLMutableArray_Append_ptr.asFunction<_dart_FLMutableArray_Append>();
+
+  /// Returns an FLSlot that refers to the given key/value pair of the given dictionary.
+  /// You store a value to it by calling one of the nine `FLSlot_Set...` functions.
+  /// \warning You should immediately store a value into the `FLSlot`. Do not keep it around;
+  /// any changes to the dictionary invalidate it.
+  ffi.Pointer<FLSlot> FLMutableDict_Set(
+    ffi.Pointer<FLDict> FL_NONNULL,
+    FLSlice key,
+  ) {
+    return _FLMutableDict_Set(
+      FL_NONNULL,
+      key,
+    );
+  }
+
+  late final _FLMutableDict_Set_ptr =
+      _lookup<ffi.NativeFunction<_c_FLMutableDict_Set>>('FLMutableDict_Set');
+  late final _dart_FLMutableDict_Set _FLMutableDict_Set =
+      _FLMutableDict_Set_ptr.asFunction<_dart_FLMutableDict_Set>();
+
+  void FLSlot_SetNull(
+    ffi.Pointer<FLSlot> arg0,
+  ) {
+    return _FLSlot_SetNull(
+      arg0,
+    );
+  }
+
+  late final _FLSlot_SetNull_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetNull>>('FLSlot_SetNull');
+  late final _dart_FLSlot_SetNull _FLSlot_SetNull =
+      _FLSlot_SetNull_ptr.asFunction<_dart_FLSlot_SetNull>();
+
+  void FLSlot_SetBool(
+    ffi.Pointer<FLSlot> arg0,
+    bool arg1,
+  ) {
+    return _FLSlot_SetBool(
+      arg0,
+      arg1 ? 1 : 0,
+    );
+  }
+
+  late final _FLSlot_SetBool_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetBool>>('FLSlot_SetBool');
+  late final _dart_FLSlot_SetBool _FLSlot_SetBool =
+      _FLSlot_SetBool_ptr.asFunction<_dart_FLSlot_SetBool>();
+
+  void FLSlot_SetInt(
+    ffi.Pointer<FLSlot> arg0,
+    int arg1,
+  ) {
+    return _FLSlot_SetInt(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final _FLSlot_SetInt_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetInt>>('FLSlot_SetInt');
+  late final _dart_FLSlot_SetInt _FLSlot_SetInt =
+      _FLSlot_SetInt_ptr.asFunction<_dart_FLSlot_SetInt>();
+
+  void FLSlot_SetUInt(
+    ffi.Pointer<FLSlot> arg0,
+    int arg1,
+  ) {
+    return _FLSlot_SetUInt(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final _FLSlot_SetUInt_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetUInt>>('FLSlot_SetUInt');
+  late final _dart_FLSlot_SetUInt _FLSlot_SetUInt =
+      _FLSlot_SetUInt_ptr.asFunction<_dart_FLSlot_SetUInt>();
+
+  void FLSlot_SetFloat(
+    ffi.Pointer<FLSlot> arg0,
+    double arg1,
+  ) {
+    return _FLSlot_SetFloat(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final _FLSlot_SetFloat_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetFloat>>('FLSlot_SetFloat');
+  late final _dart_FLSlot_SetFloat _FLSlot_SetFloat =
+      _FLSlot_SetFloat_ptr.asFunction<_dart_FLSlot_SetFloat>();
+
+  void FLSlot_SetDouble(
+    ffi.Pointer<FLSlot> arg0,
+    double arg1,
+  ) {
+    return _FLSlot_SetDouble(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final _FLSlot_SetDouble_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetDouble>>('FLSlot_SetDouble');
+  late final _dart_FLSlot_SetDouble _FLSlot_SetDouble =
+      _FLSlot_SetDouble_ptr.asFunction<_dart_FLSlot_SetDouble>();
+
+  void FLSlot_SetString(
+    ffi.Pointer<FLSlot> arg0,
+    FLSlice arg1,
+  ) {
+    return _FLSlot_SetString(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final _FLSlot_SetString_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetString>>('FLSlot_SetString');
+  late final _dart_FLSlot_SetString _FLSlot_SetString =
+      _FLSlot_SetString_ptr.asFunction<_dart_FLSlot_SetString>();
+
+  void FLSlot_SetData(
+    ffi.Pointer<FLSlot> arg0,
+    FLSlice arg1,
+  ) {
+    return _FLSlot_SetData(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final _FLSlot_SetData_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetData>>('FLSlot_SetData');
+  late final _dart_FLSlot_SetData _FLSlot_SetData =
+      _FLSlot_SetData_ptr.asFunction<_dart_FLSlot_SetData>();
+
+  void FLSlot_SetValue(
+    ffi.Pointer<FLSlot> arg0,
+    ffi.Pointer<FLValue> arg1,
+  ) {
+    return _FLSlot_SetValue(
+      arg0,
+      arg1,
+    );
+  }
+
+  late final _FLSlot_SetValue_ptr =
+      _lookup<ffi.NativeFunction<_c_FLSlot_SetValue>>('FLSlot_SetValue');
+  late final _dart_FLSlot_SetValue _FLSlot_SetValue =
+      _FLSlot_SetValue_ptr.asFunction<_dart_FLSlot_SetValue>();
 
   /// < `"@type"`
   late final ffi.Pointer<FLSlice> _kCBLTypeProperty =
@@ -3108,6 +3518,71 @@ class CblCBindings {
       _lookup<ffi.NativeFunction<_c_FLSlot_SetBlob>>('FLSlot_SetBlob');
   late final _dart_FLSlot_SetBlob _FLSlot_SetBlob =
       _FLSlot_SetBlob_ptr.asFunction<_dart_FLSlot_SetBlob>();
+
+  /// Get a \ref CBLBlob object from the database using the \ref CBLBlob properties.
+  ///
+  /// The \ref CBLBlob properties is a blob's metadata containing two required fields
+  /// which are a special marker property `"@type":"blob"`, and property `digest` whose value
+  /// is a hex SHA-1 digest of the blob's data. The other optional properties are `length` and
+  /// `content_type`. To obtain the \ref CBLBlob properties from a \ref CBLBlob,
+  /// call \ref CBLBlob_Properties function.
+  ///
+  /// @note   You must release the \ref CBLBlob when you're finished with it.
+  /// @param db   The database.
+  /// @param properties   The properties for getting the \ref CBLBlob object.
+  /// @param outError On failure, error info will be written here if specified. A nonexistent blob
+  /// is not considered a failure; in that event the error code will be zero.
+  /// @return A \ref CBLBlob instance, or NULL if the doc doesn't exist or an error occurred.
+  ffi.Pointer<CBLBlob> CBLDatabase_GetBlob(
+    ffi.Pointer<CBLDatabase> db,
+    ffi.Pointer<FLDict> properties,
+    ffi.Pointer<CBLError> outError,
+  ) {
+    return _CBLDatabase_GetBlob(
+      db,
+      properties,
+      outError,
+    );
+  }
+
+  late final _CBLDatabase_GetBlob_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_GetBlob>>(
+          'CBLDatabase_GetBlob');
+  late final _dart_CBLDatabase_GetBlob _CBLDatabase_GetBlob =
+      _CBLDatabase_GetBlob_ptr.asFunction<_dart_CBLDatabase_GetBlob>();
+
+  /// Save a new \ref CBLBlob object into the database without associating it with
+  /// any documents. The properties of the saved \ref CBLBlob object will include
+  /// information necessary for referencing the \ref CBLBlob object in the properties
+  /// of the document to be saved into the database.
+  ///
+  /// Normally you do not need to use this function unless you are in the situation
+  /// (e.g. developing javascript binding) that you cannot retain the \ref CBLBlob
+  /// object until the document containing the \ref CBLBlob object is successfully
+  /// saved into the database.
+  /// @Note The saved \ref CBLBlob objects that are not associated with any documents
+  /// will be removed from the database when compacting the database.
+  /// @param db   The database.
+  /// @param blob The The CBLBlob to save.
+  /// @param outError On failure, error info will be written here.
+  bool CBLDatabase_SaveBlob(
+    ffi.Pointer<CBLDatabase> db,
+    ffi.Pointer<CBLBlob> blob,
+    ffi.Pointer<CBLError> outError,
+  ) {
+    return _CBLDatabase_SaveBlob(
+          db,
+          blob,
+          outError,
+        ) !=
+        0;
+  }
+
+  late final _CBLDatabase_SaveBlob_ptr =
+      _lookup<ffi.NativeFunction<_c_CBLDatabase_SaveBlob>>(
+          'CBLDatabase_SaveBlob');
+  late final _dart_CBLDatabase_SaveBlob _CBLDatabase_SaveBlob =
+      _CBLDatabase_SaveBlob_ptr.asFunction<_dart_CBLDatabase_SaveBlob>();
 
   /// Returns the default database configuration.
   CBLDatabaseConfiguration CBLDatabaseConfiguration_Default() {
@@ -4116,10 +4591,10 @@ class CblCBindings {
 
   /// Sets the callback for receiving log messages. If set to NULL, no messages are logged to the console.
   void CBLLog_SetCallback(
-    ffi.Pointer<ffi.NativeFunction<CBLLogCallback>> arg0,
+    ffi.Pointer<ffi.NativeFunction<CBLLogCallback>> callback,
   ) {
     return _CBLLog_SetCallback(
-      arg0,
+      callback,
     );
   }
 
@@ -4572,13 +5047,18 @@ class CblCBindings {
   /// Creates a new endpoint representing a server-based database at the given URL.
   /// The URL's scheme must be `ws` or `wss`, it must of course have a valid hostname,
   /// and its path must be the name of the database on that server.
+  ///
   /// The port can be omitted; it defaults to 80 for `ws` and 443 for `wss`.
-  /// For example: `wss://example.org/dbname`
+  /// For example: `wss://example.org/dbname`.
+  ///
+  /// If an invalid endpoint URL is specified, an error will be returned.
   ffi.Pointer<CBLEndpoint> CBLEndpoint_CreateWithURL(
     FLSlice url,
+    ffi.Pointer<CBLError> outError,
   ) {
     return _CBLEndpoint_CreateWithURL(
       url,
+      outError,
     );
   }
 
@@ -4651,6 +5131,19 @@ class CblCBindings {
       _lookup<ffi.NativeFunction<_c_CBLAuth_Free>>('CBLAuth_Free');
   late final _dart_CBLAuth_Free _CBLAuth_Free =
       _CBLAuth_Free_ptr.asFunction<_dart_CBLAuth_Free>();
+
+  /// Default conflict resolver. This always returns `localDocument`.
+  late final ffi.Pointer<ffi.Pointer<ffi.NativeFunction<CBLConflictResolver>>>
+      _CBLDefaultConflictResolver =
+      _lookup<ffi.Pointer<ffi.NativeFunction<CBLConflictResolver>>>(
+          'CBLDefaultConflictResolver');
+
+  ffi.Pointer<ffi.NativeFunction<CBLConflictResolver>>
+      get CBLDefaultConflictResolver => _CBLDefaultConflictResolver.value;
+
+  set CBLDefaultConflictResolver(
+          ffi.Pointer<ffi.NativeFunction<CBLConflictResolver>> value) =>
+      _CBLDefaultConflictResolver.value = value;
 
   /// Creates a replicator with the given configuration.
   ffi.Pointer<CBLReplicator> CBLReplicator_Create(
@@ -4957,7 +5450,7 @@ class CblCBindings {
       _CBLDart_RegisterPorts_ptr.asFunction<_dart_CBLDart_RegisterPorts>();
 
   void CBLDart_ExecuteCallback(
-    ffi.Pointer<ffi.Int32> work_ptr,
+    ffi.Pointer<ffi.Pointer<ffi.NativeFunction<Work>>> work_ptr,
   ) {
     return _CBLDart_ExecuteCallback(
       work_ptr,
@@ -5039,10 +5532,13 @@ class FLSlice extends ffi.Struct {
   external int size;
 }
 
-/// A block of memory returned from an API call. The caller takes ownership, and must call
-/// FLSlice_Release (or FLSlice_Free) when done. The heap block may be shared with other users,
-/// so it must not be modified.
-/// (This is equivalent to the C++ class `alloc_slice`.)
+/// A heap-allocated block of memory returned from an API call.
+/// The caller takes ownership, and must call \ref FLSliceResult_Release when done with it.
+/// \warning The contents of the block must not be modified, since others may be using it.
+/// \note This is equivalent to the C++ class `alloc_slice`. In C++ the easiest way to deal with
+/// a `FLSliceResult` return value is to construct an `alloc_slice` from it, which will
+/// adopt the reference, and release it in its destructor. For example:
+/// `alloc_slice foo( CopyFoo() );`
 class FLSliceResult extends ffi.Struct {
   external ffi.Pointer<ffi.Void> buf;
 
@@ -5151,8 +5647,6 @@ class FLArray extends ffi.Opaque {}
 
 class FLDict extends ffi.Opaque {}
 
-class FLSlot extends ffi.Opaque {}
-
 /// Opaque array iterator. Declare one on the stack and pass its address to
 /// `FLArrayIteratorBegin`.
 class FLArrayIterator extends ffi.Struct {
@@ -5226,6 +5720,10 @@ class FLPathComponent extends ffi.Struct {
 
 class FLKeyPath extends ffi.Opaque {}
 
+class FLEncoder extends ffi.Opaque {}
+
+class FLSharedKeyScope extends ffi.Opaque {}
+
 /// Output formats a FLEncoder can generate.
 abstract class FLEncoderFormat {
   /// < Fleece encoding
@@ -5238,68 +5736,11 @@ abstract class FLEncoderFormat {
   static const int kFLEncodeJSON5 = 2;
 }
 
-class FLEncoder extends ffi.Opaque {}
-
-class _sbuf extends ffi.Struct {
-  external ffi.Pointer<ffi.Uint8> _base;
-
-  @ffi.Int32()
-  external int _size;
-}
-
-class _sFILEX extends ffi.Opaque {}
-
 class FILE extends ffi.Struct {
-  external ffi.Pointer<ffi.Uint8> _p;
-
-  @ffi.Int32()
-  external int _r;
-
-  @ffi.Int32()
-  external int _w;
-
-  @ffi.Int16()
-  external int _flags;
-
-  @ffi.Int16()
-  external int _file;
-
-  external _sbuf _bf;
-
-  @ffi.Int32()
-  external int _lbfsize;
-
-  external ffi.Pointer<ffi.Void> _cookie;
-
-  external ffi.Pointer<ffi.NativeFunction<_typedefC_1>> _close;
-
-  external ffi.Pointer<ffi.NativeFunction<_typedefC_2>> _read;
-
-  external ffi.Pointer<ffi.NativeFunction<_typedefC_3>> _seek;
-
-  external ffi.Pointer<ffi.NativeFunction<_typedefC_4>> _write;
-
-  external _sbuf _ub;
-
-  external ffi.Pointer<_sFILEX> _extra;
-
-  @ffi.Int32()
-  external int _ur;
-
-  @ffi.Array.multi([3])
-  external ffi.Array<ffi.Uint8> _ubuf;
-
-  @ffi.Array.multi([1])
-  external ffi.Array<ffi.Uint8> _nbuf;
-
-  external _sbuf _lb;
-
-  @ffi.Int32()
-  external int _blksize;
-
-  @ffi.Int64()
-  external int _offset;
+  external ffi.Pointer<ffi.Void> _Placeholder;
 }
+
+class FLSlot extends ffi.Opaque {}
 
 class CBLBlobReadStream extends ffi.Opaque {}
 
@@ -5508,145 +5949,107 @@ class CBLReplicatedDocument extends ffi.Struct {
 
 class Dart_CObject extends ffi.Opaque {}
 
-const int noErr = 0;
+const int kCBLDomain = 1;
 
-const int kNilOptions = 0;
+const int kCBLPOSIXDomain = 2;
 
-const int kVariableLengthArray = 1;
+const int kCBLSQLiteDomain = 3;
 
-const int kUnknownType = 1061109567;
+const int kCBLFleeceDomain = 4;
 
-const int normal = 0;
+const int kCBLNetworkDomain = 5;
 
-const int bold = 1;
+const int kCBLWebSocketDomain = 6;
 
-const int italic = 2;
+const int kCBLErrorAssertionFailed = 1;
 
-const int underline = 4;
+const int kCBLErrorUnimplemented = 2;
 
-const int outline = 8;
+const int kCBLErrorUnsupportedEncryption = 3;
 
-const int shadow = 16;
+const int kCBLErrorBadRevisionID = 4;
 
-const int condense = 32;
+const int kCBLErrorCorruptRevisionData = 5;
 
-const int extend = 64;
+const int kCBLErrorNotOpen = 6;
 
-const int developStage = 32;
+const int kCBLErrorNotFound = 7;
 
-const int alphaStage = 64;
+const int kCBLErrorConflict = 8;
 
-const int betaStage = 96;
+const int kCBLErrorInvalidParameter = 9;
 
-const int finalStage = 128;
+const int kCBLErrorUnexpectedError = 10;
 
-const int kCFCompareLessThan = -1;
+const int kCBLErrorCantOpenFile = 11;
 
-const int kCFCompareEqualTo = 0;
+const int kCBLErrorIOError = 12;
 
-const int kCFCompareGreaterThan = 1;
+const int kCBLErrorMemoryError = 13;
 
-const int CBLDomain = 1;
+const int kCBLErrorNotWriteable = 14;
 
-const int CBLPOSIXDomain = 2;
+const int kCBLErrorCorruptData = 15;
 
-const int CBLSQLiteDomain = 3;
+const int kCBLErrorBusy = 16;
 
-const int CBLFleeceDomain = 4;
+const int kCBLErrorNotInTransaction = 17;
 
-const int CBLNetworkDomain = 5;
+const int kCBLErrorTransactionNotClosed = 18;
 
-const int CBLWebSocketDomain = 6;
+const int kCBLErrorUnsupported = 19;
 
-const int CBLErrorAssertionFailed = 1;
+const int kCBLErrorNotADatabaseFile = 20;
 
-const int CBLErrorUnimplemented = 2;
+const int kCBLErrorWrongFormat = 21;
 
-const int CBLErrorUnsupportedEncryption = 3;
+const int kCBLErrorCrypto = 22;
 
-const int CBLErrorBadRevisionID = 4;
+const int kCBLErrorInvalidQuery = 23;
 
-const int CBLErrorCorruptRevisionData = 5;
+const int kCBLErrorMissingIndex = 24;
 
-const int CBLErrorNotOpen = 6;
+const int kCBLErrorInvalidQueryParam = 25;
 
-const int CBLErrorNotFound = 7;
+const int kCBLErrorRemoteError = 26;
 
-const int CBLErrorConflict = 8;
+const int kCBLErrorDatabaseTooOld = 27;
 
-const int CBLErrorInvalidParameter = 9;
+const int kCBLErrorDatabaseTooNew = 28;
 
-const int CBLErrorUnexpectedError = 10;
+const int kCBLErrorBadDocID = 29;
 
-const int CBLErrorCantOpenFile = 11;
+const int kCBLErrorCantUpgradeDatabase = 30;
 
-const int CBLErrorIOError = 12;
+const int kCBLNetErrDNSFailure = 1;
 
-const int CBLErrorMemoryError = 13;
+const int kCBLNetErrUnknownHost = 2;
 
-const int CBLErrorNotWriteable = 14;
+const int kCBLNetErrTimeout = 3;
 
-const int CBLErrorCorruptData = 15;
+const int kCBLNetErrInvalidURL = 4;
 
-const int CBLErrorBusy = 16;
+const int kCBLNetErrTooManyRedirects = 5;
 
-const int CBLErrorNotInTransaction = 17;
+const int kCBLNetErrTLSHandshakeFailed = 6;
 
-const int CBLErrorTransactionNotClosed = 18;
+const int kCBLNetErrTLSCertExpired = 7;
 
-const int CBLErrorUnsupported = 19;
+const int kCBLNetErrTLSCertUntrusted = 8;
 
-const int CBLErrorNotADatabaseFile = 20;
+const int kCBLNetErrTLSClientCertRequired = 9;
 
-const int CBLErrorWrongFormat = 21;
+const int kCBLNetErrTLSClientCertRejected = 10;
 
-const int CBLErrorCrypto = 22;
+const int kCBLNetErrTLSCertUnknownRoot = 11;
 
-const int CBLErrorInvalidQuery = 23;
+const int kCBLNetErrInvalidRedirect = 12;
 
-const int CBLErrorMissingIndex = 24;
+const int kCBLNetErrUnknown = 13;
 
-const int CBLErrorInvalidQueryParam = 25;
+const int kCBLNetErrTLSCertRevoked = 14;
 
-const int CBLErrorRemoteError = 26;
-
-const int CBLErrorDatabaseTooOld = 27;
-
-const int CBLErrorDatabaseTooNew = 28;
-
-const int CBLErrorBadDocID = 29;
-
-const int CBLErrorCantUpgradeDatabase = 30;
-
-const int CBLNetErrDNSFailure = 1;
-
-const int CBLNetErrUnknownHost = 2;
-
-const int CBLNetErrTimeout = 3;
-
-const int CBLNetErrInvalidURL = 4;
-
-const int CBLNetErrTooManyRedirects = 5;
-
-const int CBLNetErrTLSHandshakeFailed = 6;
-
-const int CBLNetErrTLSCertExpired = 7;
-
-const int CBLNetErrTLSCertUntrusted = 8;
-
-const int CBLNetErrTLSClientCertRequired = 9;
-
-const int CBLNetErrTLSClientCertRejected = 10;
-
-const int CBLNetErrTLSCertUnknownRoot = 11;
-
-const int CBLNetErrInvalidRedirect = 12;
-
-const int CBLNetErrUnknown = 13;
-
-const int CBLNetErrTLSCertRevoked = 14;
-
-const int CBLNetErrTLSCertNameMismatch = 15;
+const int kCBLNetErrTLSCertNameMismatch = 15;
 
 const int kCBLMaintenanceTypeCompact = 0;
 
@@ -5654,31 +6057,33 @@ const int kCBLMaintenanceTypeReindex = 1;
 
 const int kCBLMaintenanceTypeIntegrityCheck = 2;
 
+const int kCBLMaintenanceTypeOptimize = 3;
+
+const int kCBLMaintenanceTypeFullOptimize = 4;
+
 const int kCBLConcurrencyControlLastWriteWins = 0;
 
 const int kCBLConcurrencyControlFailOnConflict = 1;
 
-const int kCBLLogDomainAll = 0;
+const int kCBLLogDomainDatabase = 0;
 
-const int kCBLLogDomainDatabase = 1;
+const int kCBLLogDomainQuery = 1;
 
-const int kCBLLogDomainQuery = 2;
+const int kCBLLogDomainReplicator = 2;
 
-const int kCBLLogDomainReplicator = 3;
+const int kCBLLogDomainNetwork = 3;
 
-const int kCBLLogDomainNetwork = 4;
+const int kCBLLogDebug = 0;
 
-const int CBLLogDebug = 0;
+const int kCBLLogVerbose = 1;
 
-const int CBLLogVerbose = 1;
+const int kCBLLogInfo = 2;
 
-const int CBLLogInfo = 2;
+const int kCBLLogWarning = 3;
 
-const int CBLLogWarning = 3;
+const int kCBLLogError = 4;
 
-const int CBLLogError = 4;
-
-const int CBLLogNone = 5;
+const int kCBLLogNone = 5;
 
 const int kCBLJSONLanguage = 0;
 
@@ -5720,499 +6125,41 @@ const int kCBLReplicatorFilterTypePush = 0;
 
 const int kCBLReplicatorFilterTypePull = 1;
 
-const int __COREFOUNDATION_CFBASE__ = 1;
+const int _SAL_VERSION = 20;
 
-const int DYNAMIC_TARGETS_ENABLED = 0;
+const int __SAL_H_VERSION = 180000000;
 
-const int TARGET_OS_MAC = 1;
+const int _USE_DECLSPECS_FOR_SAL = 0;
 
-const int TARGET_OS_WIN32 = 0;
+const int _USE_ATTRIBUTES_FOR_SAL = 0;
 
-const int TARGET_OS_UNIX = 0;
+const String HOTLEVEL = 'Ofast';
 
-const int TARGET_OS_OSX = 1;
+const String COLDLEVEL = 'Oz';
 
-const int TARGET_OS_IPHONE = 0;
+const int __bool_true_false_are_defined = 1;
 
-const int TARGET_OS_IOS = 0;
+const int false_1 = 0;
 
-const int TARGET_OS_WATCH = 0;
+const int true_1 = 1;
 
-const int TARGET_OS_TV = 0;
+const int _VCRT_COMPILER_PREPROCESSOR = 1;
 
-const int TARGET_OS_MACCATALYST = 0;
+const int _CRT_PACKING = 8;
 
-const int TARGET_OS_UIKITFORMAC = 0;
+const int _VCRUNTIME_DISABLED_WARNINGS = 4514;
 
-const int TARGET_OS_SIMULATOR = 0;
+const int _HAS_EXCEPTIONS = 1;
 
-const int TARGET_OS_EMBEDDED = 0;
+const int _WCHAR_T_DEFINED = 1;
 
-const int TARGET_OS_RTKIT = 0;
+const int NULL = 0;
 
-const int TARGET_OS_DRIVERKIT = 0;
+const int _HAS_CXX17 = 0;
 
-const int TARGET_IPHONE_SIMULATOR = 0;
+const int _HAS_CXX20 = 0;
 
-const int TARGET_OS_NANO = 0;
-
-const int TARGET_ABI_USES_IOS_VALUES = 0;
-
-const int TARGET_CPU_PPC = 0;
-
-const int TARGET_CPU_PPC64 = 0;
-
-const int TARGET_CPU_68K = 0;
-
-const int TARGET_CPU_X86 = 0;
-
-const int TARGET_CPU_X86_64 = 1;
-
-const int TARGET_CPU_ARM = 0;
-
-const int TARGET_CPU_ARM64 = 0;
-
-const int TARGET_CPU_MIPS = 0;
-
-const int TARGET_CPU_SPARC = 0;
-
-const int TARGET_CPU_ALPHA = 0;
-
-const int TARGET_RT_MAC_CFM = 0;
-
-const int TARGET_RT_MAC_MACHO = 1;
-
-const int TARGET_RT_LITTLE_ENDIAN = 1;
-
-const int TARGET_RT_BIG_ENDIAN = 0;
-
-const int TARGET_RT_64_BIT = 1;
-
-const int __COREFOUNDATION_CFAVAILABILITY__ = 1;
-
-const int __API_TO_BE_DEPRECATED = 100000;
-
-const int __MAC_10_0 = 1000;
-
-const int __MAC_10_1 = 1010;
-
-const int __MAC_10_2 = 1020;
-
-const int __MAC_10_3 = 1030;
-
-const int __MAC_10_4 = 1040;
-
-const int __MAC_10_5 = 1050;
-
-const int __MAC_10_6 = 1060;
-
-const int __MAC_10_7 = 1070;
-
-const int __MAC_10_8 = 1080;
-
-const int __MAC_10_9 = 1090;
-
-const int __MAC_10_10 = 101000;
-
-const int __MAC_10_10_2 = 101002;
-
-const int __MAC_10_10_3 = 101003;
-
-const int __MAC_10_11 = 101100;
-
-const int __MAC_10_11_2 = 101102;
-
-const int __MAC_10_11_3 = 101103;
-
-const int __MAC_10_11_4 = 101104;
-
-const int __MAC_10_12 = 101200;
-
-const int __MAC_10_12_1 = 101201;
-
-const int __MAC_10_12_2 = 101202;
-
-const int __MAC_10_12_4 = 101204;
-
-const int __MAC_10_13 = 101300;
-
-const int __MAC_10_13_1 = 101301;
-
-const int __MAC_10_13_2 = 101302;
-
-const int __MAC_10_13_4 = 101304;
-
-const int __MAC_10_14 = 101400;
-
-const int __MAC_10_14_1 = 101401;
-
-const int __MAC_10_14_4 = 101404;
-
-const int __MAC_10_14_6 = 101406;
-
-const int __MAC_10_15 = 101500;
-
-const int __MAC_10_15_1 = 101501;
-
-const int __MAC_10_15_4 = 101504;
-
-const int __MAC_10_16 = 101600;
-
-const int __MAC_11_0 = 110000;
-
-const int __MAC_11_1 = 110100;
-
-const int __IPHONE_2_0 = 20000;
-
-const int __IPHONE_2_1 = 20100;
-
-const int __IPHONE_2_2 = 20200;
-
-const int __IPHONE_3_0 = 30000;
-
-const int __IPHONE_3_1 = 30100;
-
-const int __IPHONE_3_2 = 30200;
-
-const int __IPHONE_4_0 = 40000;
-
-const int __IPHONE_4_1 = 40100;
-
-const int __IPHONE_4_2 = 40200;
-
-const int __IPHONE_4_3 = 40300;
-
-const int __IPHONE_5_0 = 50000;
-
-const int __IPHONE_5_1 = 50100;
-
-const int __IPHONE_6_0 = 60000;
-
-const int __IPHONE_6_1 = 60100;
-
-const int __IPHONE_7_0 = 70000;
-
-const int __IPHONE_7_1 = 70100;
-
-const int __IPHONE_8_0 = 80000;
-
-const int __IPHONE_8_1 = 80100;
-
-const int __IPHONE_8_2 = 80200;
-
-const int __IPHONE_8_3 = 80300;
-
-const int __IPHONE_8_4 = 80400;
-
-const int __IPHONE_9_0 = 90000;
-
-const int __IPHONE_9_1 = 90100;
-
-const int __IPHONE_9_2 = 90200;
-
-const int __IPHONE_9_3 = 90300;
-
-const int __IPHONE_10_0 = 100000;
-
-const int __IPHONE_10_1 = 100100;
-
-const int __IPHONE_10_2 = 100200;
-
-const int __IPHONE_10_3 = 100300;
-
-const int __IPHONE_11_0 = 110000;
-
-const int __IPHONE_11_1 = 110100;
-
-const int __IPHONE_11_2 = 110200;
-
-const int __IPHONE_11_3 = 110300;
-
-const int __IPHONE_11_4 = 110400;
-
-const int __IPHONE_12_0 = 120000;
-
-const int __IPHONE_12_1 = 120100;
-
-const int __IPHONE_12_2 = 120200;
-
-const int __IPHONE_12_3 = 120300;
-
-const int __IPHONE_12_4 = 120400;
-
-const int __IPHONE_13_0 = 130000;
-
-const int __IPHONE_13_1 = 130100;
-
-const int __IPHONE_13_2 = 130200;
-
-const int __IPHONE_13_3 = 130300;
-
-const int __IPHONE_13_4 = 130400;
-
-const int __IPHONE_13_5 = 130500;
-
-const int __IPHONE_13_6 = 130600;
-
-const int __IPHONE_13_7 = 130700;
-
-const int __IPHONE_14_0 = 140000;
-
-const int __IPHONE_14_1 = 140100;
-
-const int __IPHONE_14_2 = 140200;
-
-const int __IPHONE_14_3 = 140300;
-
-const int __TVOS_9_0 = 90000;
-
-const int __TVOS_9_1 = 90100;
-
-const int __TVOS_9_2 = 90200;
-
-const int __TVOS_10_0 = 100000;
-
-const int __TVOS_10_0_1 = 100001;
-
-const int __TVOS_10_1 = 100100;
-
-const int __TVOS_10_2 = 100200;
-
-const int __TVOS_11_0 = 110000;
-
-const int __TVOS_11_1 = 110100;
-
-const int __TVOS_11_2 = 110200;
-
-const int __TVOS_11_3 = 110300;
-
-const int __TVOS_11_4 = 110400;
-
-const int __TVOS_12_0 = 120000;
-
-const int __TVOS_12_1 = 120100;
-
-const int __TVOS_12_2 = 120200;
-
-const int __TVOS_12_3 = 120300;
-
-const int __TVOS_12_4 = 120400;
-
-const int __TVOS_13_0 = 130000;
-
-const int __TVOS_13_2 = 130200;
-
-const int __TVOS_13_3 = 130300;
-
-const int __TVOS_13_4 = 130400;
-
-const int __TVOS_14_0 = 140000;
-
-const int __TVOS_14_1 = 140100;
-
-const int __TVOS_14_2 = 140200;
-
-const int __TVOS_14_3 = 140300;
-
-const int __WATCHOS_1_0 = 10000;
-
-const int __WATCHOS_2_0 = 20000;
-
-const int __WATCHOS_2_1 = 20100;
-
-const int __WATCHOS_2_2 = 20200;
-
-const int __WATCHOS_3_0 = 30000;
-
-const int __WATCHOS_3_1 = 30100;
-
-const int __WATCHOS_3_1_1 = 30101;
-
-const int __WATCHOS_3_2 = 30200;
-
-const int __WATCHOS_4_0 = 40000;
-
-const int __WATCHOS_4_1 = 40100;
-
-const int __WATCHOS_4_2 = 40200;
-
-const int __WATCHOS_4_3 = 40300;
-
-const int __WATCHOS_5_0 = 50000;
-
-const int __WATCHOS_5_1 = 50100;
-
-const int __WATCHOS_5_2 = 50200;
-
-const int __WATCHOS_5_3 = 50300;
-
-const int __WATCHOS_6_0 = 60000;
-
-const int __WATCHOS_6_1 = 60100;
-
-const int __WATCHOS_6_2 = 60200;
-
-const int __WATCHOS_7_0 = 70000;
-
-const int __WATCHOS_7_1 = 70100;
-
-const int __WATCHOS_7_2 = 70200;
-
-const int MAC_OS_X_VERSION_10_0 = 1000;
-
-const int MAC_OS_X_VERSION_10_1 = 1010;
-
-const int MAC_OS_X_VERSION_10_2 = 1020;
-
-const int MAC_OS_X_VERSION_10_3 = 1030;
-
-const int MAC_OS_X_VERSION_10_4 = 1040;
-
-const int MAC_OS_X_VERSION_10_5 = 1050;
-
-const int MAC_OS_X_VERSION_10_6 = 1060;
-
-const int MAC_OS_X_VERSION_10_7 = 1070;
-
-const int MAC_OS_X_VERSION_10_8 = 1080;
-
-const int MAC_OS_X_VERSION_10_9 = 1090;
-
-const int MAC_OS_X_VERSION_10_10 = 101000;
-
-const int MAC_OS_X_VERSION_10_10_2 = 101002;
-
-const int MAC_OS_X_VERSION_10_10_3 = 101003;
-
-const int MAC_OS_X_VERSION_10_11 = 101100;
-
-const int MAC_OS_X_VERSION_10_11_2 = 101102;
-
-const int MAC_OS_X_VERSION_10_11_3 = 101103;
-
-const int MAC_OS_X_VERSION_10_11_4 = 101104;
-
-const int MAC_OS_X_VERSION_10_12 = 101200;
-
-const int MAC_OS_X_VERSION_10_12_1 = 101201;
-
-const int MAC_OS_X_VERSION_10_12_2 = 101202;
-
-const int MAC_OS_X_VERSION_10_12_4 = 101204;
-
-const int MAC_OS_X_VERSION_10_13 = 101300;
-
-const int MAC_OS_X_VERSION_10_13_1 = 101301;
-
-const int MAC_OS_X_VERSION_10_13_2 = 101302;
-
-const int MAC_OS_X_VERSION_10_13_4 = 101304;
-
-const int MAC_OS_X_VERSION_10_14 = 101400;
-
-const int MAC_OS_X_VERSION_10_14_1 = 101401;
-
-const int MAC_OS_X_VERSION_10_14_4 = 101404;
-
-const int MAC_OS_X_VERSION_10_14_6 = 101406;
-
-const int MAC_OS_X_VERSION_10_15 = 101500;
-
-const int MAC_OS_X_VERSION_10_15_1 = 101501;
-
-const int MAC_OS_X_VERSION_10_16 = 101600;
-
-const int MAC_OS_VERSION_11_0 = 110000;
-
-const int __DRIVERKIT_19_0 = 190000;
-
-const int __DRIVERKIT_20_0 = 200000;
-
-const int __MAC_OS_X_VERSION_MIN_REQUIRED = 110000;
-
-const int __MAC_OS_X_VERSION_MAX_ALLOWED = 110100;
-
-const int __ENABLE_LEGACY_MAC_AVAILABILITY = 1;
-
-const int API_TO_BE_DEPRECATED = 100000;
-
-const int MAC_OS_VERSION_11_1 = 110100;
-
-const int MAC_OS_X_VERSION_MIN_REQUIRED = 110000;
-
-const int MAC_OS_X_VERSION_MAX_ALLOWED = 110100;
-
-const int __AVAILABILITY_MACROS_USES_AVAILABILITY = 1;
-
-const int __CF_ENUM_FIXED_IS_AVAILABLE = 1;
-
-const int __WORDSIZE = 64;
-
-const int __DARWIN_ONLY_64_BIT_INO_T = 0;
-
-const int __DARWIN_ONLY_UNIX_CONFORMANCE = 1;
-
-const int __DARWIN_ONLY_VERS_1050 = 0;
-
-const int __DARWIN_UNIX03 = 1;
-
-const int __DARWIN_64_BIT_INO_T = 1;
-
-const int __DARWIN_VERS_1050 = 1;
-
-const int __DARWIN_NON_CANCELABLE = 0;
-
-const String __DARWIN_SUF_64_BIT_INO_T = '\$INODE64';
-
-const String __DARWIN_SUF_1050 = '\$1050';
-
-const String __DARWIN_SUF_EXTSN = '\$DARWIN_EXTSN';
-
-const int __DARWIN_C_ANSI = 4096;
-
-const int __DARWIN_C_FULL = 900000;
-
-const int __DARWIN_C_LEVEL = 900000;
-
-const int __STDC_WANT_LIB_EXT1__ = 1;
-
-const int __DARWIN_NO_LONG_LONG = 0;
-
-const int _DARWIN_FEATURE_64_BIT_INODE = 1;
-
-const int _DARWIN_FEATURE_ONLY_UNIX_CONFORMANCE = 1;
-
-const int _DARWIN_FEATURE_UNIX_CONFORMANCE = 3;
-
-const int __DARWIN_NULL = 0;
-
-const int __PTHREAD_SIZE__ = 8176;
-
-const int __PTHREAD_ATTR_SIZE__ = 56;
-
-const int __PTHREAD_MUTEXATTR_SIZE__ = 8;
-
-const int __PTHREAD_MUTEX_SIZE__ = 56;
-
-const int __PTHREAD_CONDATTR_SIZE__ = 8;
-
-const int __PTHREAD_COND_SIZE__ = 40;
-
-const int __PTHREAD_ONCE_SIZE__ = 8;
-
-const int __PTHREAD_RWLOCK_SIZE__ = 192;
-
-const int __PTHREAD_RWLOCKATTR_SIZE__ = 16;
-
-const int USER_ADDR_NULL = 0;
-
-const int INT8_MAX = 127;
-
-const int INT16_MAX = 32767;
-
-const int INT32_MAX = 2147483647;
-
-const int INT64_MAX = 9223372036854775807;
+const int _HAS_NODISCARD = 1;
 
 const int INT8_MIN = -128;
 
@@ -6221,6 +6168,14 @@ const int INT16_MIN = -32768;
 const int INT32_MIN = -2147483648;
 
 const int INT64_MIN = -9223372036854775808;
+
+const int INT8_MAX = 127;
+
+const int INT16_MAX = 32767;
+
+const int INT32_MAX = 2147483647;
+
+const int INT64_MAX = 9223372036854775807;
 
 const int UINT8_MAX = 255;
 
@@ -6256,7 +6211,7 @@ const int UINT_LEAST64_MAX = -1;
 
 const int INT_FAST8_MIN = -128;
 
-const int INT_FAST16_MIN = -32768;
+const int INT_FAST16_MIN = -2147483648;
 
 const int INT_FAST32_MIN = -2147483648;
 
@@ -6264,7 +6219,7 @@ const int INT_FAST64_MIN = -9223372036854775808;
 
 const int INT_FAST8_MAX = 127;
 
-const int INT_FAST16_MAX = 32767;
+const int INT_FAST16_MAX = 2147483647;
 
 const int INT_FAST32_MAX = 2147483647;
 
@@ -6272,23 +6227,23 @@ const int INT_FAST64_MAX = 9223372036854775807;
 
 const int UINT_FAST8_MAX = 255;
 
-const int UINT_FAST16_MAX = 65535;
+const int UINT_FAST16_MAX = 4294967295;
 
 const int UINT_FAST32_MAX = 4294967295;
 
 const int UINT_FAST64_MAX = -1;
 
-const int INTPTR_MAX = 9223372036854775807;
-
 const int INTPTR_MIN = -9223372036854775808;
 
+const int INTPTR_MAX = 9223372036854775807;
+
 const int UINTPTR_MAX = -1;
+
+const int INTMAX_MIN = -9223372036854775808;
 
 const int INTMAX_MAX = 9223372036854775807;
 
 const int UINTMAX_MAX = -1;
-
-const int INTMAX_MIN = -9223372036854775808;
 
 const int PTRDIFF_MIN = -9223372036854775808;
 
@@ -6296,1093 +6251,725 @@ const int PTRDIFF_MAX = 9223372036854775807;
 
 const int SIZE_MAX = -1;
 
-const int RSIZE_MAX = 9223372036854775807;
-
-const int WCHAR_MAX = 2147483647;
-
-const int WCHAR_MIN = -2147483648;
-
-const int WINT_MIN = -2147483648;
-
-const int WINT_MAX = 2147483647;
-
 const int SIG_ATOMIC_MIN = -2147483648;
 
 const int SIG_ATOMIC_MAX = 2147483647;
 
-const int true_1 = 1;
+const int WCHAR_MIN = 0;
 
-const int false_1 = 0;
+const int WCHAR_MAX = 65535;
 
-const int __bool_true_false_are_defined = 1;
+const int WINT_MIN = 0;
 
-const int UNIVERSAL_INTERFACES_VERSION = 1024;
+const int WINT_MAX = 65535;
 
-const int PRAGMA_IMPORT = 0;
+const int _ARGMAX = 100;
 
-const int PRAGMA_ONCE = 0;
+const int _TRUNCATE = -1;
 
-const int PRAGMA_STRUCT_PACK = 1;
+const int _CRT_INT_MAX = 2147483647;
 
-const int PRAGMA_STRUCT_PACKPUSH = 1;
+const int _CRT_SIZE_MAX = -1;
 
-const int PRAGMA_STRUCT_ALIGN = 0;
+const String __FILEW__ = 't';
 
-const int PRAGMA_ENUM_PACK = 0;
+const int _CRT_FUNCTIONS_REQUIRED = 1;
 
-const int PRAGMA_ENUM_ALWAYSINT = 0;
+const int _CRT_HAS_CXX17 = 0;
 
-const int PRAGMA_ENUM_OPTIONS = 0;
+const int _ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE = 1;
 
-const int TYPE_EXTENDED = 0;
+const int _CRT_BUILD_DESKTOP_APP = 1;
 
-const int TYPE_LONGDOUBLE_IS_DOUBLE = 0;
+const int _CRT_INTERNAL_NONSTDC_NAMES = 1;
 
-const int TYPE_LONGLONG = 1;
+const int __STDC_SECURE_LIB__ = 200411;
 
-const int FUNCTION_PASCAL = 0;
+const int __GOT_SECURE_LIB__ = 200411;
 
-const int FUNCTION_DECLSPEC = 0;
+const int __STDC_WANT_SECURE_LIB__ = 1;
 
-const int FUNCTION_WIN32CC = 0;
+const int _SECURECRT_FILL_BUFFER_PATTERN = 254;
 
-const int TARGET_API_MAC_OS8 = 0;
+const int _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES = 0;
 
-const int TARGET_API_MAC_CARBON = 1;
+const int _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT = 0;
 
-const int TARGET_API_MAC_OSX = 1;
+const int _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES = 1;
 
-const int TARGET_CARBON = 1;
+const int _CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_MEMORY = 0;
 
-const int OLDROUTINENAMES = 0;
+const int _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES_MEMORY = 0;
 
-const int OPAQUE_TOOLBOX_STRUCTS = 1;
+const int _MAX_ITOSTR_BASE16_COUNT = 9;
 
-const int OPAQUE_UPP_TYPES = 1;
+const int _MAX_ITOSTR_BASE10_COUNT = 12;
 
-const int ACCESSOR_CALLS_ARE_FUNCTIONS = 1;
+const int _MAX_ITOSTR_BASE8_COUNT = 12;
 
-const int CALL_NOT_IN_CARBON = 0;
+const int _MAX_ITOSTR_BASE2_COUNT = 33;
 
-const int MIXEDMODE_CALLS_ARE_FUNCTIONS = 1;
+const int _MAX_LTOSTR_BASE16_COUNT = 9;
 
-const int _QUAD_HIGHWORD = 1;
+const int _MAX_LTOSTR_BASE10_COUNT = 12;
 
-const int _QUAD_LOWWORD = 0;
+const int _MAX_LTOSTR_BASE8_COUNT = 12;
 
-const int __DARWIN_LITTLE_ENDIAN = 1234;
+const int _MAX_LTOSTR_BASE2_COUNT = 33;
 
-const int __DARWIN_BIG_ENDIAN = 4321;
+const int _MAX_ULTOSTR_BASE16_COUNT = 9;
 
-const int __DARWIN_PDP_ENDIAN = 3412;
+const int _MAX_ULTOSTR_BASE10_COUNT = 11;
 
-const int __DARWIN_BYTE_ORDER = 1234;
+const int _MAX_ULTOSTR_BASE8_COUNT = 12;
 
-const int LITTLE_ENDIAN = 1234;
+const int _MAX_ULTOSTR_BASE2_COUNT = 33;
 
-const int BIG_ENDIAN = 4321;
+const int _MAX_I64TOSTR_BASE16_COUNT = 17;
 
-const int PDP_ENDIAN = 3412;
+const int _MAX_I64TOSTR_BASE10_COUNT = 21;
 
-const int BYTE_ORDER = 1234;
+const int _MAX_I64TOSTR_BASE8_COUNT = 23;
 
-const int __DARWIN_FD_SETSIZE = 1024;
+const int _MAX_I64TOSTR_BASE2_COUNT = 65;
 
-const int __DARWIN_NBBY = 8;
+const int _MAX_U64TOSTR_BASE16_COUNT = 17;
 
-const int __DARWIN_NFDBITS = 32;
+const int _MAX_U64TOSTR_BASE10_COUNT = 21;
 
-const int NBBY = 8;
+const int _MAX_U64TOSTR_BASE8_COUNT = 23;
 
-const int NFDBITS = 32;
+const int _MAX_U64TOSTR_BASE2_COUNT = 65;
 
-const int FD_SETSIZE = 1024;
+const int CHAR_BIT = 8;
 
-const int ALLOW_OBSOLETE_CARBON_MACMEMORY = 0;
+const int SCHAR_MIN = -128;
 
-const int ALLOW_OBSOLETE_CARBON_OSUTILS = 0;
+const int SCHAR_MAX = 127;
 
-const int NULL = 0;
+const int UCHAR_MAX = 255;
 
-const int kInvalidID = 0;
+const int CHAR_MIN = -128;
 
-const int TRUE = 1;
+const int CHAR_MAX = 127;
 
-const int FALSE = 0;
+const int MB_LEN_MAX = 5;
 
-const double kCFCoreFoundationVersionNumber10_0 = 196.4;
+const int SHRT_MIN = -32768;
 
-const double kCFCoreFoundationVersionNumber10_0_3 = 196.5;
+const int SHRT_MAX = 32767;
 
-const double kCFCoreFoundationVersionNumber10_1 = 226.0;
+const int USHRT_MAX = 65535;
 
-const double kCFCoreFoundationVersionNumber10_1_1 = 226.0;
+const int INT_MIN = -2147483648;
 
-const double kCFCoreFoundationVersionNumber10_1_2 = 227.2;
+const int INT_MAX = 2147483647;
 
-const double kCFCoreFoundationVersionNumber10_1_3 = 227.2;
+const int UINT_MAX = 4294967295;
 
-const double kCFCoreFoundationVersionNumber10_1_4 = 227.3;
+const int LONG_MIN = -2147483648;
 
-const double kCFCoreFoundationVersionNumber10_2 = 263.0;
+const int LONG_MAX = 2147483647;
 
-const double kCFCoreFoundationVersionNumber10_2_1 = 263.1;
+const int ULONG_MAX = 4294967295;
 
-const double kCFCoreFoundationVersionNumber10_2_2 = 263.1;
+const int LLONG_MAX = 9223372036854775807;
 
-const double kCFCoreFoundationVersionNumber10_2_3 = 263.3;
+const int LLONG_MIN = -9223372036854775808;
 
-const double kCFCoreFoundationVersionNumber10_2_4 = 263.3;
+const int ULLONG_MAX = -1;
 
-const double kCFCoreFoundationVersionNumber10_2_5 = 263.5;
+const int _I8_MIN = -128;
 
-const double kCFCoreFoundationVersionNumber10_2_6 = 263.5;
+const int _I8_MAX = 127;
 
-const double kCFCoreFoundationVersionNumber10_2_7 = 263.5;
+const int _UI8_MAX = 255;
 
-const double kCFCoreFoundationVersionNumber10_2_8 = 263.5;
+const int _I16_MIN = -32768;
 
-const double kCFCoreFoundationVersionNumber10_3 = 299.0;
+const int _I16_MAX = 32767;
 
-const double kCFCoreFoundationVersionNumber10_3_1 = 299.0;
+const int _UI16_MAX = 65535;
 
-const double kCFCoreFoundationVersionNumber10_3_2 = 299.0;
+const int _I32_MIN = -2147483648;
 
-const double kCFCoreFoundationVersionNumber10_3_3 = 299.3;
+const int _I32_MAX = 2147483647;
 
-const double kCFCoreFoundationVersionNumber10_3_4 = 299.31;
+const int _UI32_MAX = 4294967295;
 
-const double kCFCoreFoundationVersionNumber10_3_5 = 299.31;
+const int _I64_MIN = -9223372036854775808;
 
-const double kCFCoreFoundationVersionNumber10_3_6 = 299.32;
+const int _I64_MAX = 9223372036854775807;
 
-const double kCFCoreFoundationVersionNumber10_3_7 = 299.33;
+const int _UI64_MAX = -1;
 
-const double kCFCoreFoundationVersionNumber10_3_8 = 299.33;
-
-const double kCFCoreFoundationVersionNumber10_3_9 = 299.35;
-
-const double kCFCoreFoundationVersionNumber10_4 = 368.0;
-
-const double kCFCoreFoundationVersionNumber10_4_1 = 368.1;
-
-const double kCFCoreFoundationVersionNumber10_4_2 = 368.11;
-
-const double kCFCoreFoundationVersionNumber10_4_3 = 368.18;
-
-const double kCFCoreFoundationVersionNumber10_4_4_Intel = 368.26;
-
-const double kCFCoreFoundationVersionNumber10_4_4_PowerPC = 368.25;
-
-const double kCFCoreFoundationVersionNumber10_4_5_Intel = 368.26;
-
-const double kCFCoreFoundationVersionNumber10_4_5_PowerPC = 368.25;
-
-const double kCFCoreFoundationVersionNumber10_4_6_Intel = 368.26;
-
-const double kCFCoreFoundationVersionNumber10_4_6_PowerPC = 368.25;
-
-const double kCFCoreFoundationVersionNumber10_4_7 = 368.27;
-
-const double kCFCoreFoundationVersionNumber10_4_8 = 368.27;
-
-const double kCFCoreFoundationVersionNumber10_4_9 = 368.28;
-
-const double kCFCoreFoundationVersionNumber10_4_10 = 368.28;
-
-const double kCFCoreFoundationVersionNumber10_4_11 = 368.31;
-
-const double kCFCoreFoundationVersionNumber10_5 = 476.0;
-
-const double kCFCoreFoundationVersionNumber10_5_1 = 476.0;
-
-const double kCFCoreFoundationVersionNumber10_5_2 = 476.1;
-
-const double kCFCoreFoundationVersionNumber10_5_3 = 476.13;
-
-const double kCFCoreFoundationVersionNumber10_5_4 = 476.14;
-
-const double kCFCoreFoundationVersionNumber10_5_5 = 476.15;
-
-const double kCFCoreFoundationVersionNumber10_5_6 = 476.17;
-
-const double kCFCoreFoundationVersionNumber10_5_7 = 476.18;
-
-const double kCFCoreFoundationVersionNumber10_5_8 = 476.19;
-
-const double kCFCoreFoundationVersionNumber10_6 = 550.0;
-
-const double kCFCoreFoundationVersionNumber10_6_1 = 550.0;
-
-const double kCFCoreFoundationVersionNumber10_6_2 = 550.13;
-
-const double kCFCoreFoundationVersionNumber10_6_3 = 550.19;
-
-const double kCFCoreFoundationVersionNumber10_6_4 = 550.29;
-
-const double kCFCoreFoundationVersionNumber10_6_5 = 550.42;
-
-const double kCFCoreFoundationVersionNumber10_6_6 = 550.42;
-
-const double kCFCoreFoundationVersionNumber10_6_7 = 550.42;
-
-const double kCFCoreFoundationVersionNumber10_6_8 = 550.43;
-
-const double kCFCoreFoundationVersionNumber10_7 = 635.0;
-
-const double kCFCoreFoundationVersionNumber10_7_1 = 635.0;
-
-const double kCFCoreFoundationVersionNumber10_7_2 = 635.15;
-
-const double kCFCoreFoundationVersionNumber10_7_3 = 635.19;
-
-const double kCFCoreFoundationVersionNumber10_7_4 = 635.21;
-
-const double kCFCoreFoundationVersionNumber10_7_5 = 635.21;
-
-const double kCFCoreFoundationVersionNumber10_8 = 744.0;
-
-const double kCFCoreFoundationVersionNumber10_8_1 = 744.0;
-
-const double kCFCoreFoundationVersionNumber10_8_2 = 744.12;
-
-const double kCFCoreFoundationVersionNumber10_8_3 = 744.18;
-
-const double kCFCoreFoundationVersionNumber10_8_4 = 744.19;
-
-const double kCFCoreFoundationVersionNumber10_9 = 855.11;
-
-const double kCFCoreFoundationVersionNumber10_9_1 = 855.11;
-
-const double kCFCoreFoundationVersionNumber10_9_2 = 855.14;
-
-const double kCFCoreFoundationVersionNumber10_10 = 1151.16;
-
-const double kCFCoreFoundationVersionNumber10_10_1 = 1151.16;
-
-const int kCFCoreFoundationVersionNumber10_10_2 = 1152;
-
-const double kCFCoreFoundationVersionNumber10_10_3 = 1153.18;
-
-const double kCFCoreFoundationVersionNumber10_10_4 = 1153.18;
-
-const double kCFCoreFoundationVersionNumber10_10_5 = 1153.18;
-
-const int kCFCoreFoundationVersionNumber10_10_Max = 1199;
-
-const int kCFCoreFoundationVersionNumber10_11 = 1253;
-
-const double kCFCoreFoundationVersionNumber10_11_1 = 1255.1;
-
-const double kCFCoreFoundationVersionNumber10_11_2 = 1256.14;
-
-const double kCFCoreFoundationVersionNumber10_11_3 = 1256.14;
-
-const double kCFCoreFoundationVersionNumber10_11_4 = 1258.1;
-
-const int kCFCoreFoundationVersionNumber10_11_Max = 1299;
-
-const int ISA_PTRAUTH_DISCRIMINATOR = 27361;
-
-const int __DARWIN_WCHAR_MAX = 2147483647;
-
-const int __DARWIN_WCHAR_MIN = -2147483648;
-
-const int __DARWIN_WEOF = -1;
-
-const int _FORTIFY_SOURCE = 2;
-
-const int __DARWIN_NSIG = 32;
-
-const int NSIG = 32;
-
-const int _I386_SIGNAL_H_ = 1;
-
-const int SIGHUP = 1;
-
-const int SIGINT = 2;
-
-const int SIGQUIT = 3;
-
-const int SIGILL = 4;
-
-const int SIGTRAP = 5;
-
-const int SIGABRT = 6;
-
-const int SIGIOT = 6;
-
-const int SIGEMT = 7;
-
-const int SIGFPE = 8;
-
-const int SIGKILL = 9;
-
-const int SIGBUS = 10;
-
-const int SIGSEGV = 11;
-
-const int SIGSYS = 12;
-
-const int SIGPIPE = 13;
-
-const int SIGALRM = 14;
-
-const int SIGTERM = 15;
-
-const int SIGURG = 16;
-
-const int SIGSTOP = 17;
-
-const int SIGTSTP = 18;
-
-const int SIGCONT = 19;
-
-const int SIGCHLD = 20;
-
-const int SIGTTIN = 21;
-
-const int SIGTTOU = 22;
-
-const int SIGIO = 23;
-
-const int SIGXCPU = 24;
-
-const int SIGXFSZ = 25;
-
-const int SIGVTALRM = 26;
-
-const int SIGPROF = 27;
-
-const int SIGWINCH = 28;
-
-const int SIGINFO = 29;
-
-const int SIGUSR1 = 30;
-
-const int SIGUSR2 = 31;
-
-const int FP_PREC_24B = 0;
-
-const int FP_PREC_53B = 2;
-
-const int FP_PREC_64B = 3;
-
-const int FP_RND_NEAR = 0;
-
-const int FP_RND_DOWN = 1;
-
-const int FP_RND_UP = 2;
-
-const int FP_CHOP = 3;
-
-const int FP_STATE_BYTES = 512;
-
-const int _X86_INSTRUCTION_STATE_MAX_INSN_BYTES = 2380;
-
-const int _X86_INSTRUCTION_STATE_CACHELINE_SIZE = 64;
-
-const int __LASTBRANCH_MAX = 32;
-
-const int SIGEV_NONE = 0;
-
-const int SIGEV_SIGNAL = 1;
-
-const int SIGEV_THREAD = 3;
-
-const int ILL_NOOP = 0;
-
-const int ILL_ILLOPC = 1;
-
-const int ILL_ILLTRP = 2;
-
-const int ILL_PRVOPC = 3;
-
-const int ILL_ILLOPN = 4;
-
-const int ILL_ILLADR = 5;
-
-const int ILL_PRVREG = 6;
-
-const int ILL_COPROC = 7;
-
-const int ILL_BADSTK = 8;
-
-const int FPE_NOOP = 0;
-
-const int FPE_FLTDIV = 1;
-
-const int FPE_FLTOVF = 2;
-
-const int FPE_FLTUND = 3;
-
-const int FPE_FLTRES = 4;
-
-const int FPE_FLTINV = 5;
-
-const int FPE_FLTSUB = 6;
-
-const int FPE_INTDIV = 7;
-
-const int FPE_INTOVF = 8;
-
-const int SEGV_NOOP = 0;
-
-const int SEGV_MAPERR = 1;
-
-const int SEGV_ACCERR = 2;
-
-const int BUS_NOOP = 0;
-
-const int BUS_ADRALN = 1;
-
-const int BUS_ADRERR = 2;
-
-const int BUS_OBJERR = 3;
-
-const int TRAP_BRKPT = 1;
-
-const int TRAP_TRACE = 2;
-
-const int CLD_NOOP = 0;
-
-const int CLD_EXITED = 1;
-
-const int CLD_KILLED = 2;
-
-const int CLD_DUMPED = 3;
-
-const int CLD_TRAPPED = 4;
-
-const int CLD_STOPPED = 5;
-
-const int CLD_CONTINUED = 6;
-
-const int POLL_IN = 1;
-
-const int POLL_OUT = 2;
-
-const int POLL_MSG = 3;
-
-const int POLL_ERR = 4;
-
-const int POLL_PRI = 5;
-
-const int POLL_HUP = 6;
-
-const int SA_ONSTACK = 1;
-
-const int SA_RESTART = 2;
-
-const int SA_RESETHAND = 4;
-
-const int SA_NOCLDSTOP = 8;
-
-const int SA_NODEFER = 16;
-
-const int SA_NOCLDWAIT = 32;
-
-const int SA_SIGINFO = 64;
-
-const int SA_USERTRAMP = 256;
-
-const int SA_64REGSET = 512;
-
-const int SA_USERSPACE_MASK = 127;
-
-const int SIG_BLOCK = 1;
-
-const int SIG_UNBLOCK = 2;
-
-const int SIG_SETMASK = 3;
-
-const int SI_USER = 65537;
-
-const int SI_QUEUE = 65538;
-
-const int SI_TIMER = 65539;
-
-const int SI_ASYNCIO = 65540;
-
-const int SI_MESGQ = 65541;
-
-const int SS_ONSTACK = 1;
-
-const int SS_DISABLE = 4;
-
-const int MINSIGSTKSZ = 32768;
-
-const int SIGSTKSZ = 131072;
-
-const int SV_ONSTACK = 1;
-
-const int SV_INTERRUPT = 2;
-
-const int SV_RESETHAND = 4;
-
-const int SV_NODEFER = 16;
-
-const int SV_NOCLDSTOP = 8;
-
-const int SV_SIGINFO = 64;
-
-const int PRIO_PROCESS = 0;
-
-const int PRIO_PGRP = 1;
-
-const int PRIO_USER = 2;
-
-const int PRIO_DARWIN_THREAD = 3;
-
-const int PRIO_DARWIN_PROCESS = 4;
-
-const int PRIO_MIN = -20;
-
-const int PRIO_MAX = 20;
-
-const int PRIO_DARWIN_BG = 4096;
-
-const int PRIO_DARWIN_NONUI = 4097;
-
-const int RUSAGE_SELF = 0;
-
-const int RUSAGE_CHILDREN = -1;
-
-const int RUSAGE_INFO_V0 = 0;
-
-const int RUSAGE_INFO_V1 = 1;
-
-const int RUSAGE_INFO_V2 = 2;
-
-const int RUSAGE_INFO_V3 = 3;
-
-const int RUSAGE_INFO_V4 = 4;
-
-const int RUSAGE_INFO_V5 = 5;
-
-const int RUSAGE_INFO_CURRENT = 5;
-
-const int RU_PROC_RUNS_RESLIDE = 1;
-
-const int RLIM_INFINITY = 9223372036854775807;
-
-const int RLIM_SAVED_MAX = 9223372036854775807;
-
-const int RLIM_SAVED_CUR = 9223372036854775807;
-
-const int RLIMIT_CPU = 0;
-
-const int RLIMIT_FSIZE = 1;
-
-const int RLIMIT_DATA = 2;
-
-const int RLIMIT_STACK = 3;
-
-const int RLIMIT_CORE = 4;
-
-const int RLIMIT_AS = 5;
-
-const int RLIMIT_RSS = 5;
-
-const int RLIMIT_MEMLOCK = 6;
-
-const int RLIMIT_NPROC = 7;
-
-const int RLIMIT_NOFILE = 8;
-
-const int RLIM_NLIMITS = 9;
-
-const int _RLIMIT_POSIX_FLAG = 4096;
-
-const int RLIMIT_WAKEUPS_MONITOR = 1;
-
-const int RLIMIT_CPU_USAGE_MONITOR = 2;
-
-const int RLIMIT_THREAD_CPULIMITS = 3;
-
-const int RLIMIT_FOOTPRINT_INTERVAL = 4;
-
-const int WAKEMON_ENABLE = 1;
-
-const int WAKEMON_DISABLE = 2;
-
-const int WAKEMON_GET_PARAMS = 4;
-
-const int WAKEMON_SET_DEFAULTS = 8;
-
-const int WAKEMON_MAKE_FATAL = 16;
-
-const int CPUMON_MAKE_FATAL = 4096;
-
-const int FOOTPRINT_INTERVAL_RESET = 1;
-
-const int IOPOL_TYPE_DISK = 0;
-
-const int IOPOL_TYPE_VFS_ATIME_UPDATES = 2;
-
-const int IOPOL_TYPE_VFS_MATERIALIZE_DATALESS_FILES = 3;
-
-const int IOPOL_TYPE_VFS_STATFS_NO_DATA_VOLUME = 4;
-
-const int IOPOL_TYPE_VFS_TRIGGER_RESOLVE = 5;
-
-const int IOPOL_TYPE_VFS_IGNORE_CONTENT_PROTECTION = 6;
-
-const int IOPOL_SCOPE_PROCESS = 0;
-
-const int IOPOL_SCOPE_THREAD = 1;
-
-const int IOPOL_SCOPE_DARWIN_BG = 2;
-
-const int IOPOL_DEFAULT = 0;
-
-const int IOPOL_IMPORTANT = 1;
-
-const int IOPOL_PASSIVE = 2;
-
-const int IOPOL_THROTTLE = 3;
-
-const int IOPOL_UTILITY = 4;
-
-const int IOPOL_STANDARD = 5;
-
-const int IOPOL_APPLICATION = 5;
-
-const int IOPOL_NORMAL = 1;
-
-const int IOPOL_ATIME_UPDATES_DEFAULT = 0;
-
-const int IOPOL_ATIME_UPDATES_OFF = 1;
-
-const int IOPOL_MATERIALIZE_DATALESS_FILES_DEFAULT = 0;
-
-const int IOPOL_MATERIALIZE_DATALESS_FILES_OFF = 1;
-
-const int IOPOL_MATERIALIZE_DATALESS_FILES_ON = 2;
-
-const int IOPOL_VFS_STATFS_NO_DATA_VOLUME_DEFAULT = 0;
-
-const int IOPOL_VFS_STATFS_FORCE_NO_DATA_VOLUME = 1;
-
-const int IOPOL_VFS_TRIGGER_RESOLVE_DEFAULT = 0;
-
-const int IOPOL_VFS_TRIGGER_RESOLVE_OFF = 1;
-
-const int IOPOL_VFS_CONTENT_PROTECTION_DEFAULT = 0;
-
-const int IOPOL_VFS_CONTENT_PROTECTION_IGNORE = 1;
-
-const int WNOHANG = 1;
-
-const int WUNTRACED = 2;
-
-const int WCOREFLAG = 128;
-
-const int _WSTOPPED = 127;
-
-const int WEXITED = 4;
-
-const int WSTOPPED = 8;
-
-const int WCONTINUED = 16;
-
-const int WNOWAIT = 32;
-
-const int WAIT_ANY = -1;
-
-const int WAIT_MYPGRP = 0;
-
-const int EXIT_FAILURE = 1;
+const int RSIZE_MAX = 9223372036854775807;
 
 const int EXIT_SUCCESS = 0;
 
-const int RAND_MAX = 2147483647;
+const int EXIT_FAILURE = 1;
 
-const int RENAME_SECLUDE = 1;
+const int _WRITE_ABORT_MSG = 1;
 
-const int RENAME_SWAP = 2;
+const int _CALL_REPORTFAULT = 2;
 
-const int RENAME_EXCL = 4;
+const int _OUT_TO_DEFAULT = 0;
 
-const int __SLBF = 1;
+const int _OUT_TO_STDERR = 1;
 
-const int __SNBF = 2;
+const int _OUT_TO_MSGBOX = 2;
 
-const int __SRD = 4;
+const int _REPORT_ERRMODE = 3;
 
-const int __SWR = 8;
+const int RAND_MAX = 32767;
 
-const int __SRW = 16;
+const int _CVTBUFSIZE = 349;
 
-const int __SEOF = 32;
+const int _MAX_PATH = 260;
 
-const int __SERR = 64;
+const int _MAX_DRIVE = 3;
 
-const int __SMBF = 128;
+const int _MAX_DIR = 256;
 
-const int __SAPP = 256;
+const int _MAX_FNAME = 256;
 
-const int __SSTR = 512;
+const int _MAX_EXT = 256;
 
-const int __SOPT = 1024;
+const int _MAX_ENV = 32767;
 
-const int __SNPT = 2048;
+const int EPERM = 1;
 
-const int __SOFF = 4096;
+const int ENOENT = 2;
 
-const int __SMOD = 8192;
+const int ESRCH = 3;
 
-const int __SALC = 16384;
+const int EINTR = 4;
 
-const int __SIGN = 32768;
+const int EIO = 5;
 
-const int _IOFBF = 0;
+const int ENXIO = 6;
 
-const int _IOLBF = 1;
+const int E2BIG = 7;
 
-const int _IONBF = 2;
+const int ENOEXEC = 8;
 
-const int BUFSIZ = 1024;
+const int EBADF = 9;
+
+const int ECHILD = 10;
+
+const int EAGAIN = 11;
+
+const int ENOMEM = 12;
+
+const int EACCES = 13;
+
+const int EFAULT = 14;
+
+const int EBUSY = 16;
+
+const int EEXIST = 17;
+
+const int EXDEV = 18;
+
+const int ENODEV = 19;
+
+const int ENOTDIR = 20;
+
+const int EISDIR = 21;
+
+const int ENFILE = 23;
+
+const int EMFILE = 24;
+
+const int ENOTTY = 25;
+
+const int EFBIG = 27;
+
+const int ENOSPC = 28;
+
+const int ESPIPE = 29;
+
+const int EROFS = 30;
+
+const int EMLINK = 31;
+
+const int EPIPE = 32;
+
+const int EDOM = 33;
+
+const int EDEADLK = 36;
+
+const int ENAMETOOLONG = 38;
+
+const int ENOLCK = 39;
+
+const int ENOSYS = 40;
+
+const int ENOTEMPTY = 41;
+
+const int EINVAL = 22;
+
+const int ERANGE = 34;
+
+const int EILSEQ = 42;
+
+const int STRUNCATE = 80;
+
+const int EDEADLOCK = 36;
+
+const int EADDRINUSE = 100;
+
+const int EADDRNOTAVAIL = 101;
+
+const int EAFNOSUPPORT = 102;
+
+const int EALREADY = 103;
+
+const int EBADMSG = 104;
+
+const int ECANCELED = 105;
+
+const int ECONNABORTED = 106;
+
+const int ECONNREFUSED = 107;
+
+const int ECONNRESET = 108;
+
+const int EDESTADDRREQ = 109;
+
+const int EHOSTUNREACH = 110;
+
+const int EIDRM = 111;
+
+const int EINPROGRESS = 112;
+
+const int EISCONN = 113;
+
+const int ELOOP = 114;
+
+const int EMSGSIZE = 115;
+
+const int ENETDOWN = 116;
+
+const int ENETRESET = 117;
+
+const int ENETUNREACH = 118;
+
+const int ENOBUFS = 119;
+
+const int ENODATA = 120;
+
+const int ENOLINK = 121;
+
+const int ENOMSG = 122;
+
+const int ENOPROTOOPT = 123;
+
+const int ENOSR = 124;
+
+const int ENOSTR = 125;
+
+const int ENOTCONN = 126;
+
+const int ENOTRECOVERABLE = 127;
+
+const int ENOTSOCK = 128;
+
+const int ENOTSUP = 129;
+
+const int EOPNOTSUPP = 130;
+
+const int EOTHER = 131;
+
+const int EOVERFLOW = 132;
+
+const int EOWNERDEAD = 133;
+
+const int EPROTO = 134;
+
+const int EPROTONOSUPPORT = 135;
+
+const int EPROTOTYPE = 136;
+
+const int ETIME = 137;
+
+const int ETIMEDOUT = 138;
+
+const int ETXTBSY = 139;
+
+const int EWOULDBLOCK = 140;
+
+const int _NLSCMPERROR = 2147483647;
+
+const String _CRT_INTERNAL_STDIO_SYMBOL_PREFIX = '';
+
+const int _CRT_INTERNAL_PRINTF_LEGACY_VSPRINTF_NULL_TERMINATION = 1;
+
+const int _CRT_INTERNAL_PRINTF_STANDARD_SNPRINTF_BEHAVIOR = 2;
+
+const int _CRT_INTERNAL_PRINTF_LEGACY_WIDE_SPECIFIERS = 4;
+
+const int _CRT_INTERNAL_PRINTF_LEGACY_MSVCRT_COMPATIBILITY = 8;
+
+const int _CRT_INTERNAL_PRINTF_LEGACY_THREE_DIGIT_EXPONENTS = 16;
+
+const int _CRT_INTERNAL_SCANF_SECURECRT = 1;
+
+const int _CRT_INTERNAL_SCANF_LEGACY_WIDE_SPECIFIERS = 2;
+
+const int _CRT_INTERNAL_SCANF_LEGACY_MSVCRT_COMPATIBILITY = 4;
+
+const int WEOF = 65535;
+
+const int BUFSIZ = 512;
+
+const int _NFILE = 512;
+
+const int _NSTREAM_ = 512;
+
+const int _IOB_ENTRIES = 3;
 
 const int EOF = -1;
 
-const int FOPEN_MAX = 20;
+const int _IOFBF = 0;
 
-const int FILENAME_MAX = 1024;
+const int _IOLBF = 64;
 
-const String P_tmpdir = '/var/tmp/';
+const int _IONBF = 4;
 
-const int L_tmpnam = 1024;
+const int L_tmpnam = 260;
 
-const int TMP_MAX = 308915776;
-
-const int SEEK_SET = 0;
+const int L_tmpnam_s = 260;
 
 const int SEEK_CUR = 1;
 
 const int SEEK_END = 2;
 
-const int L_ctermid = 1024;
+const int SEEK_SET = 0;
+
+const int FILENAME_MAX = 260;
+
+const int FOPEN_MAX = 20;
+
+const int _SYS_OPEN = 20;
+
+const int TMP_MAX = 2147483647;
+
+const int TMP_MAX_S = 2147483647;
+
+const int _TMP_MAX_S = 2147483647;
+
+const int SYS_OPEN = 20;
 
 const int FLTimestampNone = -9223372036854775808;
 
-const String __PRI_8_LENGTH_MODIFIER__ = 'hh';
-
-const String __PRI_64_LENGTH_MODIFIER__ = 'll';
-
-const String __SCN_64_LENGTH_MODIFIER__ = 'll';
-
-const String __PRI_MAX_LENGTH_MODIFIER__ = 'j';
-
-const String __SCN_MAX_LENGTH_MODIFIER__ = 'j';
-
 const String PRId8 = 'hhd';
-
-const String PRIi8 = 'hhi';
-
-const String PRIo8 = 'hho';
-
-const String PRIu8 = 'hhu';
-
-const String PRIx8 = 'hhx';
-
-const String PRIX8 = 'hhX';
 
 const String PRId16 = 'hd';
 
-const String PRIi16 = 'hi';
-
-const String PRIo16 = 'ho';
-
-const String PRIu16 = 'hu';
-
-const String PRIx16 = 'hx';
-
-const String PRIX16 = 'hX';
-
 const String PRId32 = 'd';
-
-const String PRIi32 = 'i';
-
-const String PRIo32 = 'o';
-
-const String PRIu32 = 'u';
-
-const String PRIx32 = 'x';
-
-const String PRIX32 = 'X';
 
 const String PRId64 = 'lld';
 
-const String PRIi64 = 'lli';
-
-const String PRIo64 = 'llo';
-
-const String PRIu64 = 'llu';
-
-const String PRIx64 = 'llx';
-
-const String PRIX64 = 'llX';
-
 const String PRIdLEAST8 = 'hhd';
-
-const String PRIiLEAST8 = 'hhi';
-
-const String PRIoLEAST8 = 'hho';
-
-const String PRIuLEAST8 = 'hhu';
-
-const String PRIxLEAST8 = 'hhx';
-
-const String PRIXLEAST8 = 'hhX';
 
 const String PRIdLEAST16 = 'hd';
 
-const String PRIiLEAST16 = 'hi';
-
-const String PRIoLEAST16 = 'ho';
-
-const String PRIuLEAST16 = 'hu';
-
-const String PRIxLEAST16 = 'hx';
-
-const String PRIXLEAST16 = 'hX';
-
 const String PRIdLEAST32 = 'd';
-
-const String PRIiLEAST32 = 'i';
-
-const String PRIoLEAST32 = 'o';
-
-const String PRIuLEAST32 = 'u';
-
-const String PRIxLEAST32 = 'x';
-
-const String PRIXLEAST32 = 'X';
 
 const String PRIdLEAST64 = 'lld';
 
-const String PRIiLEAST64 = 'lli';
-
-const String PRIoLEAST64 = 'llo';
-
-const String PRIuLEAST64 = 'llu';
-
-const String PRIxLEAST64 = 'llx';
-
-const String PRIXLEAST64 = 'llX';
-
 const String PRIdFAST8 = 'hhd';
 
-const String PRIiFAST8 = 'hhi';
-
-const String PRIoFAST8 = 'hho';
-
-const String PRIuFAST8 = 'hhu';
-
-const String PRIxFAST8 = 'hhx';
-
-const String PRIXFAST8 = 'hhX';
-
-const String PRIdFAST16 = 'hd';
-
-const String PRIiFAST16 = 'hi';
-
-const String PRIoFAST16 = 'ho';
-
-const String PRIuFAST16 = 'hu';
-
-const String PRIxFAST16 = 'hx';
-
-const String PRIXFAST16 = 'hX';
+const String PRIdFAST16 = 'd';
 
 const String PRIdFAST32 = 'd';
 
-const String PRIiFAST32 = 'i';
-
-const String PRIoFAST32 = 'o';
-
-const String PRIuFAST32 = 'u';
-
-const String PRIxFAST32 = 'x';
-
-const String PRIXFAST32 = 'X';
-
 const String PRIdFAST64 = 'lld';
+
+const String PRIdMAX = 'lld';
+
+const String PRIdPTR = 'lld';
+
+const String PRIi8 = 'hhi';
+
+const String PRIi16 = 'hi';
+
+const String PRIi32 = 'i';
+
+const String PRIi64 = 'lli';
+
+const String PRIiLEAST8 = 'hhi';
+
+const String PRIiLEAST16 = 'hi';
+
+const String PRIiLEAST32 = 'i';
+
+const String PRIiLEAST64 = 'lli';
+
+const String PRIiFAST8 = 'hhi';
+
+const String PRIiFAST16 = 'i';
+
+const String PRIiFAST32 = 'i';
 
 const String PRIiFAST64 = 'lli';
 
+const String PRIiMAX = 'lli';
+
+const String PRIiPTR = 'lli';
+
+const String PRIo8 = 'hho';
+
+const String PRIo16 = 'ho';
+
+const String PRIo32 = 'o';
+
+const String PRIo64 = 'llo';
+
+const String PRIoLEAST8 = 'hho';
+
+const String PRIoLEAST16 = 'ho';
+
+const String PRIoLEAST32 = 'o';
+
+const String PRIoLEAST64 = 'llo';
+
+const String PRIoFAST8 = 'hho';
+
+const String PRIoFAST16 = 'o';
+
+const String PRIoFAST32 = 'o';
+
 const String PRIoFAST64 = 'llo';
+
+const String PRIoMAX = 'llo';
+
+const String PRIoPTR = 'llo';
+
+const String PRIu8 = 'hhu';
+
+const String PRIu16 = 'hu';
+
+const String PRIu32 = 'u';
+
+const String PRIu64 = 'llu';
+
+const String PRIuLEAST8 = 'hhu';
+
+const String PRIuLEAST16 = 'hu';
+
+const String PRIuLEAST32 = 'u';
+
+const String PRIuLEAST64 = 'llu';
+
+const String PRIuFAST8 = 'hhu';
+
+const String PRIuFAST16 = 'u';
+
+const String PRIuFAST32 = 'u';
 
 const String PRIuFAST64 = 'llu';
 
+const String PRIuMAX = 'llu';
+
+const String PRIuPTR = 'llu';
+
+const String PRIx8 = 'hhx';
+
+const String PRIx16 = 'hx';
+
+const String PRIx32 = 'x';
+
+const String PRIx64 = 'llx';
+
+const String PRIxLEAST8 = 'hhx';
+
+const String PRIxLEAST16 = 'hx';
+
+const String PRIxLEAST32 = 'x';
+
+const String PRIxLEAST64 = 'llx';
+
+const String PRIxFAST8 = 'hhx';
+
+const String PRIxFAST16 = 'x';
+
+const String PRIxFAST32 = 'x';
+
 const String PRIxFAST64 = 'llx';
+
+const String PRIxMAX = 'llx';
+
+const String PRIxPTR = 'llx';
+
+const String PRIX8 = 'hhX';
+
+const String PRIX16 = 'hX';
+
+const String PRIX32 = 'X';
+
+const String PRIX64 = 'llX';
+
+const String PRIXLEAST8 = 'hhX';
+
+const String PRIXLEAST16 = 'hX';
+
+const String PRIXLEAST32 = 'X';
+
+const String PRIXLEAST64 = 'llX';
+
+const String PRIXFAST8 = 'hhX';
+
+const String PRIXFAST16 = 'X';
+
+const String PRIXFAST32 = 'X';
 
 const String PRIXFAST64 = 'llX';
 
-const String PRIdPTR = 'ld';
+const String PRIXMAX = 'llX';
 
-const String PRIiPTR = 'li';
-
-const String PRIoPTR = 'lo';
-
-const String PRIuPTR = 'lu';
-
-const String PRIxPTR = 'lx';
-
-const String PRIXPTR = 'lX';
-
-const String PRIdMAX = 'jd';
-
-const String PRIiMAX = 'ji';
-
-const String PRIoMAX = 'jo';
-
-const String PRIuMAX = 'ju';
-
-const String PRIxMAX = 'jx';
-
-const String PRIXMAX = 'jX';
+const String PRIXPTR = 'llX';
 
 const String SCNd8 = 'hhd';
 
-const String SCNi8 = 'hhi';
-
-const String SCNo8 = 'hho';
-
-const String SCNu8 = 'hhu';
-
-const String SCNx8 = 'hhx';
-
 const String SCNd16 = 'hd';
-
-const String SCNi16 = 'hi';
-
-const String SCNo16 = 'ho';
-
-const String SCNu16 = 'hu';
-
-const String SCNx16 = 'hx';
 
 const String SCNd32 = 'd';
 
-const String SCNi32 = 'i';
-
-const String SCNo32 = 'o';
-
-const String SCNu32 = 'u';
-
-const String SCNx32 = 'x';
-
 const String SCNd64 = 'lld';
-
-const String SCNi64 = 'lli';
-
-const String SCNo64 = 'llo';
-
-const String SCNu64 = 'llu';
-
-const String SCNx64 = 'llx';
 
 const String SCNdLEAST8 = 'hhd';
 
-const String SCNiLEAST8 = 'hhi';
-
-const String SCNoLEAST8 = 'hho';
-
-const String SCNuLEAST8 = 'hhu';
-
-const String SCNxLEAST8 = 'hhx';
-
 const String SCNdLEAST16 = 'hd';
-
-const String SCNiLEAST16 = 'hi';
-
-const String SCNoLEAST16 = 'ho';
-
-const String SCNuLEAST16 = 'hu';
-
-const String SCNxLEAST16 = 'hx';
 
 const String SCNdLEAST32 = 'd';
 
-const String SCNiLEAST32 = 'i';
-
-const String SCNoLEAST32 = 'o';
-
-const String SCNuLEAST32 = 'u';
-
-const String SCNxLEAST32 = 'x';
-
 const String SCNdLEAST64 = 'lld';
-
-const String SCNiLEAST64 = 'lli';
-
-const String SCNoLEAST64 = 'llo';
-
-const String SCNuLEAST64 = 'llu';
-
-const String SCNxLEAST64 = 'llx';
 
 const String SCNdFAST8 = 'hhd';
 
-const String SCNiFAST8 = 'hhi';
-
-const String SCNoFAST8 = 'hho';
-
-const String SCNuFAST8 = 'hhu';
-
-const String SCNxFAST8 = 'hhx';
-
-const String SCNdFAST16 = 'hd';
-
-const String SCNiFAST16 = 'hi';
-
-const String SCNoFAST16 = 'ho';
-
-const String SCNuFAST16 = 'hu';
-
-const String SCNxFAST16 = 'hx';
+const String SCNdFAST16 = 'd';
 
 const String SCNdFAST32 = 'd';
 
-const String SCNiFAST32 = 'i';
-
-const String SCNoFAST32 = 'o';
-
-const String SCNuFAST32 = 'u';
-
-const String SCNxFAST32 = 'x';
-
 const String SCNdFAST64 = 'lld';
+
+const String SCNdMAX = 'lld';
+
+const String SCNdPTR = 'lld';
+
+const String SCNi8 = 'hhi';
+
+const String SCNi16 = 'hi';
+
+const String SCNi32 = 'i';
+
+const String SCNi64 = 'lli';
+
+const String SCNiLEAST8 = 'hhi';
+
+const String SCNiLEAST16 = 'hi';
+
+const String SCNiLEAST32 = 'i';
+
+const String SCNiLEAST64 = 'lli';
+
+const String SCNiFAST8 = 'hhi';
+
+const String SCNiFAST16 = 'i';
+
+const String SCNiFAST32 = 'i';
 
 const String SCNiFAST64 = 'lli';
 
+const String SCNiMAX = 'lli';
+
+const String SCNiPTR = 'lli';
+
+const String SCNo8 = 'hho';
+
+const String SCNo16 = 'ho';
+
+const String SCNo32 = 'o';
+
+const String SCNo64 = 'llo';
+
+const String SCNoLEAST8 = 'hho';
+
+const String SCNoLEAST16 = 'ho';
+
+const String SCNoLEAST32 = 'o';
+
+const String SCNoLEAST64 = 'llo';
+
+const String SCNoFAST8 = 'hho';
+
+const String SCNoFAST16 = 'o';
+
+const String SCNoFAST32 = 'o';
+
 const String SCNoFAST64 = 'llo';
+
+const String SCNoMAX = 'llo';
+
+const String SCNoPTR = 'llo';
+
+const String SCNu8 = 'hhu';
+
+const String SCNu16 = 'hu';
+
+const String SCNu32 = 'u';
+
+const String SCNu64 = 'llu';
+
+const String SCNuLEAST8 = 'hhu';
+
+const String SCNuLEAST16 = 'hu';
+
+const String SCNuLEAST32 = 'u';
+
+const String SCNuLEAST64 = 'llu';
+
+const String SCNuFAST8 = 'hhu';
+
+const String SCNuFAST16 = 'u';
+
+const String SCNuFAST32 = 'u';
 
 const String SCNuFAST64 = 'llu';
 
+const String SCNuMAX = 'llu';
+
+const String SCNuPTR = 'llu';
+
+const String SCNx8 = 'hhx';
+
+const String SCNx16 = 'hx';
+
+const String SCNx32 = 'x';
+
+const String SCNx64 = 'llx';
+
+const String SCNxLEAST8 = 'hhx';
+
+const String SCNxLEAST16 = 'hx';
+
+const String SCNxLEAST32 = 'x';
+
+const String SCNxLEAST64 = 'llx';
+
+const String SCNxFAST8 = 'hhx';
+
+const String SCNxFAST16 = 'x';
+
+const String SCNxFAST32 = 'x';
+
 const String SCNxFAST64 = 'llx';
 
-const String SCNdPTR = 'ld';
+const String SCNxMAX = 'llx';
 
-const String SCNiPTR = 'li';
-
-const String SCNoPTR = 'lo';
-
-const String SCNuPTR = 'lu';
-
-const String SCNxPTR = 'lx';
-
-const String SCNdMAX = 'jd';
-
-const String SCNiMAX = 'ji';
-
-const String SCNoMAX = 'jo';
-
-const String SCNuMAX = 'ju';
-
-const String SCNxMAX = 'jx';
+const String SCNxPTR = 'llx';
 
 const int DART_FLAGS_CURRENT_VERSION = 12;
 
@@ -7394,20 +6981,20 @@ const String DART_KERNEL_ISOLATE_NAME = 'kernel-service';
 
 const String DART_VM_SERVICE_ISOLATE_NAME = 'vm-service';
 
-const String kSnapshotBuildIdCSymbol = 'kDartSnapshotBuildId';
+const String kSnapshotBuildIdCSymbol = '_kDartSnapshotBuildId';
 
-const String kVmSnapshotDataCSymbol = 'kDartVmSnapshotData';
+const String kVmSnapshotDataCSymbol = '_kDartVmSnapshotData';
 
-const String kVmSnapshotInstructionsCSymbol = 'kDartVmSnapshotInstructions';
+const String kVmSnapshotInstructionsCSymbol = '_kDartVmSnapshotInstructions';
 
-const String kVmSnapshotBssCSymbol = 'kDartVmSnapshotBss';
+const String kVmSnapshotBssCSymbol = '_kDartVmSnapshotBss';
 
-const String kIsolateSnapshotDataCSymbol = 'kDartIsolateSnapshotData';
+const String kIsolateSnapshotDataCSymbol = '_kDartIsolateSnapshotData';
 
 const String kIsolateSnapshotInstructionsCSymbol =
-    'kDartIsolateSnapshotInstructions';
+    '_kDartIsolateSnapshotInstructions';
 
-const String kIsolateSnapshotBssCSymbol = 'kDartIsolateSnapshotBss';
+const String kIsolateSnapshotBssCSymbol = '_kDartIsolateSnapshotBss';
 
 const String kSnapshotBuildIdAsmSymbol = '_kDartSnapshotBuildId';
 
@@ -7444,6 +7031,26 @@ typedef _dart_FLSlice_Compare = int Function(
   FLSlice arg1,
 );
 
+typedef _c_FLSlice_Hash = ffi.Uint32 Function(
+  FLSlice s,
+);
+
+typedef _dart_FLSlice_Hash = int Function(
+  FLSlice s,
+);
+
+typedef _c_FLSlice_ToCString = ffi.Uint8 Function(
+  FLSlice s,
+  ffi.Pointer<ffi.Int8> buffer,
+  ffi.Uint64 capacity,
+);
+
+typedef _dart_FLSlice_ToCString = int Function(
+  FLSlice s,
+  ffi.Pointer<ffi.Int8> buffer,
+  int capacity,
+);
+
 typedef _c_FLSliceResult_New = FLSliceResult Function(
   ffi.Uint64 arg0,
 );
@@ -7458,6 +7065,32 @@ typedef _c_FLSlice_Copy = FLSliceResult Function(
 
 typedef _dart_FLSlice_Copy = FLSliceResult Function(
   FLSlice arg0,
+);
+
+typedef _c_FLBuf_Retain = ffi.Void Function(
+  ffi.Pointer<ffi.Void> arg0,
+);
+
+typedef _dart_FLBuf_Retain = void Function(
+  ffi.Pointer<ffi.Void> arg0,
+);
+
+typedef _c_FLBuf_Release = ffi.Void Function(
+  ffi.Pointer<ffi.Void> arg0,
+);
+
+typedef _dart_FLBuf_Release = void Function(
+  ffi.Pointer<ffi.Void> arg0,
+);
+
+typedef _c_FL_WipeMemory = ffi.Void Function(
+  ffi.Pointer<ffi.Void> dst,
+  ffi.Uint64 size,
+);
+
+typedef _dart_FL_WipeMemory = void Function(
+  ffi.Pointer<ffi.Void> dst,
+  int size,
 );
 
 typedef _c_CBLError_Message = FLSliceResult Function(
@@ -7800,6 +7433,14 @@ typedef _dart_FLValue_IsEqual = int Function(
   ffi.Pointer<FLValue> v2,
 );
 
+typedef _c_FLValue_IsMutable = ffi.Uint8 Function(
+  ffi.Pointer<FLValue> arg0,
+);
+
+typedef _dart_FLValue_IsMutable = int Function(
+  ffi.Pointer<FLValue> arg0,
+);
+
 typedef _c_FLValue_Retain = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLValue> arg0,
 );
@@ -7816,92 +7457,20 @@ typedef _dart_FLValue_Release = void Function(
   ffi.Pointer<FLValue> arg0,
 );
 
-typedef _c_FLSlot_SetNull = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
+typedef _c_FLValue_NewString = ffi.Pointer<FLValue> Function(
+  FLSlice arg0,
 );
 
-typedef _dart_FLSlot_SetNull = void Function(
-  ffi.Pointer<FLSlot> arg0,
+typedef _dart_FLValue_NewString = ffi.Pointer<FLValue> Function(
+  FLSlice arg0,
 );
 
-typedef _c_FLSlot_SetBool = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
-  ffi.Uint8 arg1,
+typedef _c_FLValue_NewData = ffi.Pointer<FLValue> Function(
+  FLSlice arg0,
 );
 
-typedef _dart_FLSlot_SetBool = void Function(
-  ffi.Pointer<FLSlot> arg0,
-  int arg1,
-);
-
-typedef _c_FLSlot_SetInt = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
-  ffi.Int64 arg1,
-);
-
-typedef _dart_FLSlot_SetInt = void Function(
-  ffi.Pointer<FLSlot> arg0,
-  int arg1,
-);
-
-typedef _c_FLSlot_SetUInt = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
-  ffi.Uint64 arg1,
-);
-
-typedef _dart_FLSlot_SetUInt = void Function(
-  ffi.Pointer<FLSlot> arg0,
-  int arg1,
-);
-
-typedef _c_FLSlot_SetFloat = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
-  ffi.Float arg1,
-);
-
-typedef _dart_FLSlot_SetFloat = void Function(
-  ffi.Pointer<FLSlot> arg0,
-  double arg1,
-);
-
-typedef _c_FLSlot_SetDouble = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
-  ffi.Double arg1,
-);
-
-typedef _dart_FLSlot_SetDouble = void Function(
-  ffi.Pointer<FLSlot> arg0,
-  double arg1,
-);
-
-typedef _c_FLSlot_SetString = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
-  FLSlice arg1,
-);
-
-typedef _dart_FLSlot_SetString = void Function(
-  ffi.Pointer<FLSlot> arg0,
-  FLSlice arg1,
-);
-
-typedef _c_FLSlot_SetData = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
-  FLSlice arg1,
-);
-
-typedef _dart_FLSlot_SetData = void Function(
-  ffi.Pointer<FLSlot> arg0,
-  FLSlice arg1,
-);
-
-typedef _c_FLSlot_SetValue = ffi.Void Function(
-  ffi.Pointer<FLSlot> arg0,
-  ffi.Pointer<FLValue> arg1,
-);
-
-typedef _dart_FLSlot_SetValue = void Function(
-  ffi.Pointer<FLSlot> arg0,
-  ffi.Pointer<FLValue> arg1,
+typedef _dart_FLValue_NewData = ffi.Pointer<FLValue> Function(
+  FLSlice arg0,
 );
 
 typedef _c_FLArray_Count = ffi.Uint32 Function(
@@ -8012,22 +7581,14 @@ typedef _dart_FLMutableArray_IsChanged = int Function(
   ffi.Pointer<FLArray> arg0,
 );
 
-typedef _c_FLMutableArray_Set = ffi.Pointer<FLSlot> Function(
+typedef _c_FLMutableArray_SetChanged = ffi.Void Function(
   ffi.Pointer<FLArray> arg0,
-  ffi.Uint32 index,
+  ffi.Uint8 arg1,
 );
 
-typedef _dart_FLMutableArray_Set = ffi.Pointer<FLSlot> Function(
+typedef _dart_FLMutableArray_SetChanged = void Function(
   ffi.Pointer<FLArray> arg0,
-  int index,
-);
-
-typedef _c_FLMutableArray_Append = ffi.Pointer<FLSlot> Function(
-  ffi.Pointer<FLArray> arg0,
-);
-
-typedef _dart_FLMutableArray_Append = ffi.Pointer<FLSlot> Function(
-  ffi.Pointer<FLArray> arg0,
+  int arg1,
 );
 
 typedef _c_FLMutableArray_Insert = ffi.Void Function(
@@ -8232,14 +7793,14 @@ typedef _dart_FLMutableDict_IsChanged = int Function(
   ffi.Pointer<FLDict> arg0,
 );
 
-typedef _c_FLMutableDict_Set = ffi.Pointer<FLSlot> Function(
-  ffi.Pointer<FLDict> FL_NONNULL,
-  FLSlice key,
+typedef _c_FLMutableDict_SetChanged = ffi.Void Function(
+  ffi.Pointer<FLDict> arg0,
+  ffi.Uint8 arg1,
 );
 
-typedef _dart_FLMutableDict_Set = ffi.Pointer<FLSlot> Function(
-  ffi.Pointer<FLDict> FL_NONNULL,
-  FLSlice key,
+typedef _dart_FLMutableDict_SetChanged = void Function(
+  ffi.Pointer<FLDict> arg0,
+  int arg1,
 );
 
 typedef _c_FLMutableDict_Remove = ffi.Void Function(
@@ -8301,6 +7862,14 @@ typedef _c_FLDeepIterator_GetValue = ffi.Pointer<FLValue> Function(
 );
 
 typedef _dart_FLDeepIterator_GetValue = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDeepIterator> arg0,
+);
+
+typedef _c_FLDeepIterator_GetParent = ffi.Pointer<FLValue> Function(
+  ffi.Pointer<FLDeepIterator> arg0,
+);
+
+typedef _dart_FLDeepIterator_GetParent = ffi.Pointer<FLValue> Function(
   ffi.Pointer<FLDeepIterator> arg0,
 );
 
@@ -8412,34 +7981,55 @@ typedef _dart_FLKeyPath_EvalOnce = ffi.Pointer<FLValue> Function(
   ffi.Pointer<ffi.Int32> error,
 );
 
-typedef _c_FLSharedKeys_Create = ffi.Pointer<FLSharedKeys> Function();
-
-typedef _dart_FLSharedKeys_Create = ffi.Pointer<FLSharedKeys> Function();
-
-typedef _c_FLSharedKeys_Retain = ffi.Pointer<FLSharedKeys> Function(
-  ffi.Pointer<FLSharedKeys> arg0,
+typedef _c_FLKeyPath_ToString = FLSliceResult Function(
+  ffi.Pointer<FLKeyPath> path,
 );
 
-typedef _dart_FLSharedKeys_Retain = ffi.Pointer<FLSharedKeys> Function(
-  ffi.Pointer<FLSharedKeys> arg0,
+typedef _dart_FLKeyPath_ToString = FLSliceResult Function(
+  ffi.Pointer<FLKeyPath> path,
 );
 
-typedef _c_FLSharedKeys_Release = ffi.Void Function(
-  ffi.Pointer<FLSharedKeys> arg0,
+typedef _c_FLKeyPath_Equals = ffi.Uint8 Function(
+  ffi.Pointer<FLKeyPath> path1,
+  ffi.Pointer<FLKeyPath> path2,
 );
 
-typedef _dart_FLSharedKeys_Release = void Function(
-  ffi.Pointer<FLSharedKeys> arg0,
+typedef _dart_FLKeyPath_Equals = int Function(
+  ffi.Pointer<FLKeyPath> path1,
+  ffi.Pointer<FLKeyPath> path2,
 );
 
-typedef _c_FLSharedKeys_CreateFromStateData = ffi.Pointer<FLSharedKeys>
-    Function(
-  FLSlice arg0,
+typedef _c_FLKeyPath_GetElement = ffi.Uint8 Function(
+  ffi.Pointer<FLKeyPath> arg0,
+  ffi.Uint64 i,
+  ffi.Pointer<FLSlice> outDictKey,
+  ffi.Pointer<ffi.Int32> outArrayIndex,
 );
 
-typedef _dart_FLSharedKeys_CreateFromStateData = ffi.Pointer<FLSharedKeys>
-    Function(
-  FLSlice arg0,
+typedef _dart_FLKeyPath_GetElement = int Function(
+  ffi.Pointer<FLKeyPath> arg0,
+  int i,
+  ffi.Pointer<FLSlice> outDictKey,
+  ffi.Pointer<ffi.Int32> outArrayIndex,
+);
+
+typedef _c_FLSharedKeys_New = ffi.Pointer<FLSharedKeys> Function();
+
+typedef _dart_FLSharedKeys_New = ffi.Pointer<FLSharedKeys> Function();
+
+typedef FLSharedKeysReadCallback = ffi.Uint8 Function(
+  ffi.Pointer<ffi.Void>,
+  ffi.Pointer<FLSharedKeys>,
+);
+
+typedef _c_FLSharedKeys_NewWithRead = ffi.Pointer<FLSharedKeys> Function(
+  ffi.Pointer<ffi.NativeFunction<FLSharedKeysReadCallback>> arg0,
+  ffi.Pointer<ffi.Void> context,
+);
+
+typedef _dart_FLSharedKeys_NewWithRead = ffi.Pointer<FLSharedKeys> Function(
+  ffi.Pointer<ffi.NativeFunction<FLSharedKeysReadCallback>> arg0,
+  ffi.Pointer<ffi.Void> context,
 );
 
 typedef _c_FLSharedKeys_GetStateData = FLSliceResult Function(
@@ -8448,6 +8038,36 @@ typedef _c_FLSharedKeys_GetStateData = FLSliceResult Function(
 
 typedef _dart_FLSharedKeys_GetStateData = FLSliceResult Function(
   ffi.Pointer<FLSharedKeys> arg0,
+);
+
+typedef _c_FLSharedKeys_LoadStateData = ffi.Uint8 Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+  FLSlice arg1,
+);
+
+typedef _dart_FLSharedKeys_LoadStateData = int Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+  FLSlice arg1,
+);
+
+typedef _c_FLSharedKeys_WriteState = ffi.Void Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+  ffi.Pointer<FLEncoder> arg1,
+);
+
+typedef _dart_FLSharedKeys_WriteState = void Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+  ffi.Pointer<FLEncoder> arg1,
+);
+
+typedef _c_FLSharedKeys_LoadState = ffi.Uint8 Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+  ffi.Pointer<FLValue> arg1,
+);
+
+typedef _dart_FLSharedKeys_LoadState = int Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+  ffi.Pointer<FLValue> arg1,
 );
 
 typedef _c_FLSharedKeys_Encode = ffi.Int32 Function(
@@ -8478,6 +8098,51 @@ typedef _c_FLSharedKeys_Count = ffi.Uint32 Function(
 
 typedef _dart_FLSharedKeys_Count = int Function(
   ffi.Pointer<FLSharedKeys> arg0,
+);
+
+typedef _c_FLSharedKeys_RevertToCount = ffi.Void Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+  ffi.Uint32 oldCount,
+);
+
+typedef _dart_FLSharedKeys_RevertToCount = void Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+  int oldCount,
+);
+
+typedef _c_FLSharedKeys_Retain = ffi.Pointer<FLSharedKeys> Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+);
+
+typedef _dart_FLSharedKeys_Retain = ffi.Pointer<FLSharedKeys> Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+);
+
+typedef _c_FLSharedKeys_Release = ffi.Void Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+);
+
+typedef _dart_FLSharedKeys_Release = void Function(
+  ffi.Pointer<FLSharedKeys> arg0,
+);
+
+typedef _c_FLSharedKeyScope_WithRange = ffi.Pointer<FLSharedKeyScope> Function(
+  FLSlice range,
+  ffi.Pointer<FLSharedKeys> arg1,
+);
+
+typedef _dart_FLSharedKeyScope_WithRange = ffi.Pointer<FLSharedKeyScope>
+    Function(
+  FLSlice range,
+  ffi.Pointer<FLSharedKeys> arg1,
+);
+
+typedef _c_FLSharedKeyScope_Free = ffi.Void Function(
+  ffi.Pointer<FLSharedKeyScope> arg0,
+);
+
+typedef _dart_FLSharedKeyScope_Free = void Function(
+  ffi.Pointer<FLSharedKeyScope> arg0,
 );
 
 typedef _c_FLEncoder_New = ffi.Pointer<FLEncoder> Function();
@@ -8770,6 +8435,32 @@ typedef _dart_FLEncoder_WriteValue = int Function(
   ffi.Pointer<FLValue> arg1,
 );
 
+typedef _c_FLEncoder_LastValueWritten = ffi.IntPtr Function(
+  ffi.Pointer<FLEncoder> e,
+);
+
+typedef _dart_FLEncoder_LastValueWritten = int Function(
+  ffi.Pointer<FLEncoder> e,
+);
+
+typedef _c_FLEncoder_WriteValueAgain = ffi.Void Function(
+  ffi.Pointer<FLEncoder> e,
+  ffi.IntPtr preWrittenValue,
+);
+
+typedef _dart_FLEncoder_WriteValueAgain = void Function(
+  ffi.Pointer<FLEncoder> e,
+  int preWrittenValue,
+);
+
+typedef _c_FLEncoder_Snip = FLSliceResult Function(
+  ffi.Pointer<FLEncoder> e,
+);
+
+typedef _dart_FLEncoder_Snip = FLSliceResult Function(
+  ffi.Pointer<FLEncoder> e,
+);
+
 typedef _c_FLEncoder_ConvertJSON = ffi.Uint8 Function(
   ffi.Pointer<FLEncoder> arg0,
   FLSlice json,
@@ -8868,6 +8559,122 @@ typedef _dart_FLEncodeApplyingJSONDelta = int Function(
   ffi.Pointer<FLValue> old,
   FLSlice jsonDelta,
   ffi.Pointer<FLEncoder> encoder,
+);
+
+typedef _c_FLMutableArray_Set = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLArray> arg0,
+  ffi.Uint32 index,
+);
+
+typedef _dart_FLMutableArray_Set = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLArray> arg0,
+  int index,
+);
+
+typedef _c_FLMutableArray_Append = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLArray> arg0,
+);
+
+typedef _dart_FLMutableArray_Append = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLArray> arg0,
+);
+
+typedef _c_FLMutableDict_Set = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLDict> FL_NONNULL,
+  FLSlice key,
+);
+
+typedef _dart_FLMutableDict_Set = ffi.Pointer<FLSlot> Function(
+  ffi.Pointer<FLDict> FL_NONNULL,
+  FLSlice key,
+);
+
+typedef _c_FLSlot_SetNull = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+);
+
+typedef _dart_FLSlot_SetNull = void Function(
+  ffi.Pointer<FLSlot> arg0,
+);
+
+typedef _c_FLSlot_SetBool = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+  ffi.Uint8 arg1,
+);
+
+typedef _dart_FLSlot_SetBool = void Function(
+  ffi.Pointer<FLSlot> arg0,
+  int arg1,
+);
+
+typedef _c_FLSlot_SetInt = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+  ffi.Int64 arg1,
+);
+
+typedef _dart_FLSlot_SetInt = void Function(
+  ffi.Pointer<FLSlot> arg0,
+  int arg1,
+);
+
+typedef _c_FLSlot_SetUInt = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+  ffi.Uint64 arg1,
+);
+
+typedef _dart_FLSlot_SetUInt = void Function(
+  ffi.Pointer<FLSlot> arg0,
+  int arg1,
+);
+
+typedef _c_FLSlot_SetFloat = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+  ffi.Float arg1,
+);
+
+typedef _dart_FLSlot_SetFloat = void Function(
+  ffi.Pointer<FLSlot> arg0,
+  double arg1,
+);
+
+typedef _c_FLSlot_SetDouble = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+  ffi.Double arg1,
+);
+
+typedef _dart_FLSlot_SetDouble = void Function(
+  ffi.Pointer<FLSlot> arg0,
+  double arg1,
+);
+
+typedef _c_FLSlot_SetString = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+  FLSlice arg1,
+);
+
+typedef _dart_FLSlot_SetString = void Function(
+  ffi.Pointer<FLSlot> arg0,
+  FLSlice arg1,
+);
+
+typedef _c_FLSlot_SetData = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+  FLSlice arg1,
+);
+
+typedef _dart_FLSlot_SetData = void Function(
+  ffi.Pointer<FLSlot> arg0,
+  FLSlice arg1,
+);
+
+typedef _c_FLSlot_SetValue = ffi.Void Function(
+  ffi.Pointer<FLSlot> arg0,
+  ffi.Pointer<FLValue> arg1,
+);
+
+typedef _dart_FLSlot_SetValue = void Function(
+  ffi.Pointer<FLSlot> arg0,
+  ffi.Pointer<FLValue> arg1,
 );
 
 typedef _c_FLDict_IsBlob = ffi.Uint8 Function(
@@ -9029,6 +8836,30 @@ typedef _c_FLSlot_SetBlob = ffi.Void Function(
 typedef _dart_FLSlot_SetBlob = void Function(
   ffi.Pointer<FLSlot> slot,
   ffi.Pointer<CBLBlob> blob,
+);
+
+typedef _c_CBLDatabase_GetBlob = ffi.Pointer<CBLBlob> Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Pointer<FLDict> properties,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLDatabase_GetBlob = ffi.Pointer<CBLBlob> Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Pointer<FLDict> properties,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _c_CBLDatabase_SaveBlob = ffi.Uint8 Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Pointer<CBLBlob> blob,
+  ffi.Pointer<CBLError> outError,
+);
+
+typedef _dart_CBLDatabase_SaveBlob = int Function(
+  ffi.Pointer<CBLDatabase> db,
+  ffi.Pointer<CBLBlob> blob,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLDatabaseConfiguration_Default = CBLDatabaseConfiguration
@@ -9540,11 +9371,11 @@ typedef _dart_CBLLog_Callback = ffi.Pointer<ffi.NativeFunction<CBLLogCallback>>
     Function();
 
 typedef _c_CBLLog_SetCallback = ffi.Void Function(
-  ffi.Pointer<ffi.NativeFunction<CBLLogCallback>> arg0,
+  ffi.Pointer<ffi.NativeFunction<CBLLogCallback>> callback,
 );
 
 typedef _dart_CBLLog_SetCallback = void Function(
-  ffi.Pointer<ffi.NativeFunction<CBLLogCallback>> arg0,
+  ffi.Pointer<ffi.NativeFunction<CBLLogCallback>> callback,
 );
 
 typedef _c_CBLLog_FileConfig = ffi.Pointer<CBLLogFileConfiguration> Function();
@@ -9765,10 +9596,12 @@ typedef _dart_CBLDatabase_GetIndexNames = ffi.Pointer<FLArray> Function(
 
 typedef _c_CBLEndpoint_CreateWithURL = ffi.Pointer<CBLEndpoint> Function(
   FLSlice url,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _dart_CBLEndpoint_CreateWithURL = ffi.Pointer<CBLEndpoint> Function(
   FLSlice url,
+  ffi.Pointer<CBLError> outError,
 );
 
 typedef _c_CBLEndpoint_Free = ffi.Void Function(
@@ -9805,6 +9638,13 @@ typedef _c_CBLAuth_Free = ffi.Void Function(
 
 typedef _dart_CBLAuth_Free = void Function(
   ffi.Pointer<CBLAuthenticator> arg0,
+);
+
+typedef CBLConflictResolver = ffi.Pointer<CBLDocument> Function(
+  ffi.Pointer<ffi.Void>,
+  FLSlice,
+  ffi.Pointer<CBLDocument>,
+  ffi.Pointer<CBLDocument>,
 );
 
 typedef _c_CBLReplicator_Create = ffi.Pointer<CBLReplicator> Function(
@@ -10030,12 +9870,14 @@ typedef _dart_CBLDart_RegisterPorts = void Function(
       replicator_conflict_callback,
 );
 
+typedef Work = ffi.Void Function();
+
 typedef _c_CBLDart_ExecuteCallback = ffi.Void Function(
-  ffi.Pointer<ffi.Int32> work_ptr,
+  ffi.Pointer<ffi.Pointer<ffi.NativeFunction<Work>>> work_ptr,
 );
 
 typedef _dart_CBLDart_ExecuteCallback = void Function(
-  ffi.Pointer<ffi.Int32> work_ptr,
+  ffi.Pointer<ffi.Pointer<ffi.NativeFunction<Work>>> work_ptr,
 );
 
 typedef _c_CBLDart_DatabaseChangeListener = ffi.Void Function(
@@ -10076,37 +9918,8 @@ typedef _dart_CBLDart_QueryChangeListener = void Function(
   ffi.Pointer<CBLListenerToken> token,
 );
 
-typedef _typedefC_1 = ffi.Int32 Function(
-  ffi.Pointer<ffi.Void>,
-);
-
-typedef _typedefC_2 = ffi.Int32 Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Pointer<ffi.Int8>,
-  ffi.Int32,
-);
-
-typedef _typedefC_3 = ffi.Int64 Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Int64,
-  ffi.Int32,
-);
-
-typedef _typedefC_4 = ffi.Int32 Function(
-  ffi.Pointer<ffi.Void>,
-  ffi.Pointer<ffi.Int8>,
-  ffi.Int32,
-);
-
 typedef CBLReplicationFilter = ffi.Uint8 Function(
   ffi.Pointer<ffi.Void>,
   ffi.Pointer<CBLDocument>,
   ffi.Uint32,
-);
-
-typedef CBLConflictResolver = ffi.Pointer<CBLDocument> Function(
-  ffi.Pointer<ffi.Void>,
-  FLSlice,
-  ffi.Pointer<CBLDocument>,
-  ffi.Pointer<CBLDocument>,
 );

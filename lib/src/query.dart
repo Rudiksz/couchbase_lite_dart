@@ -19,8 +19,6 @@ class Query {
 
   Database db = Database.empty();
 
-  QueryLanguage language = QueryLanguage.n1ql;
-
   String queryString = '';
 
   Pointer<Int32> outErrorPos = calloc<Int32>();
@@ -40,15 +38,15 @@ class Query {
   /// the desired value(s) with [setParameters] each time you run the query.
   ///
   /// You must [dispose] the [Query] when you're finished with it.
-  Query(this.db, this.queryString, {this.language = QueryLanguage.n1ql}) {
+  Query(this.queryString, {required this.db}) {
     final error = calloc<cbl.CBLError>();
 
     final _c_queryString = FLSlice.fromString(queryString);
 
     _query = CBLC.CBLDatabase_CreateQuery(
       db._db,
-      language.index,
-      _c_queryString.slice,
+      QueryLanguage.n1ql.index,
+      _c_queryString.slice.ref,
       outErrorPos,
       error,
     );
@@ -80,9 +78,8 @@ class Query {
   /// The strategy will also show which index(es), if any, are used.
   String explain() {
     if (_query == nullptr) return '';
-    final result = CBLC.CBLQuery_Explain(_query);
-    final slice = FLSlice.fromSliceResult(result);
-    final str = slice.toString();
+    final slice = CBLC.CBLQuery_Explain(_query);
+    final str = slice.asString();
     slice.free();
     return str;
   }
@@ -123,11 +120,16 @@ class Query {
   /// the listener.
   String addChangeListener(Function(ResultSet) callback) =>
       ChangeListeners.addChangeListener<QueryChange>(
-        addListener: (String token) => CBLC.CBLQuery_AddChangeListener(
-          _query,
-          _CBLDart_QueryChangeListener_ptr,
-          token.toNativeUtf8().cast(),
-        ),
+        addListener: (String token) {
+          final _c_token = token.toNativeUtf8();
+          final listenerToken = CBLC.CBLQuery_AddChangeListener(
+            _query,
+            _CBLDart_QueryChangeListener_ptr,
+            _c_token.cast(),
+          );
+          calloc.free(_c_token);
+          return listenerToken;
+        },
         onListenerAdded: (Stream<QueryChange> stream, String token) {
           _liveQueries[token] = _query;
           _listenerTokens.add(token);

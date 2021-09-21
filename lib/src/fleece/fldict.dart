@@ -67,8 +67,8 @@ class FLDict extends IterableBase<FLValue> {
   /// Encodes a Fleece value as JSON (or a JSON fragment.)
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
-    final slice = FLSlice.fromSliceResult(CBLC.FLValue_ToJSON(_value.cast()));
-    final result = slice.toString();
+    final slice = CBLC.FLValue_ToJSON(_value.cast());
+    final result = slice.asString();
     slice.free();
     return result;
   }
@@ -135,8 +135,8 @@ class FLDict extends IterableBase<FLValue> {
   void operator []=(dynamic index, dynamic value) {
     if (!isMutable) {
       throw CouchbaseLiteException(
-        cbl.CBLFleeceDomain,
-        cbl.CBLErrorNotWriteable,
+        cbl.kCBLFleeceDomain,
+        cbl.kCBLErrorNotWriteable,
         'Dictionary is not mutable',
       );
     }

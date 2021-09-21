@@ -67,7 +67,7 @@ class Blob {
     final _c_contentType = FLSlice.fromString(contentType);
 
     pointer = CBLC.CBLBlob_CreateWithData(
-      _c_contentType.slice,
+      _c_contentType.slice.ref,
       slice.ref,
     );
 
@@ -110,7 +110,8 @@ class Blob {
         final _c_contentType = FLSlice.fromString(contentType);
         final blob = result.complete(
           Blob._internal(
-            CBLC.CBLBlob_CreateWithStream(_c_contentType.slice, _blobStream),
+            CBLC.CBLBlob_CreateWithStream(
+                _c_contentType.slice.ref, _blobStream),
             _blobStream,
           ),
         );
@@ -120,8 +121,8 @@ class Blob {
       onError: (error) {
         CBLC.CBLBlobWriter_Close(_blobStream);
         result.completeError(CouchbaseLiteException(
-          cbl.CBLDomain,
-          cbl.CBLErrorNotFound,
+          cbl.kCBLDomain,
+          cbl.kCBLErrorNotFound,
           'Error writing blob from stream',
         ));
       },
@@ -148,22 +149,10 @@ class Blob {
   Uint8List? _content;
 
   /// A blob's MIME type, if its metadata has a `content_type` property.
-  String get contentType {
-    final _c_contentType = FLSlice.fromSlice(CBLC.CBLBlob_ContentType(pointer));
-    final contentType = _c_contentType
-        .toString(); // todo(rudiksz): should we cache this in the dart object?
-    _c_contentType.free();
-    return contentType;
-  }
+  String get contentType => CBLC.CBLBlob_ContentType(pointer).asString();
 
   /// Returns the cryptographic digest of a blob's content (from its `digest` property).
-  String get digest {
-    final _c_digest = FLSlice.fromSlice(CBLC.CBLBlob_Digest(pointer));
-    final digest = _c_digest
-        .toString(); // todo(rudiksz): should we cache this in the dart object?
-    _c_digest.free();
-    return digest;
-  }
+  String get digest => CBLC.CBLBlob_Digest(pointer).asString();
 
   /// Returns the length in bytes of a blob's content (from its `length` property).
   int get length => CBLC.CBLBlob_Length(pointer);

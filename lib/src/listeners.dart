@@ -105,10 +105,10 @@ class ChangeListeners {
   static void removeChangeListener<T>(
     String token, {
     Function(String)? onListenerRemoved,
-  }) async {
+  }) {
     if (token.isEmpty) return;
     final listener = _subscriptions.remove(token);
-    await listener?.cancel();
+    listener?.cancel();
 
     // Remove cbl listener
     if (_cblTokens[token] != null && _cblTokens[token] != nullptr) {

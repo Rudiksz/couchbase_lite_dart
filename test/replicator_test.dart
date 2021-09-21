@@ -64,7 +64,7 @@ void main() {
 
     expect(
       replicator.status.activityLevel,
-      ActivityLevel.stopped,
+      ActivityLevel.idle,
     );
 
     addTearDown(() {
@@ -277,19 +277,19 @@ void main() {
 
     db.saveDocument(
       Document(
-        'testdoc12',
+        'testdoc13',
         data: {'foo': 'bar', 'dt': 'test', 'test': 'v6'},
       ),
       concurrency: ConcurrencyControl.lastWriteWins,
     );
 
-    expect(replicator.isDocumentPending('testdoc10'), true);
+    expect(replicator.isDocumentPending('testdoc13'), true);
     await asyncSleep(500);
     replicator.start();
     await asyncSleep(5000);
-    expect(replicator.isDocumentPending('testdoc10'), false);
+    expect(replicator.isDocumentPending('testdoc13'), false);
     await asyncSleep(5000);
-    expect(replicator.isDocumentPending('testdoc10'), false);
+    expect(replicator.isDocumentPending('testdoc13'), false);
 
     addTearDown(() {
       replicator.stop();
@@ -312,19 +312,16 @@ void main() {
       'testdoc10',
       data: {'foo': 'bar', 'dt': 'test'},
     ));
-
-    //expect(replicator.pendingDocumentIds.length, 1);
-    //expect(replicator.pendingDocumentIds.json, '{"testdoc":true}');
-
-    print(replicator.pendingDocumentIds.length);
-    print(replicator.pendingDocumentIds.json);
+    await asyncSleep(500);
+    expect(replicator.pendingDocumentIds.length, 1);
+    expect(replicator.pendingDocumentIds.json, '{"testdoc10":true}');
 
     await asyncSleep(500);
     replicator.start();
     await asyncSleep(5000);
 
-    //expect(replicator.pendingDocumentIds.length, 0);
-    //expect(replicator.pendingDocumentIds.json, '{}');
+    expect(replicator.pendingDocumentIds.length, 0);
+    expect(replicator.pendingDocumentIds.json, '');
 
     addTearDown(() {
       replicator.stop();

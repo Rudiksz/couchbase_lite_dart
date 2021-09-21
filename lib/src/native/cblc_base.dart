@@ -23,11 +23,11 @@ void initializeCblC({Map<String, String> dylibs = const {}}) {
   late DynamicLibrary dylib;
 
   if (Platform.isAndroid) {
-    dylibPath = 'libCouchbaseLiteC.so';
+    dylibPath = 'cblie.so';
   } else if (Platform.isMacOS) {
-    libName = 'libCouchbaseLiteC.dylib';
+    libName = 'cblite.dylib';
   } else if (Platform.isWindows) {
-    libName = 'CouchbaseLiteC.dll';
+    libName = 'cblite.dll';
   } else if (Platform.isLinux) {
     throw Exception('Linux support is still work in progress');
     //libName = 'CouchbaseLiteC.so';

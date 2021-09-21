@@ -39,8 +39,8 @@ class FLValue {
   /// Encodes a Fleece value as JSON (or a JSON fragment.)
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
-    final slice = FLSlice.fromSliceResult(CBLC.FLValue_ToJSON(_value.cast()));
-    final result = slice.toString();
+    final slice = CBLC.FLValue_ToJSON(_value.cast());
+    final result = slice.asString();
     slice.free();
     return result;
   }
@@ -126,10 +126,7 @@ class FLValue {
   double get asDouble => CBLC.FLValue_AsDouble(_value);
 
   /// Returns the exact contents of a string value, or null for all other types.
-  String get asString {
-    final _c_str = CBLC.FLValue_AsString(_value);
-    return _c_str.buf.cast<Utf8>().toDartString(length: _c_str.size);
-  }
+  String get asString => CBLC.FLValue_AsString(_value).asString();
 
   /// If a FLValue represents an FLArray, returns it cast to FLArray, else NULL.
   FLArray get asArray => type == FLValueType.Array
@@ -144,13 +141,23 @@ class FLValue {
       ? FLDict.fromPointer(CBLC.FLValue_AsDict(_value))
       : FLDict.empty();
 
+  /// If a FLValue represents an map, returns it cast to FLDict, else NULL.
+  FLDict get asMutableDict => type == FLValueType.Dict
+      ? FLDict.fromPointer(CBLC.FLDict_AsMutable(CBLC.FLValue_AsDict(_value)))
+      : FLDict.empty();
+
   @Deprecated('Use FLValue.asDict instead')
   FLDict get asMap => asDict;
 
   /// Returns a string representation of any scalar value. Data values are returned in raw form.
   /// Arrays and dictionaries don't have a representation and will return NULL.
   @override
-  String toString() => json;
+  String toString() {
+    final slice = CBLC.FLValue_ToString(_value);
+    final result = slice.asString();
+    slice.free();
+    return result;
+  }
 
   /// Compares two values for equality. This is a deep recursive comparison.
   @override

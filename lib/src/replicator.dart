@@ -59,11 +59,11 @@ class Replicator {
 
   //-- Replicator config structs. These need to be garbage collected
 
-  FLSlice _c_url = FLSlice.fromString('');
-  FLSlice _c_username = FLSlice.fromString('');
-  FLSlice _c_password = FLSlice.fromString('');
-  FLSlice _c_sessionId = FLSlice.fromString('');
-  FLSlice _c_cookieName = FLSlice.fromString('');
+  var _c_url = FLSlice.fromString('');
+  var _c_username = FLSlice.fromString('');
+  var _c_password = FLSlice.fromString('');
+  var _c_sessionId = FLSlice.fromString('');
+  var _c_cookieName = FLSlice.fromString('');
   Pointer<cbl.CBLEndpoint> _c_endpoint = nullptr;
   Pointer<cbl.CBLAuthenticator> _c_authenticator = nullptr;
 
@@ -71,8 +71,8 @@ class Replicator {
   FLArray _c_documentIDs = FLArray.empty();
   FLDict _c_headers = FLDict.empty();
 
-  FLSlice _c_pinnedServerCertificate = FLSlice.fromString('');
-  FLSlice _c_trustedRootCertificates = FLSlice.fromString('');
+  var _c_pinnedServerCertificate = FLSlice.fromString('');
+  var _c_trustedRootCertificates = FLSlice.fromString('');
 
   ///  The endpoint representing a server-based database at the given URL.
   ///  The URL's scheme must be `ws` or `wss`, it must of course have a valid hostname,
@@ -182,18 +182,19 @@ class Replicator {
     this.sessionId = sessionId;
     this.cookieName = cookieName;
 
-    _c_endpoint = CBLC.CBLEndpoint_CreateWithURL(_c_url.slice);
+    var error = calloc<cbl.CBLError>();
+    _c_endpoint = CBLC.CBLEndpoint_CreateWithURL(_c_url.slice.ref, error);
+    validateError(error);
 
     if (username.isNotEmpty) {
-      print(_c_password.toString());
       _c_authenticator = CBLC.CBLAuth_CreatePassword(
-        _c_username.slice,
-        _c_password.slice,
+        _c_username.slice.ref,
+        _c_password.slice.ref,
       );
     } else {
       _c_authenticator = CBLC.CBLAuth_CreateSession(
-        _c_sessionId.slice,
-        _c_cookieName.slice,
+        _c_sessionId.slice.ref,
+        _c_cookieName.slice.ref,
       );
     }
 
@@ -243,9 +244,9 @@ class Replicator {
       _conflictResolvers[_id] = conflictResolver!;
       config.ref.conflictResolver = _CBLDart_conflictReplicationResolver_ptr;
     }
-    config.ref.conflictResolver = CBLC.CBLDefaultConflictResolver;
+    //config.ref.conflictResolver = CBLC.CBLDefaultConflictResolver;
 
-    final error = calloc<cbl.CBLError>();
+    error = calloc<cbl.CBLError>();
     repl = CBLC.CBLReplicator_Create(config, error);
 
     validateError(error);
@@ -378,7 +379,7 @@ class Replicator {
             : _pullReplicatorFilters[replicatorId.cast<Utf8>().toDartString()];
 
     final result =
-        callback?.call(Document._fromPointer(document), isDeleted != 0);
+        callback?.call(Document.fromPointer(document), isDeleted != 0);
 
     return (result ?? false) ? 1 : 0;
   }
@@ -402,8 +403,8 @@ class Replicator {
 
     final result = callback(
       documentId.cast<Utf8>().toDartString(),
-      Document._fromPointer(localDocument),
-      Document._fromPointer(remoteDocument),
+      Document.fromPointer(localDocument),
+      Document.fromPointer(remoteDocument),
     );
 
     return result._doc;
@@ -441,9 +442,9 @@ class ReplicatorStatus {
         ..code = status.error.code
         ..domain = status.error.domain
         ..internal_info = status.error.internal_info;
-      final res = FLSlice.fromSliceResult(CBLC.CBLError_Message(error));
+      final res = CBLC.CBLError_Message(error);
 
-      errorMessage = res.toString();
+      errorMessage = res.asString();
       calloc.free(error);
       res.free();
     }

@@ -62,8 +62,8 @@ class FLArray extends IterableBase<FLValue> {
   /// Encodes the array value as JSON (or a JSON fragment.)
   /// Any Data values will become base64-encoded JSON strings.
   String get json {
-    final slice = FLSlice.fromSliceResult(CBLC.FLValue_ToJSON(_value.cast()));
-    final result = slice.toString();
+    final slice = CBLC.FLValue_ToJSON(_value.cast());
+    final result = slice.asString();
     slice.free();
     return result;
   }
@@ -125,8 +125,8 @@ class FLArray extends IterableBase<FLValue> {
   void operator []=(int index, dynamic value) {
     if (!isMutable) {
       throw CouchbaseLiteException(
-        cbl.CBLFleeceDomain,
-        cbl.CBLErrorNotWriteable,
+        cbl.kCBLFleeceDomain,
+        cbl.kCBLErrorNotWriteable,
         'List is not mutable',
       );
     }

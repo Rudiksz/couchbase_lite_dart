@@ -115,8 +115,8 @@ void main() {
       () => db.delete(),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLDomain &&
-          e.code == cbl.CBLErrorBusy)),
+          e.domain == cbl.kCBLDomain &&
+          e.code == cbl.kCBLErrorBusy)),
     );
 
     db1.close();
@@ -145,8 +145,8 @@ void main() {
       () => db.endBatch(),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLDomain &&
-          e.code == cbl.CBLErrorNotInTransaction)),
+          e.domain == cbl.kCBLDomain &&
+          e.code == cbl.kCBLErrorNotInTransaction)),
     );
 
     db.beginBatch();
@@ -180,8 +180,8 @@ void main() {
           Document('newdoc'), (_, __) => false),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLDomain &&
-          e.code == cbl.CBLErrorConflict)),
+          e.domain == cbl.kCBLDomain &&
+          e.code == cbl.kCBLErrorConflict)),
     );
 
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
@@ -213,8 +213,8 @@ void main() {
         }),
         throwsA(predicate((e) =>
             e is CouchbaseLiteException &&
-            e.domain == cbl.CBLDomain &&
-            e.code == cbl.CBLErrorConflict)),
+            e.domain == cbl.kCBLDomain &&
+            e.code == cbl.kCBLErrorConflict)),
       );
       expect(db.getDocument('testdoc').properties['foo'].asString, 'bar1');
     }
@@ -260,8 +260,8 @@ void main() {
       () => db.purgeDocument('testdoc'),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLDomain &&
-          e.code == cbl.CBLErrorNotFound)),
+          e.domain == cbl.kCBLDomain &&
+          e.code == cbl.kCBLErrorNotFound)),
     );
     addTearDown(() => db.close());
   });
@@ -492,8 +492,8 @@ void main() {
       () => db.createIndex('index2', ['foo'], language: CBLQueryLanguage.json),
       throwsA(predicate((e) =>
           e is CouchbaseLiteException &&
-          e.domain == cbl.CBLDomain &&
-          e.code == cbl.CBLErrorInvalidQuery)),
+          e.domain == cbl.kCBLDomain &&
+          e.code == cbl.kCBLErrorInvalidQuery)),
     );
 
     expect(

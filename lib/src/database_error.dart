@@ -12,11 +12,11 @@ part of couchbase_lite_dart;
 void validateError(Pointer<cbl.CBLError> error, {Function? cleanup}) {
   if (error == nullptr) return;
   if (error.ref.domain > 0) {
-    final _c_message = FLSlice.fromSliceResult(CBLC.CBLError_Message(error));
+    final _c_message = CBLC.CBLError_Message(error);
 
     final domain = error.ref.domain;
     final code = error.ref.code;
-    final message = _c_message.toString();
+    final message = _c_message.asString();
     _c_message.free();
 
     if (cleanup != null) cleanup();

@@ -1,0 +1,9 @@
+CBLDart_PostCObject
+CBLDart_NewNativePort
+CBLDart_CloseNativePort
+CBLDart_RegisterPorts
+CBLDart_ExecuteCallback
+CBLDart_DatabaseChangeListener
+CBLDart_DocumentChangeListener
+CBLDart_QueryChangeListener
+CBLDart_ReplicatorChangeListener

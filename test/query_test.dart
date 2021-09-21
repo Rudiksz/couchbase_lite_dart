@@ -30,10 +30,10 @@ void main() {
     var db = Database('query1', directory: TESTDIR);
 
     expect(
-      () => Query(db, ''),
+      () => Query('', db: db),
       throwsA(predicate(
         (p) =>
-            p is CouchbaseLiteException && p.code == cbl.CBLErrorInvalidQuery,
+            p is CouchbaseLiteException && p.code == cbl.kCBLErrorInvalidQuery,
       )),
     );
 
@@ -43,7 +43,7 @@ void main() {
   test('explain', () {
     var db = Database('query2', directory: TESTDIR);
 
-    final query = Query(db, 'SELECT *');
+    final query = Query('SELECT * FROM _default', db: db);
     expect(query.explain(), isA<String>());
 
     addTearDown(() => db.close());
@@ -51,7 +51,7 @@ void main() {
 
   test('execute', () async {
     var db = Database('query3', directory: TESTDIR);
-    final query = Query(db, 'SELECT *');
+    final query = Query('SELECT * FROM _default as doc', db: db);
     expect(query.execute().allResults, []);
 
     await asyncSleep(500);
@@ -63,10 +63,10 @@ void main() {
       query.execute().allResults,
       [
         {
-          '_doc': {'foo': 'bar'}
+          'doc': {'foo': 'bar'}
         },
         {
-          '_doc': {'foo': 'baz'}
+          'doc': {'foo': 'baz'}
         }
       ],
     );
@@ -79,7 +79,7 @@ void main() {
     db.saveDocument(Document('testdoc', data: {'foo': 'bar'}));
     db.saveDocument(Document('testdoc1', data: {'foo': 'baz'}));
 
-    final query = Query(db, 'SELECT * WHERE foo LIKE \$BAR');
+    final query = Query('SELECT * FROM _default WHERE foo LIKE \$BAR', db: db);
 
     expect(query.parameters, {});
 
@@ -95,7 +95,7 @@ void main() {
       throwsA(predicate(
         (e) =>
             e is CouchbaseLiteException &&
-            e.code == cbl.CBLErrorInvalidQueryParam,
+            e.code == cbl.kCBLErrorInvalidQueryParam,
       )),
     );
 
@@ -104,7 +104,7 @@ void main() {
 
   test('ResultSet', () async {
     var db = Database('query3', directory: TESTDIR);
-    final query = Query(db, 'SELECT foo');
+    final query = Query('SELECT foo FROM _default', db: db);
     expect(query.execute().next(), false);
 
     await asyncSleep(500);
@@ -137,7 +137,8 @@ void main() {
 
     db.saveDocument(Document('testdoc1', data: {'foo': 'bar'}));
 
-    final query = Query(db, 'SELECT * WHERE foo LIKE "%ba%"');
+    final query =
+        Query('SELECT * FROM _default as doc WHERE foo LIKE "%ba%"', db: db);
     var changes_received = false;
     var rows = [];
 
@@ -152,7 +153,7 @@ void main() {
 
     expect(rows, [
       {
-        '_doc': {'foo': 'bar'}
+        'doc': {'foo': 'bar'}
       }
     ]);
 
@@ -163,10 +164,10 @@ void main() {
     expect(changes_received, true);
     expect(rows, [
       {
-        '_doc': {'foo': 'bar'}
+        'doc': {'foo': 'bar'}
       },
       {
-        '_doc': {'foo': 'baz'}
+        'doc': {'foo': 'baz'}
       }
     ]);
 
@@ -180,10 +181,10 @@ void main() {
     expect(changes_received, false);
     expect(rows, [
       {
-        '_doc': {'foo': 'bar'}
+        'doc': {'foo': 'bar'}
       },
       {
-        '_doc': {'foo': 'baz'}
+        'doc': {'foo': 'baz'}
       }
     ]);
 
