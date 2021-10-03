@@ -127,7 +127,7 @@ class Query {
             _CBLDart_QueryChangeListener_ptr,
             _c_token.cast(),
           );
-          calloc.free(_c_token);
+          //calloc.free(_c_token); // TODO fix memory leak
           return listenerToken;
         },
         onListenerAdded: (Stream<QueryChange> stream, String token) {
